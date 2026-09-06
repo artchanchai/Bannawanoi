@@ -372,15 +372,34 @@ const getCourse = () => getCoursesForClass().find(c => c.id === window.state.sel
                 </button>
             `).join('');
 
-            const container = document.getElementById('contentArea');
-            if(window.state.activeTab === 'settings') container.innerHTML = htmlSettings();
-            else if(window.state.activeTab === 'attendance') container.innerHTML = htmlAttendance();
-            else if(window.state.activeTab === 'grading') container.innerHTML = htmlGrading();
-            else if(window.state.activeTab === 'evaluations') container.innerHTML = htmlEvaluations();
-            else if(window.state.activeTab === 'activities') container.innerHTML = htmlActivities();
-            else if(window.state.activeTab === 'print') container.innerHTML = htmlPrintSummary();
-            else if(window.state.activeTab === 'promotion') container.innerHTML = htmlPromotion();
+                    const container = document.getElementById('contentArea');
+        
+        // --- 1. เพิ่มคำสั่งจำตำแหน่ง Scroll ก่อนรีเฟรชหน้า ---
+        let scrollX = 0, scrollY = 0;
+        const scrollable = container.querySelector('.overflow-x-auto');
+        if (scrollable) {
+            scrollX = scrollable.scrollLeft;
+            scrollY = scrollable.scrollTop;
         }
+        // -----------------------------------------------
+
+        if(window.state.activeTab === 'settings') container.innerHTML = htmlSettings();
+        else if(window.state.activeTab === 'attendance') container.innerHTML = htmlAttendance();
+        else if(window.state.activeTab === 'grading') container.innerHTML = htmlGrading();
+        else if(window.state.activeTab === 'evaluations') container.innerHTML = htmlEvaluations();
+        else if(window.state.activeTab === 'activities') container.innerHTML = htmlActivities();
+        else if(window.state.activeTab === 'print') container.innerHTML = htmlPrintSummary();
+        else if(window.state.activeTab === 'promotion') container.innerHTML = htmlPromotion();
+
+        // --- 2. เพิ่มคำสั่งคืนค่าตำแหน่ง Scroll ---
+        const newScrollable = container.querySelector('.overflow-x-auto');
+        if (newScrollable) {
+            newScrollable.scrollLeft = scrollX;
+            newScrollable.scrollTop = scrollY;
+        }
+        // -------------------------------------
+    }
+
 
         // ----------------- HTML TEMPLATES -----------------
         function htmlSettings() {
