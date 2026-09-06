@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ระบบ ปพ.5 (Smart Report)</title>
+    <title>ระบบ ปพ.5 โรงเรียนบ้านนาหว้าน้อย </title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -167,11 +167,21 @@
             headName: 'นางสาวเรียนดี มีวิชา',
             directorName: 'นายอำนวย บริหารเก่ง',
             logoUrl: 'IMG_4847.jpeg',
+
+
+
+                        courses: {
+                'ป.1': [], 'ป.2': [], 'ป.3': [], 'ป.4': [], 'ป.5': [],
+                'ป.6': [
+                    { id: 'c1', code: 'ค16101', name: 'คณิตศาสตร์พื้นฐาน', credit: '2.0', midCollect: 35, midExam: 15, finalCollect: 35, finalExam: 15, indicators: ['ค 1.1 ป.6/1 เข้าใจและประยุกต์ใช้อัตราส่วน'] }
+                ]
+            },
+
+
+
+
+
             
-            courses: [
-                { id: 'c1', code: 'ค16101', name: 'คณิตศาสตร์พื้นฐาน', credit: '2.0', midCollect: 35, midExam: 15, finalCollect: 35, finalExam: 15, indicators: ['ค 1.1 ป.6/1 เข้าใจและประยุกต์ใช้อัตราส่วน', 'ค 1.1 ป.6/2 เข้าใจรูปเรขาคณิต 3 มิติ'] },
-                { id: 'c2', code: 'ท16101', name: 'ภาษาไทยพื้นฐาน', credit: '2.0', midCollect: 30, midExam: 20, finalCollect: 30, finalExam: 20, indicators: ['ท 1.1 ป.6/1 อ่านออกเสียงบทร้อยแก้ว'] }
-            ],
             
             students: {
                 'ป.1': [{ id: '1101', no: 1, name: 'ด.ช. ทดสอบ ป.1', statusR: false }],
@@ -291,7 +301,14 @@
 
         // ----------------- CORE FUNCTIONS -----------------
         const getStudents = () => (window.state.students[window.state.selectedClass] || []).sort((a,b)=>a.no-b.no);
-        const getCourse = () => window.state.courses.find(c => c.id === window.state.selectedCourseId) || window.state.courses[0];
+        
+        
+        const getCoursesForClass = () => window.state.courses[window.state.selectedClass] || [];
+const getCourse = () => getCoursesForClass().find(c => c.id === window.state.selectedCourseId) || getCoursesForClass()[0] || { id: '', code: '', name: '', credit: '', midCollect: '', midExam: '', finalCollect: '', finalExam: '', indicators: [] };
+
+
+
+        
         
         function calcAtt(studentId) {
             const atts = (window.state.attendance[window.state.selectedCourseId] || {})[studentId] || {};
@@ -327,9 +344,16 @@
             saveDataToCloud();
             document.getElementById('userRoleDisplay').innerHTML = window.currentUserRole === 'admin' ? '<i class="fa-solid fa-shield-halved"></i> ผู้ดูแลระบบ (Admin)' : '<i class="fa-solid fa-user-tie"></i> ครูผู้สอน (Teacher)';
             document.getElementById('classSelector').value = window.state.selectedClass;
-            
+
             const cSel = document.getElementById('courseSelector');
-            cSel.innerHTML = window.state.courses.map(c => `<option value="${c.id}" ${c.id===window.state.selectedCourseId?'selected':''}>${c.code} ${c.name}</option>`).join('');
+            const currentCourses = window.state.courses[window.state.selectedClass] || [];
+            cSel.innerHTML = currentCourses.map(c => `<option value="${c.id}" ${c.id===window.state.selectedCourseId?'selected':''}>${c.code} ${c.name}</option>`).join('');
+            if(currentCourses.length === 0) cSel.innerHTML = '<option value="">ไม่มีรายวิชา</option>';
+
+
+
+
+
             
             let tabsDef = [
                 { id: 'settings', label: 'จัดการรายวิชา', icon: 'fa-gear' },
@@ -367,8 +391,17 @@
                         <h2 class="text-base sm:text-lg font-bold text-gray-800">ตั้งค่ารายวิชาและตัวชี้วัด</h2>
                         ${isAdmin ? `<button onclick="window.addCourse()" class="px-3 py-1.5 bg-green-600 text-white rounded text-sm w-full sm:w-auto"><i class="fa-solid fa-plus"></i> เพิ่มวิชาใหม่</button>` : ''}
                     </div>
-                    <div class="bg-gray-50 p-3 sm:p-4 rounded-lg border relative">
-                        ${isAdmin && window.state.courses.length > 1 ? `<button onclick="window.delCourse('${c.id}')" class="absolute top-2 right-2 text-red-500 hover:bg-red-100 p-1.5 sm:p-2 rounded text-xs"><i class="fa-solid fa-trash"></i> ลบวิชานี้</button>` : ''}
+
+
+                        <div class="bg-gray-50 p-3 sm:p-4 rounded-lg border relative">
+                        ${!c.id ? `<div class="absolute inset-0 bg-white/90 z-10 flex items-center justify-center font-bold text-gray-500 rounded-lg">ยังไม่มีรายวิชา กรุณากดปุ่มเพิ่มวิชาใหม่</div>` : ''}
+                        ${isAdmin && c.id ? `<button onclick="window.delCourse('${c.id}')" class="absolute top-2 right-2 text-red-500 hover:bg-red-100 p-1.5 sm:p-2 rounded text-xs z-20"><i class="fa-solid fa-trash"></i> ลบวิชานี้</button>` : ''}
+
+
+
+
+
+
                         
                         <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 mt-6 sm:mt-0">
                             <div><label class="block text-xs text-gray-600 mb-1">รหัสวิชา</label><input type="text" id="cfg_code" value="${c.code}" class="w-full p-2 text-sm border rounded" onchange="window.saveCourseCfg()" ${!isAdmin?'disabled':''}></div>
@@ -652,7 +685,8 @@
 
         function htmlPrintSummary() {
             const st = getStudents();
-            const courses = window.state.courses;
+            const courses = window.state.courses[window.state.selectedClass] || [];
+
             let mCount = 0, fCount = 0;
             st.forEach(s => { if(s.name.includes('ด.ช.')) mCount++; else fCount++; });
             const totalStudents = mCount + fCount;
@@ -881,11 +915,20 @@
         };
 
         window.setTab = function(t) { window.state.activeTab = t; renderApp(); };
-        window.changeClass = function() { window.state.selectedClass = document.getElementById('classSelector').value; renderApp(); };
+
+
+
+
+                window.changeClass = function() { 
+            window.state.selectedClass = document.getElementById('classSelector').value; 
+            const classCourses = getCoursesForClass();
+            window.state.selectedCourseId = classCourses.length > 0 ? classCourses[0].id : '';
+            renderApp(); 
+        };
         window.changeCourse = function() { window.state.selectedCourseId = document.getElementById('courseSelector').value; renderApp(); };
         
         window.saveCourseCfg = function() {
-            const c = getCourse();
+            const c = getCourse(); if (!c.id) return;
             c.code = document.getElementById('cfg_code').value;
             c.name = document.getElementById('cfg_name').value;
             c.credit = document.getElementById('cfg_credit').value;
@@ -897,20 +940,33 @@
         };
 
         window.addIndicator = function() {
+            const c = getCourse(); if (!c.id) return;
             const v = document.getElementById('new_ind').value.trim();
-            if(v) { getCourse().indicators = getCourse().indicators || []; getCourse().indicators.push(v); renderApp(); }
+            if(v) { c.indicators = c.indicators || []; c.indicators.push(v); renderApp(); }
         };
         window.delIndicator = function(idx) { getCourse().indicators.splice(idx, 1); renderApp(); };
 
         window.addCourse = function() {
             const id = 'c' + Date.now();
-            window.state.courses.push({ id: id, code: 'NEW', name: 'รายวิชาใหม่', credit: '1.0', midCollect: 35, midExam: 15, finalCollect: 35, finalExam: 15, indicators: [] });
+            if(!window.state.courses[window.state.selectedClass]) window.state.courses[window.state.selectedClass] = [];
+            window.state.courses[window.state.selectedClass].push({ id: id, code: 'NEW', name: 'รายวิชาใหม่', credit: '1.0', midCollect: 35, midExam: 15, finalCollect: 35, finalExam: 15, indicators: [] });
             window.state.selectedCourseId = id; renderApp();
         };
+        
         window.delCourse = function(id) {
-            window.state.courses = window.state.courses.filter(c => c.id !== id);
-            window.state.selectedCourseId = window.state.courses[0].id; renderApp();
+            window.state.courses[window.state.selectedClass] = window.state.courses[window.state.selectedClass].filter(c => c.id !== id);
+            const remaining = window.state.courses[window.state.selectedClass];
+            window.state.selectedCourseId = remaining.length > 0 ? remaining[0].id : ''; 
+            renderApp();
         };
+
+
+
+
+        
+
+        
+
 
         window.addStudent = function() {
             const no = document.getElementById('new_s_no').value; const name = document.getElementById('new_s_name').value;
