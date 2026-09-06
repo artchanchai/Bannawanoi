@@ -50,15 +50,33 @@
             margin: 0 auto;
             padding: 15mm;
         }
-        @media print {
+
+
+
+
+                @media print {
             @page { size: A4 portrait; margin: 0; }
-            body { background: white; margin: 0; padding: 0; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+            /* ปลดล็อกการซ่อนเนื้อหาเกินขนาด (Overflow) ให้พิมพ์ได้หลายหน้า */
+            body, main { 
+                background: white; 
+                margin: 0; 
+                padding: 0; 
+                overflow: visible !important; 
+                height: auto !important;
+                -webkit-print-color-adjust: exact; 
+                print-color-adjust: exact; 
+            }
             .no-print { display: none !important; }
             .a4-preview { width: 100%; min-height: 100vh; box-shadow: none; margin: 0; padding: 10mm; page-break-after: always; }
             #appWrapper { display: block !important; height: auto !important; }
             #contentArea { padding: 0; border: none; box-shadow: none; overflow: visible !important; }
             .print-flex-wrap { flex-wrap: wrap; }
         }
+
+
+
+
+        
     </style>
 </head>
 <body class="overflow-hidden">
@@ -127,7 +145,7 @@
         </header>
 
         <!-- Main Content Area -->
-        <main class="flex-1 overflow-y-auto bg-gray-100 no-print">
+        <main class="flex-1 overflow-y-auto bg-gray-100 ">
             <div class="max-w-7xl mx-auto px-2 sm:px-4 py-4">
                 <!-- Tabs -->
                 <div class="bg-white rounded-t-lg shadow-sm border-b border-gray-200 flex overflow-x-auto custom-scrollbar" id="tabsContainer"></div>
