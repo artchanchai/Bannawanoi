@@ -231,7 +231,7 @@
         // --- จุดที่ 1: ตั้งค่า URL และฟังก์ชันดึงข้อมูล ---
         // นำ URL ที่ได้จากข้อ 9 มาวางแทนที่ข้อความด้านล่างนี้
         const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyWmcsqw_YAkRGSBWcz0if1dztx1yxTRiY4b7HfAGW6FoX-J-RGlkNcSc3HuHnsV2Dz/exec'; 
-                async function loadDataFromCloud(targetClass = 'ป.1') {
+                async function loadDataFromCloud(targetClass = 'ป.6') {
             try {
                 const errBox = document.getElementById('loginError');
                 if(errBox) {
@@ -276,7 +276,7 @@
         }
 
         // สั่งให้โหลดข้อมูลเริ่มต้นที่ ป.6 ทันทีที่เปิดหน้าเว็บ
-        window.onload = () => loadDataFromCloud('ป.1');
+        window.onload = () => loadDataFromCloud('ป.6');
 
         // ------------------------------------------------
 
