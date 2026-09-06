@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ระบบ ปพ.5 โรงเรียนบ้านนาหว้าน้อย </title>
+    <link rel="icon" href="IMG_4847.jpeg" type="image/png">
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -533,14 +534,37 @@ const getCourse = () => getCoursesForClass().find(c => c.id === window.state.sel
                         </tbody>
                     </table>
                 </div>
-                <div class="mt-4 p-4 bg-red-50 rounded border border-red-200 text-xs text-red-800 leading-relaxed shadow-sm max-h-40 overflow-y-auto custom-scrollbar">
-                    <strong class="text-sm block mb-2"><i class="fa-solid fa-calendar-xmark"></i> หมายเหตุวันหยุดนักขัตฤกษ์และวันสำคัญ:</strong> 
-                    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
-                        ${holidayDetails}
+                <!-- ส่วนที่แก้ให้ยืดเต็มจอ -->
+                    <div class="mt-4 p-4 bg-red-50 rounded border border-red-200 text-xs text-red-800 leading-relaxed shadow-sm flex-1 overflow-y-auto custom-scrollbar">
+                        <strong class="text-sm block mb-2"><i class="fa-solid fa-calendar-xmark"></i> หมายเหตุวันหยุดนักขัตฤกษ์และวันสำคัญ:</strong> 
+                        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
+                            ${holidayDetails}
+                        </div>
                     </div>
                 </div>
             `;
         }
+
+
+
+
+
+
+        
+
+
+
+
+
+
+
+
+
+
+        
+
+        
+
 
         function htmlGrading() {
             const c = getCourse(); const students = getStudents();
