@@ -250,7 +250,7 @@
             saveTimeout = setTimeout(() => {
                 fetch(SCRIPT_URL, {
                     method: 'POST',
-                    mode: 'no-cors', // เพิ่มบรรทัดนี้เพื่อป้องกันการบล็อกข้ามโดเมนบน GitHub
+                   // mode: 'no-cors', // เพิ่มบรรทัดนี้เพื่อป้องกันการบล็อกข้ามโดเมนบน GitHub
                     body: JSON.stringify(window.state)
                 }).catch(e => console.error('Error saving data:', e));
             }, 1500); 
