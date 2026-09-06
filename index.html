@@ -211,7 +211,7 @@
 
         // --- จุดที่ 1: ตั้งค่า URL และฟังก์ชันดึงข้อมูล ---
         // นำ URL ที่ได้จากข้อ 9 มาวางแทนที่ข้อความด้านล่างนี้
-        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzQmPfq3VSaOysVCzSiLP0ImGlIW00feFaqaKXCbQ15BgEyC-1AGahjt6XkUZIjkz4f/exec'; 
+        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzWTsgTJHUz78lQtMJVP88PW25epcvI8arIj_YGlcJJO7CGhQpKeFTXkxSRkvjrX2oW/exec'; 
         
         async function loadDataFromCloud() {
             try {
@@ -250,7 +250,7 @@
             saveTimeout = setTimeout(() => {
                 fetch(SCRIPT_URL, {
                     method: 'POST',
-                   // mode: 'no-cors', // เพิ่มบรรทัดนี้เพื่อป้องกันการบล็อกข้ามโดเมนบน GitHub
+                    mode: 'no-cors', // เพิ่มบรรทัดนี้เพื่อป้องกันการบล็อกข้ามโดเมนบน GitHub
                     body: JSON.stringify(window.state)
                 }).catch(e => console.error('Error saving data:', e));
             }, 1500); 
