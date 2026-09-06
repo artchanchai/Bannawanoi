@@ -55,24 +55,43 @@
 
 
 
-                @media print {
-            @page { size: A4 portrait; margin: 0; }
-            /* ปลดล็อกการซ่อนเนื้อหาเกินขนาด (Overflow) ให้พิมพ์ได้หลายหน้า */
-            body, main { 
-                background: white; 
-                margin: 0; 
-                padding: 0; 
-                overflow: visible !important; 
+                       @media print {
+            /* 1. กำหนดขนาดกระดาษ A4 แนวตั้ง และตั้งค่าขอบกระดาษ */
+            @page { size: A4 portrait; margin: 10mm; }
+            
+            /* 2. ซ่อนหัวเว็บ แถบเมนู และปุ่มที่ไม่ได้ใช้ */
+            header, #tabsContainer, .no-print { display: none !important; }
+            
+            /* 3. ล้างค่าสีพื้นหลังและขอบของโครงสร้างแอป */
+            body, html { background: white !important; margin: 0; padding: 0; height: auto !important; }
+            #appWrapper, main, #contentArea { 
+                display: block !important; 
                 height: auto !important;
+                padding: 0 !important; 
+                margin: 0 !important; 
+                border: none !important; 
+                box-shadow: none !important;
+                background: transparent !important;
+                overflow: visible !important; 
                 -webkit-print-color-adjust: exact; 
                 print-color-adjust: exact; 
             }
-            .no-print { display: none !important; }
-            .a4-preview { width: 100%; min-height: 100vh; box-shadow: none; margin: 0; padding: 10mm; page-break-after: always; }
-            #appWrapper { display: block !important; height: auto !important; }
-            #contentArea { padding: 0; border: none; box-shadow: none; overflow: visible !important; }
+            
+            /* 4. บังคับเนื้อหาให้อยู่ในกรอบ A4 พอดี */
+            .a4-preview { 
+                width: 190mm !important; /* ความกว้าง A4 หักลบขอบซ้ายขวา */
+                max-width: 100% !important;
+                min-height: auto !important; 
+                box-shadow: none !important; 
+                margin: 0 auto !important; 
+                padding: 0 !important; 
+                page-break-after: avoid; 
+                position: relative;
+            }
+            
             .print-flex-wrap { flex-wrap: wrap; }
         }
+
 
 
 
@@ -212,33 +231,53 @@
         // --- จุดที่ 1: ตั้งค่า URL และฟังก์ชันดึงข้อมูล ---
         // นำ URL ที่ได้จากข้อ 9 มาวางแทนที่ข้อความด้านล่างนี้
         const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyWmcsqw_YAkRGSBWcz0if1dztx1yxTRiY4b7HfAGW6FoX-J-RGlkNcSc3HuHnsV2Dz/exec'; 
-        
-        async function loadDataFromCloud() {
+                async function loadDataFromCloud(targetClass = 'ป.1') {
             try {
-                // แสดงข้อความกำลังโหลดที่หน้า Login
                 const errBox = document.getElementById('loginError');
-                errBox.innerText = 'กำลังโหลดข้อมูลล่าสุดจากฐานข้อมูล...';
-                errBox.classList.remove('hidden');
-                errBox.classList.replace('bg-red-100', 'bg-blue-100');
-                errBox.classList.replace('text-red-600', 'text-blue-600');
+                if(errBox) {
+                    errBox.innerText = `กำลังโหลดข้อมูลชั้น ${targetClass}...`;
+                    errBox.classList.remove('hidden');
+                    errBox.classList.replace('bg-red-100', 'bg-blue-100');
+                    errBox.classList.replace('text-red-600', 'text-blue-600');
+                }
                 
-                const response = await fetch(SCRIPT_URL);
+                // ส่งชื่อชั้นไปขอข้อมูลเฉพาะคอลัมน์ของชั้นนั้น
+                const response = await fetch(SCRIPT_URL + '?cls=' + targetClass);
                 const data = await response.json();
                 
                 if(Object.keys(data).length > 0) {
-                    window.state = data; // เอาข้อมูลจาก Sheets มาทับค่าเริ่มต้น
+                    window.state = data; 
+                } else {
+                    // ถ้ายังไม่มีข้อมูลในชีต ให้ตั้งค่าเริ่มต้น
+                    window.state.selectedClass = targetClass;
+                    window.state.students = window.state.students || {};
+                    window.state.students[targetClass] = window.state.students[targetClass] || [];
+                    window.state.courses = window.state.courses || {};
+                    window.state.courses[targetClass] = window.state.courses[targetClass] || [];
                 }
                 
-                errBox.classList.add('hidden'); // ซ่อนข้อความเมื่อโหลดเสร็จ
-                errBox.classList.replace('bg-blue-100', 'bg-red-100');
-                errBox.classList.replace('text-blue-600', 'text-red-600');
+                if(errBox) {
+                    errBox.classList.add('hidden');
+                    errBox.classList.replace('bg-blue-100', 'bg-red-100');
+                    errBox.classList.replace('text-blue-600', 'text-red-600');
+                }
+                
+                // เลืออกวิชาแรกของชั้นอัตโนมัติ
+                const classCourses = window.state.courses[targetClass] || [];
+                window.state.selectedCourseId = classCourses.length > 0 ? classCourses[0].id : '';
+                
+                // ถ้าระบบโหลดข้อมูลเสร็จตอนที่ล็อกอินเข้ามาแล้ว ให้แสดงผลหน้าจอ
+                if (window.currentUserRole) {
+                    renderApp();
+                }
             } catch(e) {
                 console.error('Error loading data:', e);
             }
         }
 
-        // สั่งให้โหลดข้อมูลทันทีที่เปิดหน้าเว็บ
-        window.onload = loadDataFromCloud;
+        // สั่งให้โหลดข้อมูลเริ่มต้นที่ ป.6 ทันทีที่เปิดหน้าเว็บ
+        window.onload = () => loadDataFromCloud('ป.1');
+
         // ------------------------------------------------
 
       
@@ -961,13 +1000,14 @@ const getCourse = () => getCoursesForClass().find(c => c.id === window.state.sel
 
 
 
-
-                window.changeClass = function() { 
-            window.state.selectedClass = document.getElementById('classSelector').value; 
-            const classCourses = getCoursesForClass();
-            window.state.selectedCourseId = classCourses.length > 0 ? classCourses[0].id : '';
-            renderApp(); 
+        window.changeClass = function() { 
+            const newClass = document.getElementById('classSelector').value; 
+            // แสดงสถานะกำลังโหลดข้อมูล
+            document.getElementById('contentArea').innerHTML = '<div class="p-10 text-center text-blue-600 font-bold"><i class="fa-solid fa-spinner fa-spin text-3xl mb-3"></i><br>กำลังสลับฐานข้อมูลไปที่ชั้น ' + newClass + '...</div>';
+            // โหลดข้อมูลของชั้นที่เลือกจากฐานข้อมูล
+            loadDataFromCloud(newClass);
         };
+
         window.changeCourse = function() { window.state.selectedCourseId = document.getElementById('courseSelector').value; renderApp(); };
         
         window.saveCourseCfg = function() {
@@ -987,6 +1027,8 @@ const getCourse = () => getCoursesForClass().find(c => c.id === window.state.sel
             const v = document.getElementById('new_ind').value.trim();
             if(v) { c.indicators = c.indicators || []; c.indicators.push(v); renderApp(); }
         };
+
+        
         window.delIndicator = function(idx) { getCourse().indicators.splice(idx, 1); renderApp(); };
 
         window.addCourse = function() {
