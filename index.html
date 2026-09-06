@@ -212,20 +212,21 @@
         window.onload = loadDataFromCloud;
         // ------------------------------------------------
 
+      
+
         // --- จุดที่ 2: ฟังก์ชันสำหรับเซฟข้อมูล ---
-        // ใช้ตัวจับเวลา (Debounce) เพื่อไม่ให้ระบบยิงข้อมูลไปถี่เกินไปจน Google บล็อก
         let saveTimeout = null;
         function saveDataToCloud() {
             clearTimeout(saveTimeout);
             saveTimeout = setTimeout(() => {
                 fetch(SCRIPT_URL, {
                     method: 'POST',
+                    mode: 'no-cors', // เพิ่มบรรทัดนี้เพื่อป้องกันการบล็อกข้ามโดเมนบน GitHub
                     body: JSON.stringify(window.state)
                 }).catch(e => console.error('Error saving data:', e));
-            }, 1500); // จะเซฟข้อมูลหลังจากหยุดพิมพ์/หยุดคลิก 1.5 วินาที
+            }, 1500); 
         }
         // ------------------------------------------------
-
 
 
 
@@ -306,12 +307,6 @@
        
             // --- จุดที่ 3: สั่งให้เซฟข้อมูลลงเน็ตทุกครั้งที่หน้าจอเปลี่ยน ---
             saveDataToCloud();
-            
-            document.getElementById('userRoleDisplay').innerHTML = window.currentUserRole === 'admin' ? ...
-
-
-
-
             document.getElementById('userRoleDisplay').innerHTML = window.currentUserRole === 'admin' ? '<i class="fa-solid fa-shield-halved"></i> ผู้ดูแลระบบ (Admin)' : '<i class="fa-solid fa-user-tie"></i> ครูผู้สอน (Teacher)';
             document.getElementById('classSelector').value = window.state.selectedClass;
             
