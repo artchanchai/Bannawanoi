@@ -383,9 +383,9 @@ const getCourse = () => getCoursesForClass().find(c => c.id === window.state.sel
 
 
 
-            
-            let tabsDef = [
+                        let tabsDef = [
                 { id: 'settings', label: 'จัดการรายวิชา', icon: 'fa-gear' },
+                { id: 'student_info', label: 'ข้อมูลนักเรียน', icon: 'fa-address-card' },
                 { id: 'attendance', label: 'เช็คเวลาเรียน', icon: 'fa-calendar-check' },
                 { id: 'grading', label: 'คะแนนและเกรด', icon: 'fa-calculator' },
                 { id: 'evaluations', label: 'คุณลักษณะฯ', icon: 'fa-award' },
@@ -400,24 +400,26 @@ const getCourse = () => getCoursesForClass().find(c => c.id === window.state.sel
                 </button>
             `).join('');
 
-                    const container = document.getElementById('contentArea');
+            const container = document.getElementById('contentArea');
         
-        // --- 1. เพิ่มคำสั่งจำตำแหน่ง Scroll ก่อนรีเฟรชหน้า ---
-        let scrollX = 0, scrollY = 0;
-        const scrollable = container.querySelector('.overflow-x-auto');
-        if (scrollable) {
-            scrollX = scrollable.scrollLeft;
-            scrollY = scrollable.scrollTop;
-        }
-        // -----------------------------------------------
+            // --- 1. เพิ่มคำสั่งจำตำแหน่ง Scroll ก่อนรีเฟรชหน้า ---
+            let scrollX = 0, scrollY = 0;
+            const scrollable = container.querySelector('.overflow-x-auto');
+            if (scrollable) {
+                scrollX = scrollable.scrollLeft;
+                scrollY = scrollable.scrollTop;
+            }
+            // -----------------------------------------------
 
-        if(window.state.activeTab === 'settings') container.innerHTML = htmlSettings();
-        else if(window.state.activeTab === 'attendance') container.innerHTML = htmlAttendance();
-        else if(window.state.activeTab === 'grading') container.innerHTML = htmlGrading();
-        else if(window.state.activeTab === 'evaluations') container.innerHTML = htmlEvaluations();
-        else if(window.state.activeTab === 'activities') container.innerHTML = htmlActivities();
-        else if(window.state.activeTab === 'print') container.innerHTML = htmlPrintSummary();
-        else if(window.state.activeTab === 'promotion') container.innerHTML = htmlPromotion();
+            if(window.state.activeTab === 'settings') container.innerHTML = htmlSettings();
+            else if(window.state.activeTab === 'student_info') container.innerHTML = htmlStudentInfo();
+            else if(window.state.activeTab === 'attendance') container.innerHTML = htmlAttendance();
+            else if(window.state.activeTab === 'grading') container.innerHTML = htmlGrading();
+            else if(window.state.activeTab === 'evaluations') container.innerHTML = htmlEvaluations();
+            else if(window.state.activeTab === 'activities') container.innerHTML = htmlActivities();
+            else if(window.state.activeTab === 'print') container.innerHTML = htmlPrintSummary();
+            else if(window.state.activeTab === 'promotion') container.innerHTML = htmlPromotion();
+
 
         // --- 2. เพิ่มคำสั่งคืนค่าตำแหน่ง Scroll ---
         const newScrollable = container.querySelector('.overflow-x-auto');
@@ -544,6 +546,78 @@ const getCourse = () => getCoursesForClass().find(c => c.id === window.state.sel
                 </div>
             `;
         }
+
+
+                      function htmlStudentInfo() {
+            const students = getStudents();
+            return `
+                <div class="mb-4 flex flex-col sm:flex-row justify-between sm:items-center gap-2">
+                    <h2 class="text-base sm:text-lg font-bold text-gray-800">ข้อมูลพื้นฐานนักเรียน ชั้น ${window.state.selectedClass}</h2>
+                    <div class="flex gap-2 flex-wrap">
+                        <span class="text-xs bg-blue-50 text-blue-700 px-3 py-1.5 rounded-md border border-blue-200 flex items-center"><i class="fa-solid fa-pen mr-1"></i> พิมพ์แก้ไขข้อมูลได้ทันที</span>
+                        <button onclick="window.exportToExcel()" class="bg-green-600 hover:bg-green-700 text-white text-xs px-4 py-1.5 rounded-md shadow-sm font-bold flex items-center transition-colors"><i class="fa-solid fa-file-excel mr-1"></i> ส่งออก Excel</button>
+                    </div>
+                </div>
+                <div class="overflow-x-auto overflow-y-auto max-h-[65vh] border rounded-lg custom-scrollbar bg-white w-full">
+                    <table class="w-full text-xs sm:text-sm text-left whitespace-nowrap min-w-max attendance-table">
+                        <thead class="bg-gray-100">
+                            <tr>
+                                <th class="sticky-name-header p-2 min-w-[200px] border-r-2 border-gray-300">เลขที่ | ชื่อ - สกุล</th>
+                                <th class="p-2 w-20 text-center">ชั้น</th>
+                                <th class="p-2 w-28">เลขประจำตัว</th>
+                                <th class="p-2 w-36">เลข ปชช.</th>
+                                <th class="p-2 w-20 text-center">หมู่เลือด</th>
+                                <th class="p-2 w-28 text-center">วันเดือนปีเกิด</th>
+                                <th class="p-2 w-24 text-center">อายุ</th>
+                                <th class="p-2 w-32">ชื่อบิดา</th>
+                                <th class="p-2 w-32">ชื่อมารดา</th>
+                                <th class="p-2 w-32">ชื่อผู้ปกครอง</th>
+                                <th class="p-2 w-24 text-center">ความสัมพันธ์</th>
+                                <th class="p-2 w-28">อาชีพ</th>
+                                <th class="p-2 min-w-[250px]">ที่อยู่</th>
+                                <th class="p-2 w-28">เบอร์โทรศัพท์</th>
+                                <th class="p-2 w-36">นักเรียนที่ใกล้เคียง</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${students.map(s => `
+                                <tr class="hover:bg-gray-50">
+                                    <td class="sticky-name-col bg-white p-2 border-r-2 border-gray-300 z-20 flex items-center">
+                                        <span class="w-6 text-gray-500 font-bold text-center">${s.no}.</span>
+                                        <input type="text" value="${s.name || ''}" class="flex-1 p-1 border-b border-transparent hover:border-gray-300 focus:border-blue-500 outline-none bg-transparent font-medium" onchange="window.updateStudent('${s.id}', 'name', this.value)">
+                                    </td>
+                                    <td class="p-2 text-center text-gray-500 font-medium">${window.state.selectedClass}</td>
+                                    <td class="p-1"><input type="text" value="${s.code || ''}" class="w-full p-1 border rounded outline-none text-blue-600 font-medium" onchange="window.updateStudent('${s.id}', 'code', this.value)"></td>
+                                    <td class="p-1"><input type="text" value="${s.nid || ''}" class="w-full p-1 border rounded outline-none text-blue-600 font-medium" onchange="window.updateStudent('${s.id}', 'nid', this.value)"></td>
+                                    <td class="p-1"><input type="text" value="${s.bloodType || ''}" class="w-full p-1 border rounded outline-none text-center" placeholder="O, A..." onchange="window.updateStudent('${s.id}', 'bloodType', this.value)"></td>
+                                    <td class="p-1"><input type="text" value="${s.dob || ''}" class="w-full p-1 border rounded outline-none text-center" placeholder="วว/ดด/ปปปป" onchange="window.updateStudent('${s.id}', 'dob', this.value)"></td>
+                                    <td class="p-1"><input type="text" value="${s.age || ''}" class="w-full p-1 border rounded outline-none text-center" placeholder="เช่น 10 ปี" onchange="window.updateStudent('${s.id}', 'age', this.value)"></td>
+                                    <td class="p-1"><input type="text" value="${s.fatherName || ''}" class="w-full p-1 border rounded outline-none" onchange="window.updateStudent('${s.id}', 'fatherName', this.value)"></td>
+                                    <td class="p-1"><input type="text" value="${s.motherName || ''}" class="w-full p-1 border rounded outline-none" onchange="window.updateStudent('${s.id}', 'motherName', this.value)"></td>
+                                    <td class="p-1"><input type="text" value="${s.guardianName || ''}" class="w-full p-1 border rounded outline-none" onchange="window.updateStudent('${s.id}', 'guardianName', this.value)"></td>
+                                    <td class="p-1"><input type="text" value="${s.relation || ''}" class="w-full p-1 border rounded outline-none text-center" onchange="window.updateStudent('${s.id}', 'relation', this.value)"></td>
+                                    <td class="p-1"><input type="text" value="${s.occupation || ''}" class="w-full p-1 border rounded outline-none" onchange="window.updateStudent('${s.id}', 'occupation', this.value)"></td>
+                                    <td class="p-1"><input type="text" value="${s.address || ''}" class="w-full p-1 border rounded outline-none" onchange="window.updateStudent('${s.id}', 'address', this.value)"></td>
+                                    <td class="p-1"><input type="text" value="${s.phone || ''}" class="w-full p-1 border rounded outline-none" onchange="window.updateStudent('${s.id}', 'phone', this.value)"></td>
+                                    <td class="p-1"><input type="text" value="${s.closeFriend || ''}" class="w-full p-1 border rounded outline-none" onchange="window.updateStudent('${s.id}', 'closeFriend', this.value)"></td>
+                                </tr>
+                            `).join('')}
+                            ${students.length===0?'<tr><td colSpan="15" class="p-4 text-center text-gray-500">ไม่มีข้อมูลนักเรียน</td></tr>':''}
+                        </tbody>
+                    </table>
+                </div>
+            `;
+        }
+
+
+
+
+
+
+
+        
+
+
 
         function htmlAttendance() {
             const students = getStudents();
@@ -1152,6 +1226,62 @@ const getCourse = () => getCoursesForClass().find(c => c.id === window.state.sel
                 alert('ยกเลิกการเลื่อนชั้น (พิมพ์ไม่ถูกต้อง)');
             }
         };
+
+
+
+                window.exportToExcel = function() {
+            const cls = window.state.selectedClass;
+            const students = getStudents();
+            
+            if(students.length === 0) {
+                alert("ไม่มีข้อมูลนักเรียนในชั้นนี้");
+                return;
+            }
+
+            // 1. กำหนดหัวคอลัมน์ของไฟล์ Excel
+            const headers = [
+                "เลขที่", "ชั้น", "เลขประจำตัว", "เลข ปชช.", "ชื่อ-สกุล", 
+                "หมู่เลือด", "วันเดือนปีเกิด", "อายุ", "ชื่อบิดา", "ชื่อมารดา", 
+                "ชื่อผู้ปกครอง", "ความสัมพันธ์", "อาชีพ", "ที่อยู่", "เบอร์โทรศัพท์", "นักเรียนที่ใกล้เคียง"
+            ];
+            
+            // 2. ป้องกันตัวหนังสือภาษาไทยต่างด้าวด้วย \uFEFF
+            let csvContent = "\uFEFF" + headers.join(",") + "\n";
+            
+            // 3. ดึงข้อมูลนักเรียนแต่ละคนมาใส่แถว
+            students.forEach(s => {
+                const row = [
+                    s.no || "", cls, s.code || "", s.nid || "", s.name || "",
+                    s.bloodType || "", s.dob || "", s.age || "", s.fatherName || "", s.motherName || "",
+                    s.guardianName || "", s.relation || "", s.occupation || "", s.address || "", s.phone || "", s.closeFriend || ""
+                ];
+                
+                // ครอบข้อมูลด้วยเครื่องหมายคำพูด (") เพื่อป้องกันการตัดคำผิดพลาดหากในข้อมูลมีลูกน้ำ (,)
+                const formattedRow = row.map(field => '"' + String(field).replace(/"/g, '""') + '"').join(",");
+                csvContent += formattedRow + "\n";
+            });
+            
+            // 4. สั่งสร้างไฟล์แล้วบังคับดาวน์โหลด
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement("a");
+            link.setAttribute("href", url);
+            link.setAttribute("download", `ข้อมูลนักเรียนชั้น_${cls.replace('.', '_')}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        };
+
+
+
+
+        
+
+
+
+
+
+        
     </script>
 </body>
 </html>
