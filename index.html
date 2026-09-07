@@ -713,7 +713,7 @@ const getCourse = () => getCoursesForClass().find(c => c.id === window.state.sel
         
 
 
-               function htmlGrading() {
+                     function htmlGrading() {
             const c = getCourse(); const students = getStudents();
             return `
                 <div class="flex flex-col sm:flex-row justify-between sm:items-center mb-4 gap-2">
@@ -737,7 +737,7 @@ const getCourse = () => getCoursesForClass().find(c => c.id === window.state.sel
                                 <th class="bg-teal-50 p-1 text-[10px]">เก็บ (${c.finalCollect})</th><th class="bg-teal-50 p-1 text-[10px]">สอบ (${c.finalExam})</th>
                                 ${(c.indicators||[]).map(ind => `<th class="bg-purple-50 p-1 text-[11px] min-w-[150px] max-w-[250px] whitespace-normal align-top leading-tight text-left" title="${ind}">${ind}</th>`).join('')}
                                 ${(c.indicators||[]).length > 0 ? `
-                                    <th class="bg-purple-100 p-1 w-16 text-[10px] whitespace-normal leading-tight">ผ่าน<br>(ตัว)</th>
+                                    <th class="bg-purple-100 p-1 w-16 text-[10px] whitespace-normal leading-tight">น้ำหนักรวม<br>(คะแนน)</th>
                                     <th class="bg-green-100 p-1 w-12 text-[10px]">ผ.</th>
                                     <th class="bg-red-100 p-1 w-12 text-[10px]">มผ.</th>
                                 ` : ''}
@@ -750,11 +750,13 @@ const getCourse = () => getCoursesForClass().find(c => c.id === window.state.sel
                                 let total = (sc.mc||0) + (sc.me||0) + (sc.fc||0); if (!isMS) total += (sc.fe||0);
                                 const grade = getGradeStr(total, stats.pct, s.statusR);
                                 
-                                // นับจำนวนตัวชี้วัดที่ผ่านการประเมิน (มีคะแนน 1, 2 หรือ 3)
-                                let indCount = 0;
+                                // รวมน้ำหนักคะแนนตัวชี้วัดอัตโนมัติ (1, 2, 3)
+                                let indSum = 0;
                                 const indTotal = (c.indicators||[]).length;
+                                const maxIndScore = indTotal * 3;
                                 for(let i=0; i<indTotal; i++) {
-                                    if(sc['ind_'+i] == '1' || sc['ind_'+i] == '2' || sc['ind_'+i] == '3') indCount++;
+                                    const val = Number(sc['ind_'+i]);
+                                    if(!isNaN(val)) indSum += val;
                                 }
                                 
                                 return `
@@ -780,7 +782,7 @@ const getCourse = () => getCoursesForClass().find(c => c.id === window.state.sel
                                     `).join('')}
                                     
                                     ${(c.indicators||[]).length > 0 ? `
-                                        <td class="p-1 text-center bg-purple-100 font-bold text-xs text-purple-800">${indCount}/${indTotal}</td>
+                                        <td class="p-1 text-center bg-purple-100 font-bold text-xs text-purple-800">${indSum}/${maxIndScore}</td>
                                         <td class="p-1 text-center bg-green-50"><input type="checkbox" ${sc.ind_summary === 'ผ' ? 'checked' : ''} onchange="window.handleScore('${s.id}', 'ind_summary', this.checked ? 'ผ' : '')" class="w-4 h-4 accent-green-600 cursor-pointer rounded"></td>
                                         <td class="p-1 text-center bg-red-50"><input type="checkbox" ${sc.ind_summary === 'มผ' ? 'checked' : ''} onchange="window.handleScore('${s.id}', 'ind_summary', this.checked ? 'มผ' : '')" class="w-4 h-4 accent-red-600 cursor-pointer rounded"></td>
                                     ` : ''}
@@ -792,6 +794,7 @@ const getCourse = () => getCoursesForClass().find(c => c.id === window.state.sel
                 </div>
             `;
         }
+
 
 
 
@@ -1319,7 +1322,7 @@ const getCourse = () => getCoursesForClass().find(c => c.id === window.state.sel
 
 
         
-                       window.exportAllToExcel = function() {
+                        window.exportAllToExcel = function() {
             if(typeof XLSX === 'undefined') { alert('กำลังเชื่อมต่อระบบสร้าง Excel โปรดรอสักครู่...'); return; }
             
             const wb = XLSX.utils.book_new();
@@ -1327,7 +1330,7 @@ const getCourse = () => getCoursesForClass().find(c => c.id === window.state.sel
             const students = getStudents();
             const c = getCourse();
 
-            // แผ่นที่ 1: ข้อมูลนักเรียน (แบบจัดเต็มทุกช่อง)
+            // แผ่นที่ 1: ข้อมูลนักเรียน
             const studentRows = [["เลขที่", "ชั้น", "เลขประจำตัว", "เลข ปชช.", "ชื่อ-สกุล", "หมู่เลือด", "วันเดือนปีเกิด", "อายุ", "ชื่อบิดา", "ชื่อมารดา", "ชื่อผู้ปกครอง", "ความสัมพันธ์", "อาชีพ", "ที่อยู่", "เบอร์โทรศัพท์", "นักเรียนที่ใกล้เคียง"]];
             students.forEach(s => {
                 studentRows.push([
@@ -1337,14 +1340,14 @@ const getCourse = () => getCoursesForClass().find(c => c.id === window.state.sel
             });
             XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(studentRows), "ข้อมูลนักเรียน");
 
-            // แผ่นที่ 2: คะแนนและตัวชี้วัด (ดึงข้อความตัวชี้วัดแบบเต็มมาแสดง)
+            // แผ่นที่ 2: คะแนนและตัวชี้วัด (รวมน้ำหนักคะแนน)
             const indTotal = (c.indicators || []).length;
+            const maxIndScore = indTotal * 3;
             const scoreHeaders = ["เลขที่", "ชื่อ-สกุล", "เก็บกลางภาค", "สอบกลางภาค", "เก็บปลายภาค", "สอบปลายภาค", "คะแนนรวม", "เกรด"];
             
-            // ตรงนี้คือการดึงข้อความที่ครูพิมพ์เข้ามาเป็นหัวคอลัมน์
             (c.indicators || []).forEach((ind, i) => scoreHeaders.push(ind));
             
-            if(indTotal > 0) { scoreHeaders.push("ผ่าน(ตัว)"); scoreHeaders.push("สรุปชี้วัด(ผ/มผ)"); }
+            if(indTotal > 0) { scoreHeaders.push("น้ำหนักรวมคะแนน"); scoreHeaders.push("สรุปชี้วัด(ผ/มผ)"); }
             
             const scoreRows = [scoreHeaders];
             students.forEach(s => {
@@ -1353,12 +1356,16 @@ const getCourse = () => getCoursesForClass().find(c => c.id === window.state.sel
                 let total = (sc.mc||0) + (sc.me||0) + (sc.fc||0) + (stats.pct<80?0:(sc.fe||0));
                 const grade = getGradeStr(total, stats.pct, s.statusR).g;
                 
-                let indCount = 0;
-                for(let i=0; i<indTotal; i++) { if(sc['ind_'+i]=='1'||sc['ind_'+i]=='2'||sc['ind_'+i]=='3') indCount++; }
+                // คำนวณน้ำหนักคะแนน
+                let indSum = 0;
+                for(let i=0; i<indTotal; i++) {
+                    const val = Number(sc['ind_'+i]);
+                    if(!isNaN(val)) indSum += val;
+                }
 
                 const row = [s.no, s.name, sc.mc||0, sc.me||0, sc.fc||0, sc.fe||0, Math.round(total), grade];
                 (c.indicators || []).forEach((ind, i) => row.push(sc['ind_'+i] || '-'));
-                if(indTotal > 0) { row.push(`${indCount}/${indTotal}`); row.push(sc.ind_summary || '-'); }
+                if(indTotal > 0) { row.push(`${indSum}/${maxIndScore}`); row.push(sc.ind_summary || '-'); }
                 scoreRows.push(row);
             });
             XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(scoreRows), "คะแนนวิชาและตัวชี้วัด");
@@ -1373,9 +1380,12 @@ const getCourse = () => getCoursesForClass().find(c => c.id === window.state.sel
             });
             XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(actRows), "กิจกรรมพัฒนาผู้เรียน");
 
-            // แผ่นที่ 4: เวลาเรียน
+            // แผ่นที่ 4: เวลาเรียน (ใส่วันที่แบบละเอียด)
             const attHeaders = ["เลขที่", "ชื่อ-สกุล"];
-            yearDates.forEach(d => { attHeaders.push(`${d.date}/${d.monthIdx + 1}`); });
+            yearDates.forEach(d => { 
+                // เพิ่ม วัน/เดือน แบบละเอียด เช่น วันจันทร์ 1 มกราคม
+                attHeaders.push(`วัน${d.dayNameFull} ${d.date} ${thaiMonthsFull[d.monthIdx]}`); 
+            });
             attHeaders.push("มา (วัน)", "เต็ม (วัน)", "ร้อยละ (%)");
 
             const attRows = [attHeaders];
@@ -1433,16 +1443,15 @@ const getCourse = () => getCoursesForClass().find(c => c.id === window.state.sel
 
             const wsSar = XLSX.utils.aoa_to_sheet(sarRows);
             
-            // สั่งผสานเซลล์ในหน้า SAR
             wsSar['!merges'] = [
                 { s: {r: 1, c: 0}, e: {r: 1, c: 6} },
                 { s: {r: 7, c: 0}, e: {r: 7, c: 11} }
             ];
             XLSX.utils.book_append_sheet(wb, wsSar, "สรุปรายงาน ปพ.5");
 
-            // บังคับดาวน์โหลด
             XLSX.writeFile(wb, `ระบบปพ5_ชั้น${cls.replace('.','')}.xlsx`);
         };
+
 
 
 
