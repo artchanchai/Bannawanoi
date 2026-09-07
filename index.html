@@ -58,30 +58,50 @@
 
 
 
-
-          @media print {
+        @media print {
+            /* 1. กำหนดขนาดกระดาษ A4 แนวตั้ง และขอบกระดาษ */
             @page { size: A4 portrait; margin: 10mm; }
+            
+            /* 2. ซ่อนส่วนที่ไม่ต้องการพิมพ์ */
             header, #tabsContainer, .no-print { display: none !important; }
+            
+            /* 3. ล้างค่าพื้นหลังของแอประหว่างพิมพ์ */
             body, html { background: white !important; margin: 0; padding: 0; }
             #appWrapper, main, #contentArea { 
                 display: block !important; padding: 0 !important; margin: 0 !important; 
                 border: none !important; box-shadow: none !important; background: transparent !important;
                 -webkit-print-color-adjust: exact; print-color-adjust: exact; 
             }
+            
+            /* 4. จัดการกรอบ A4 ใหม่ ปลดล็อคความสูงไม่ให้ข้อความโดนตัด */
             .a4-preview { 
-                width: 190mm !important; height: 277mm !important; max-height: 277mm !important;
+                width: 190mm !important; 
+                height: auto !important; /* ปลดล็อคความสูง */
+                max-height: none !important;
                 box-sizing: border-box !important; margin: 0 auto !important; padding: 0 !important; 
-                page-break-inside: avoid !important; overflow: hidden !important; position: relative;
+                page-break-inside: avoid !important; 
+                overflow: visible !important; /* ปล่อยให้แสดงผลครบถ้วน ไม่ตัดทิ้ง */
+                position: relative;
+                
+                /* ย่อสเกลลงเล็กน้อยเพื่อให้จุวิชาได้มากขึ้นใน 1 หน้า */
+                transform: scale(0.92); 
+                transform-origin: top center; 
+                font-size: 10pt !important;
             }
-            /* บีบระยะห่างและขนาดอักษรลงเล็กน้อย เพื่อไม่ให้ส่วนท้ายโดนตัด */
-            .a4-preview { transform: scale(0.95); transform-origin: top center; font-size: 10.5pt !important; }
+            
+            /* 5. บีบระยะห่างตารางและบรรทัดให้แน่นขึ้นเฉพาะตอนสั่งพิมพ์ */
+            .a4-preview table { margin-bottom: 8px !important; }
+            .a4-preview td, .a4-preview th { padding: 2px 4px !important; line-height: 1.1 !important; }
             .a4-preview .p-8 { padding: 4mm !important; }
-            .a4-preview .mt-8 { margin-top: 15px !important; }
-            .a4-preview .mb-6 { margin-bottom: 12px !important; }
-            .a4-preview .space-y-6 > :not([hidden]) ~ :not([hidden]) { margin-top: 10px !important; }
-            .a4-preview .space-y-4 > :not([hidden]) ~ :not([hidden]) { margin-top: 8px !important; }
+            .a4-preview .mt-8 { margin-top: 10px !important; }
+            .a4-preview .mb-6 { margin-bottom: 8px !important; }
+            .a4-preview .space-y-6 > :not([hidden]) ~ :not([hidden]) { margin-top: 8px !important; }
+            .a4-preview .space-y-4 > :not([hidden]) ~ :not([hidden]) { margin-top: 6px !important; }
+            .a4-preview h1 { font-size: 1.1rem !important; margin-bottom: 2px !important; }
+            .a4-preview h2 { font-size: 1rem !important; margin-bottom: 4px !important; }
             .print-flex-wrap { flex-wrap: wrap; }
         }
+
 
 
 
@@ -437,26 +457,32 @@ const getCourse = () => getCoursesForClass().find(c => c.id === window.state.sel
 
 
         // ----------------- HTML TEMPLATES -----------------
-        function htmlSettings() {
+              function htmlSettings() {
             const c = getCourse(); const isAdmin = window.currentUserRole === 'admin';
+            const sys = window.state.sysConfig || {};
             return `
                 <div class="space-y-4 sm:space-y-6">
                     ${!isAdmin ? `<div class="bg-yellow-50 text-yellow-800 p-3 rounded-lg border border-yellow-200 text-sm"><i class="fa-solid fa-triangle-exclamation mr-2"></i> สิทธิ์ครูผู้สอน: สามารถแก้ไขโครงสร้างคะแนนและตัวชี้วัดได้ แต่ไม่สามารถเพิ่ม/ลบนักเรียน, รายวิชา หรือกิจกรรมได้</div>` : ''}
+                    
+                    ${isAdmin ? `
+                    <div class="bg-red-50 p-4 rounded-lg border border-red-200 mb-6">
+                        <h2 class="text-base font-bold text-red-800 mb-3"><i class="fa-solid fa-lock"></i> ระบบควบคุมการกรอกข้อมูล (แอดมิน)</h2>
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                            <label class="flex items-center space-x-2 cursor-pointer"><input type="checkbox" class="w-5 h-5 accent-red-600" ${sys.editStudent !== false ? 'checked' : ''} onchange="window.toggleSys('editStudent', this.checked)"><span class="text-sm font-bold text-gray-700">เปิดให้แก้ข้อมูลนักเรียน</span></label>
+                            <label class="flex items-center space-x-2 cursor-pointer"><input type="checkbox" class="w-5 h-5 accent-red-600" ${sys.editMidterm !== false ? 'checked' : ''} onchange="window.toggleSys('editMidterm', this.checked)"><span class="text-sm font-bold text-gray-700">เปิดกรอกคะแนนกลางภาค</span></label>
+                            <label class="flex items-center space-x-2 cursor-pointer"><input type="checkbox" class="w-5 h-5 accent-red-600" ${sys.editFinal !== false ? 'checked' : ''} onchange="window.toggleSys('editFinal', this.checked)"><span class="text-sm font-bold text-gray-700">เปิดกรอกคะแนนปลายภาค</span></label>
+                        </div>
+                        <p class="text-xs text-red-600 mt-2">* หากติ๊กออก ครูผู้สอนจะไม่สามารถพิมพ์แก้ไขข้อมูลในหน้านั้นๆ ได้</p>
+                    </div>` : ''}
+
                     <div class="flex flex-col sm:flex-row justify-between sm:items-end border-b pb-2 gap-2">
                         <h2 class="text-base sm:text-lg font-bold text-gray-800">ตั้งค่ารายวิชาและตัวชี้วัด</h2>
                         ${isAdmin ? `<button onclick="window.addCourse()" class="px-3 py-1.5 bg-green-600 text-white rounded text-sm w-full sm:w-auto"><i class="fa-solid fa-plus"></i> เพิ่มวิชาใหม่</button>` : ''}
                     </div>
 
-
-                        <div class="bg-gray-50 p-3 sm:p-4 rounded-lg border relative">
+                    <div class="bg-gray-50 p-3 sm:p-4 rounded-lg border relative">
                         ${!c.id ? `<div class="absolute inset-0 bg-white/90 z-10 flex items-center justify-center font-bold text-gray-500 rounded-lg">ยังไม่มีรายวิชา กรุณากดปุ่มเพิ่มวิชาใหม่</div>` : ''}
                         ${isAdmin && c.id ? `<button onclick="window.delCourse('${c.id}')" class="absolute top-2 right-2 text-red-500 hover:bg-red-100 p-1.5 sm:p-2 rounded text-xs z-20"><i class="fa-solid fa-trash"></i> ลบวิชานี้</button>` : ''}
-
-
-
-
-
-
                         
                         <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 mt-6 sm:mt-0">
                             <div><label class="block text-xs text-gray-600 mb-1">รหัสวิชา</label><input type="text" id="cfg_code" value="${c.code}" class="w-full p-2 text-sm border rounded" onchange="window.saveCourseCfg()" ${!isAdmin?'disabled':''}></div>
@@ -478,7 +504,7 @@ const getCourse = () => getCoursesForClass().find(c => c.id === window.state.sel
                         <div class="mt-4">
                             <label class="block text-xs text-gray-600 font-bold mb-2">ตัวชี้วัดของรายวิชานี้ (แสดงเป็นคอลัมน์ในหน้าคะแนน)</label>
                             <div class="flex flex-col sm:flex-row gap-2 mb-2">
-                                <input type="text" id="new_ind" placeholder="พิมพ์ข้อความตัวชี้วัด เช่น ค 1.1 ป.6/1..." class="flex-1 p-2 text-sm border rounded">
+                                <input type="text" id="new_ind" placeholder="พิมพ์ข้อความตัวชี้วัด..." class="flex-1 p-2 text-sm border rounded">
                                 <button onclick="window.addIndicator()" class="px-4 py-2 bg-purple-600 text-white rounded text-sm w-full sm:w-auto"><i class="fa-solid fa-plus"></i> เพิ่มตัวชี้วัด</button>
                             </div>
                             <div class="flex flex-col gap-1 max-h-40 overflow-y-auto custom-scrollbar border p-2 bg-white rounded">
@@ -493,28 +519,20 @@ const getCourse = () => getCoursesForClass().find(c => c.id === window.state.sel
                         </div>
                     </div>
 
-                                       <h2 class="text-base sm:text-lg font-bold text-gray-800 border-b pb-2 mt-8">รายชื่อนักเรียนชั้น ${window.state.selectedClass}</h2>
+                    <h2 class="text-base sm:text-lg font-bold text-gray-800 border-b pb-2 mt-8">รายชื่อนักเรียนชั้น ${window.state.selectedClass}</h2>
                     ${isAdmin ? `
                     <div class="flex flex-col md:flex-row gap-2 mb-4">
                         <div class="flex flex-wrap sm:flex-nowrap gap-2 w-full">
                             <input type="number" id="new_s_no" placeholder="เลขที่" class="w-16 p-2 text-sm border rounded">
                             <input type="text" id="new_s_code" placeholder="เลขประจำตัว" class="w-24 p-2 text-sm border rounded">
-                            <input type="text" id="new_s_nid" placeholder="เลข ปชช. 13 หลัก" class="w-36 p-2 text-sm border rounded">
-                            <input type="text" id="new_s_name" placeholder="ด.ช./ด.ญ. ชื่อ สกุล" class="flex-1 p-2 text-sm border rounded">
+                            <input type="text" id="new_s_nid" placeholder="เลข ปชช." class="w-36 p-2 text-sm border rounded">
+                            <input type="text" id="new_s_name" placeholder="ชื่อ สกุล" class="flex-1 p-2 text-sm border rounded">
                         </div>
                         <button onclick="window.addStudent()" class="px-4 py-2 bg-blue-600 text-white rounded text-sm w-full md:w-auto whitespace-nowrap"><i class="fa-solid fa-user-plus"></i> เพิ่มนักเรียน</button>
                     </div>` : ''}
                     <div class="overflow-x-auto border rounded-lg">
                         <table class="w-full text-sm text-left bg-white whitespace-nowrap min-w-max">
-                            <thead class="bg-gray-100">
-                                <tr>
-                                    <th class="p-2 w-16 text-center border">เลขที่</th>
-                                    <th class="p-2 w-24 text-center border">เลขประจำตัว</th>
-                                    <th class="p-2 w-32 text-center border">เลข ปชช.</th>
-                                    <th class="p-2 border">ชื่อ - สกุล</th>
-                                    ${isAdmin?'<th class="p-2 w-16 text-center border">ลบ</th>':''}
-                                </tr>
-                            </thead>
+                            <thead class="bg-gray-100"><tr><th class="p-2 w-16 text-center border">เลขที่</th><th class="p-2 w-24 text-center border">เลขประจำตัว</th><th class="p-2 w-32 text-center border">เลข ปชช.</th><th class="p-2 border">ชื่อ - สกุล</th>${isAdmin?'<th class="p-2 w-16 text-center border">ลบ</th>':''}</tr></thead>
                             <tbody>
                                 ${getStudents().map(s => `
                                     <tr class="hover:bg-gray-50">
@@ -528,38 +546,34 @@ const getCourse = () => getCoursesForClass().find(c => c.id === window.state.sel
                                 ${getStudents().length===0?'<tr><td colSpan="5" class="p-4 text-center text-gray-500">ไม่มีข้อมูลนักเรียน</td></tr>':''}
                             </tbody>
                         </table>
-                        ${isAdmin ? '<div class="p-2 bg-yellow-50 text-xs text-yellow-700 border-t"><i class="fa-solid fa-pen mr-1"></i> แอดมินสามารถคลิกที่ข้อความในตารางเพื่อพิมพ์แก้ไขข้อมูลได้ทันที</div>' : ''}
                     </div>
-
                     
                     ${isAdmin ? `
-                    <h2 class="text-base sm:text-lg font-bold text-gray-800 border-b pb-2 mt-8 text-indigo-700"><i class="fa-solid fa-campground"></i> จัดการกิจกรรมพัฒนาผู้เรียน (สำหรับ Admin)</h2>
-                    <p class="text-xs text-gray-500 mb-2">ท่านสามารถเพิ่มกิจกรรมต่างๆ ได้ไม่จำกัด (เช่น กิจกรรมเพื่อสังคมฯ, แนะแนว) ระบบจะนำไปแสดงในหน้าประเมินและรายงานผลให้อัตโนมัติ</p>
-                    <div class="flex flex-col sm:flex-row gap-2 mb-4">
-                        <input type="text" id="new_act_name" placeholder="ชื่อกิจกรรมเพิ่มเติม" class="flex-1 p-2 text-sm border rounded">
-                        <button onclick="window.addExtraAct()" class="px-4 py-2 bg-indigo-600 text-white rounded text-sm w-full sm:w-auto shadow-sm hover:bg-indigo-700"><i class="fa-solid fa-plus"></i> เพิ่มกิจกรรม</button>
+                    <h2 class="text-base sm:text-lg font-bold text-gray-800 border-b pb-2 mt-8 text-indigo-700"><i class="fa-solid fa-campground"></i> จัดการกิจกรรมพัฒนาผู้เรียน (Admin)</h2>
+                    <div class="flex flex-col sm:flex-row gap-2 mb-4 mt-2">
+                        <input type="text" id="new_act_name" placeholder="ชื่อกิจกรรม" class="flex-1 p-2 text-sm border rounded">
+                        <button onclick="window.addExtraAct()" class="px-4 py-2 bg-indigo-600 text-white rounded text-sm w-full sm:w-auto"><i class="fa-solid fa-plus"></i> เพิ่มกิจกรรม</button>
                     </div>
                     <div class="flex flex-wrap gap-2 mb-4">
-                        ${(window.state.extraActivities||[]).map((a) => `
-                            <span class="inline-flex items-center bg-indigo-50 border border-indigo-200 text-indigo-800 text-sm px-3 py-1 rounded-full shadow-sm">
-                                ${a.name} 
-                                <button onclick="window.delExtraAct('${a.id}')" class="ml-2 text-indigo-400 hover:text-red-500 transition"><i class="fa-solid fa-xmark"></i></button>
-                            </span>
-                        `).join('')}
-                        ${(window.state.extraActivities||[]).length===0?'<span class="text-sm text-gray-400">ยังไม่มีกิจกรรม</span>':''}
+                        ${(window.state.extraActivities||[]).map((a) => `<span class="inline-flex items-center bg-indigo-50 border border-indigo-200 text-indigo-800 text-sm px-3 py-1 rounded-full shadow-sm">${a.name} <button onclick="window.delExtraAct('${a.id}')" class="ml-2 text-indigo-400 hover:text-red-500"><i class="fa-solid fa-xmark"></i></button></span>`).join('')}
                     </div>` : ''}
                 </div>
             `;
         }
 
 
-                           function htmlStudentInfo() {
+
+                                function htmlStudentInfo() {
             const students = getStudents();
+            const isAdmin = window.currentUserRole === 'admin';
+            const sys = window.state.sysConfig || {};
+            const canEdit = isAdmin || sys.editStudent !== false;
+
             return `
                 <div class="mb-4 flex flex-col sm:flex-row justify-between sm:items-center gap-2">
                     <h2 class="text-base sm:text-lg font-bold text-gray-800">ข้อมูลพื้นฐานนักเรียน ชั้น ${window.state.selectedClass}</h2>
                     <div class="flex gap-2 flex-wrap">
-                        <span class="text-xs bg-blue-50 text-blue-700 px-3 py-1.5 rounded-md border border-blue-200 flex items-center"><i class="fa-solid fa-pen mr-1"></i> พิมพ์แก้ไขข้อมูลได้ทันที</span>
+                        ${canEdit ? `<span class="text-xs bg-blue-50 text-blue-700 px-3 py-1.5 rounded-md border border-blue-200 flex items-center"><i class="fa-solid fa-pen mr-1"></i> พิมพ์แก้ไขข้อมูลได้ทันที</span>` : `<span class="text-xs bg-red-100 text-red-700 px-3 py-1.5 rounded-md border border-red-300 font-bold flex items-center"><i class="fa-solid fa-lock mr-1"></i> แอดมินปิดการแก้ไขชั่วคราว</span>`}
                         <button onclick="window.exportToExcel()" class="bg-green-600 hover:bg-green-700 text-white text-xs px-4 py-1.5 rounded-md shadow-sm font-bold flex items-center transition-colors"><i class="fa-solid fa-file-excel mr-1"></i> ส่งออก Excel</button>
                     </div>
                 </div>
@@ -568,20 +582,10 @@ const getCourse = () => getCoursesForClass().find(c => c.id === window.state.sel
                         <thead class="bg-gray-100">
                             <tr>
                                 <th class="sticky-name-header p-2 min-w-[200px] border-r-2 border-gray-300">เลขที่ | ชื่อ - สกุล</th>
-                                <th class="p-2 w-20 text-center">ชั้น</th>
-                                <th class="p-2 w-28">เลขประจำตัว</th>
-                                <th class="p-2 w-36">เลข ปชช.</th>
-                                <th class="p-2 w-20 text-center">หมู่เลือด</th>
-                                <th class="p-2 w-28 text-center">วันเดือนปีเกิด</th>
-                                <th class="p-2 w-24 text-center">อายุ</th>
-                                <th class="p-2 w-32">ชื่อบิดา</th>
-                                <th class="p-2 w-32">ชื่อมารดา</th>
-                                <th class="p-2 w-32">ชื่อผู้ปกครอง</th>
-                                <th class="p-2 w-24 text-center">ความสัมพันธ์</th>
-                                <th class="p-2 w-28">อาชีพ</th>
-                                <th class="p-2 min-w-[250px]">ที่อยู่</th>
-                                <th class="p-2 w-28">เบอร์โทรศัพท์</th>
-                                <th class="p-2 w-36">นักเรียนที่ใกล้เคียง</th>
+                                <th class="p-2 w-20 text-center">ชั้น</th><th class="p-2 w-28">เลขประจำตัว</th><th class="p-2 w-36">เลข ปชช.</th><th class="p-2 w-20 text-center">หมู่เลือด</th>
+                                <th class="p-2 w-28 text-center">วันเดือนปีเกิด</th><th class="p-2 w-24 text-center">อายุ</th><th class="p-2 w-32">ชื่อบิดา</th><th class="p-2 w-32">ชื่อมารดา</th>
+                                <th class="p-2 w-32">ชื่อผู้ปกครอง</th><th class="p-2 w-24 text-center">ความสัมพันธ์</th><th class="p-2 w-28">อาชีพ</th><th class="p-2 min-w-[250px]">ที่อยู่</th>
+                                <th class="p-2 w-28">เบอร์โทรศัพท์</th><th class="p-2 w-36">นักเรียนที่ใกล้เคียง</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -590,23 +594,23 @@ const getCourse = () => getCoursesForClass().find(c => c.id === window.state.sel
                                     <td class="sticky-name-col bg-white p-2 border-r-2 border-gray-300">
                                         <div class="flex items-center w-full">
                                             <span class="w-6 text-gray-500 font-bold text-center flex-shrink-0">${s.no}.</span>
-                                            <input type="text" value="${s.name || ''}" class="flex-1 p-1 border-b border-transparent hover:border-gray-300 focus:border-blue-500 outline-none bg-transparent font-medium min-w-[120px]" onchange="window.updateStudent('${s.id}', 'name', this.value)">
+                                            <input type="text" value="${s.name || ''}" class="flex-1 p-1 border-b border-transparent hover:border-gray-300 focus:border-blue-500 outline-none ${!canEdit?'bg-gray-100 cursor-not-allowed':'bg-transparent'} font-medium min-w-[120px]" ${!canEdit?'disabled':''} onchange="window.updateStudent('${s.id}', 'name', this.value)">
                                         </div>
                                     </td>
                                     <td class="p-2 text-center text-gray-500 font-medium">${window.state.selectedClass}</td>
-                                    <td class="p-1"><input type="text" value="${s.code || ''}" class="w-full p-1 border rounded outline-none text-blue-600 font-medium" onchange="window.updateStudent('${s.id}', 'code', this.value)"></td>
-                                    <td class="p-1"><input type="text" value="${s.nid || ''}" class="w-full p-1 border rounded outline-none text-blue-600 font-medium" onchange="window.updateStudent('${s.id}', 'nid', this.value)"></td>
-                                    <td class="p-1"><input type="text" value="${s.bloodType || ''}" class="w-full p-1 border rounded outline-none text-center" placeholder="O, A..." onchange="window.updateStudent('${s.id}', 'bloodType', this.value)"></td>
-                                    <td class="p-1"><input type="text" value="${s.dob || ''}" class="w-full p-1 border rounded outline-none text-center" placeholder="วว/ดด/ปปปป" onchange="window.updateStudent('${s.id}', 'dob', this.value)"></td>
-                                    <td class="p-1"><input type="text" value="${s.age || ''}" class="w-full p-1 border rounded outline-none text-center" placeholder="เช่น 10 ปี" onchange="window.updateStudent('${s.id}', 'age', this.value)"></td>
-                                    <td class="p-1"><input type="text" value="${s.fatherName || ''}" class="w-full p-1 border rounded outline-none" onchange="window.updateStudent('${s.id}', 'fatherName', this.value)"></td>
-                                    <td class="p-1"><input type="text" value="${s.motherName || ''}" class="w-full p-1 border rounded outline-none" onchange="window.updateStudent('${s.id}', 'motherName', this.value)"></td>
-                                    <td class="p-1"><input type="text" value="${s.guardianName || ''}" class="w-full p-1 border rounded outline-none" onchange="window.updateStudent('${s.id}', 'guardianName', this.value)"></td>
-                                    <td class="p-1"><input type="text" value="${s.relation || ''}" class="w-full p-1 border rounded outline-none text-center" onchange="window.updateStudent('${s.id}', 'relation', this.value)"></td>
-                                    <td class="p-1"><input type="text" value="${s.occupation || ''}" class="w-full p-1 border rounded outline-none" onchange="window.updateStudent('${s.id}', 'occupation', this.value)"></td>
-                                    <td class="p-1"><input type="text" value="${s.address || ''}" class="w-full p-1 border rounded outline-none" onchange="window.updateStudent('${s.id}', 'address', this.value)"></td>
-                                    <td class="p-1"><input type="text" value="${s.phone || ''}" class="w-full p-1 border rounded outline-none" onchange="window.updateStudent('${s.id}', 'phone', this.value)"></td>
-                                    <td class="p-1"><input type="text" value="${s.closeFriend || ''}" class="w-full p-1 border rounded outline-none" onchange="window.updateStudent('${s.id}', 'closeFriend', this.value)"></td>
+                                    <td class="p-1"><input type="text" value="${s.code || ''}" class="w-full p-1 border rounded outline-none text-blue-600 font-medium ${!canEdit?'bg-gray-100':''}" ${!canEdit?'disabled':''} onchange="window.updateStudent('${s.id}', 'code', this.value)"></td>
+                                    <td class="p-1"><input type="text" value="${s.nid || ''}" class="w-full p-1 border rounded outline-none text-blue-600 font-medium ${!canEdit?'bg-gray-100':''}" ${!canEdit?'disabled':''} onchange="window.updateStudent('${s.id}', 'nid', this.value)"></td>
+                                    <td class="p-1"><input type="text" value="${s.bloodType || ''}" class="w-full p-1 border rounded outline-none text-center ${!canEdit?'bg-gray-100':''}" ${!canEdit?'disabled':''} placeholder="O, A..." onchange="window.updateStudent('${s.id}', 'bloodType', this.value)"></td>
+                                    <td class="p-1"><input type="text" value="${s.dob || ''}" class="w-full p-1 border rounded outline-none text-center ${!canEdit?'bg-gray-100':''}" ${!canEdit?'disabled':''} placeholder="วว/ดด/ปปปป" onchange="window.updateStudent('${s.id}', 'dob', this.value)"></td>
+                                    <td class="p-1"><input type="text" value="${s.age || ''}" class="w-full p-1 border rounded outline-none text-center ${!canEdit?'bg-gray-100':''}" ${!canEdit?'disabled':''} onchange="window.updateStudent('${s.id}', 'age', this.value)"></td>
+                                    <td class="p-1"><input type="text" value="${s.fatherName || ''}" class="w-full p-1 border rounded outline-none ${!canEdit?'bg-gray-100':''}" ${!canEdit?'disabled':''} onchange="window.updateStudent('${s.id}', 'fatherName', this.value)"></td>
+                                    <td class="p-1"><input type="text" value="${s.motherName || ''}" class="w-full p-1 border rounded outline-none ${!canEdit?'bg-gray-100':''}" ${!canEdit?'disabled':''} onchange="window.updateStudent('${s.id}', 'motherName', this.value)"></td>
+                                    <td class="p-1"><input type="text" value="${s.guardianName || ''}" class="w-full p-1 border rounded outline-none ${!canEdit?'bg-gray-100':''}" ${!canEdit?'disabled':''} onchange="window.updateStudent('${s.id}', 'guardianName', this.value)"></td>
+                                    <td class="p-1"><input type="text" value="${s.relation || ''}" class="w-full p-1 border rounded outline-none text-center ${!canEdit?'bg-gray-100':''}" ${!canEdit?'disabled':''} onchange="window.updateStudent('${s.id}', 'relation', this.value)"></td>
+                                    <td class="p-1"><input type="text" value="${s.occupation || ''}" class="w-full p-1 border rounded outline-none ${!canEdit?'bg-gray-100':''}" ${!canEdit?'disabled':''} onchange="window.updateStudent('${s.id}', 'occupation', this.value)"></td>
+                                    <td class="p-1"><input type="text" value="${s.address || ''}" class="w-full p-1 border rounded outline-none ${!canEdit?'bg-gray-100':''}" ${!canEdit?'disabled':''} onchange="window.updateStudent('${s.id}', 'address', this.value)"></td>
+                                    <td class="p-1"><input type="text" value="${s.phone || ''}" class="w-full p-1 border rounded outline-none ${!canEdit?'bg-gray-100':''}" ${!canEdit?'disabled':''} onchange="window.updateStudent('${s.id}', 'phone', this.value)"></td>
+                                    <td class="p-1"><input type="text" value="${s.closeFriend || ''}" class="w-full p-1 border rounded outline-none ${!canEdit?'bg-gray-100':''}" ${!canEdit?'disabled':''} onchange="window.updateStudent('${s.id}', 'closeFriend', this.value)"></td>
                                 </tr>
                             `).join('')}
                             ${students.length===0?'<tr><td colSpan="15" class="p-4 text-center text-gray-500">ไม่มีข้อมูลนักเรียน</td></tr>':''}
@@ -615,6 +619,7 @@ const getCourse = () => getCoursesForClass().find(c => c.id === window.state.sel
                 </div>
             `;
         }
+
 
 
 
@@ -713,13 +718,20 @@ const getCourse = () => getCoursesForClass().find(c => c.id === window.state.sel
         
 
 
-                     function htmlGrading() {
+                      function htmlGrading() {
             const c = getCourse(); const students = getStudents();
+            const isAdmin = window.currentUserRole === 'admin';
+            const sys = window.state.sysConfig || {};
+            const canEditMid = isAdmin || sys.editMidterm !== false;
+            const canEditFin = isAdmin || sys.editFinal !== false;
+
             return `
                 <div class="flex flex-col sm:flex-row justify-between sm:items-center mb-4 gap-2">
                     <h2 class="text-base sm:text-lg font-bold text-gray-800">บันทึกคะแนนและตัวชี้วัด</h2>
                     <div class="text-xs flex gap-4"><span class="flex items-center"><span class="w-3 h-3 bg-red-100 rounded-full mr-1"></span> มส. (ปลายภาค = 0)</span></div>
                 </div>
+                ${(!canEditMid || !canEditFin) ? `<div class="bg-red-100 text-red-700 p-2 rounded mb-2 text-sm font-bold w-full border border-red-200"><i class="fa-solid fa-lock"></i> แอดมินได้ปิดระบบการกรอกคะแนน ${!canEditMid?'กลางภาค':''} ${(!canEditMid&&!canEditFin)?'และ':''} ${!canEditFin?'ปลายภาค':''} ชั่วคราว</div>` : ''}
+                
                 <div class="overflow-x-auto overflow-y-auto max-h-[60vh] border rounded-lg custom-scrollbar bg-white attendance-table w-full">
                     <table class="w-full text-xs sm:text-sm text-center whitespace-nowrap min-w-max">
                         <thead>
@@ -727,20 +739,14 @@ const getCourse = () => getCoursesForClass().find(c => c.id === window.state.sel
                                 <th rowSpan="2" class="sticky-name-header p-2 min-w-[150px] sm:min-w-[200px] text-left">ชื่อ - สกุล</th>
                                 <th colSpan="2" class="bg-indigo-50 p-2">กลางภาค</th>
                                 <th colSpan="2" class="bg-teal-50 p-2">ปลายภาค</th>
-                                <th rowSpan="2" class="bg-gray-100 p-2 w-16">รวม<br>(100)</th>
-                                <th rowSpan="2" class="bg-gray-100 p-2 w-12">ติด ร.</th>
-                                <th rowSpan="2" class="bg-blue-100 p-2 w-16 sticky-pct-header">เกรด</th>
+                                <th rowSpan="2" class="bg-gray-100 p-2 w-16">รวม<br>(100)</th><th rowSpan="2" class="bg-gray-100 p-2 w-12">ติด ร.</th><th rowSpan="2" class="bg-blue-100 p-2 w-16 sticky-pct-header">เกรด</th>
                                 ${(c.indicators||[]).length > 0 ? `<th colSpan="${c.indicators.length + 3}" class="bg-purple-50 p-2 border-l-2 border-purple-200">ประเมินตัวชี้วัด (ใส่คะแนน 1-3)</th>` : ''}
                             </tr>
                             <tr>
                                 <th class="bg-indigo-50 p-1 text-[10px]">เก็บ (${c.midCollect})</th><th class="bg-indigo-50 p-1 text-[10px]">สอบ (${c.midExam})</th>
                                 <th class="bg-teal-50 p-1 text-[10px]">เก็บ (${c.finalCollect})</th><th class="bg-teal-50 p-1 text-[10px]">สอบ (${c.finalExam})</th>
                                 ${(c.indicators||[]).map(ind => `<th class="bg-purple-50 p-1 text-[11px] min-w-[150px] max-w-[250px] whitespace-normal align-top leading-tight text-left" title="${ind}">${ind}</th>`).join('')}
-                                ${(c.indicators||[]).length > 0 ? `
-                                    <th class="bg-purple-100 p-1 w-16 text-[10px] whitespace-normal leading-tight">น้ำหนักรวม<br>(คะแนน)</th>
-                                    <th class="bg-green-100 p-1 w-12 text-[10px]">ผ.</th>
-                                    <th class="bg-red-100 p-1 w-12 text-[10px]">มผ.</th>
-                                ` : ''}
+                                ${(c.indicators||[]).length > 0 ? `<th class="bg-purple-100 p-1 w-16 text-[10px] whitespace-normal leading-tight">น้ำหนักรวม<br>(คะแนน)</th><th class="bg-green-100 p-1 w-12 text-[10px]">ผ.</th><th class="bg-red-100 p-1 w-12 text-[10px]">มผ.</th>` : ''}
                             </tr>
                         </thead>
                         <tbody>
@@ -750,29 +756,23 @@ const getCourse = () => getCoursesForClass().find(c => c.id === window.state.sel
                                 let total = (sc.mc||0) + (sc.me||0) + (sc.fc||0); if (!isMS) total += (sc.fe||0);
                                 const grade = getGradeStr(total, stats.pct, s.statusR);
                                 
-                                // รวมน้ำหนักคะแนนตัวชี้วัดอัตโนมัติ (1, 2, 3)
-                                let indSum = 0;
-                                const indTotal = (c.indicators||[]).length;
-                                const maxIndScore = indTotal * 3;
-                                for(let i=0; i<indTotal; i++) {
-                                    const val = Number(sc['ind_'+i]);
-                                    if(!isNaN(val)) indSum += val;
-                                }
+                                let indSum = 0; const indTotal = (c.indicators||[]).length; const maxIndScore = indTotal * 3;
+                                for(let i=0; i<indTotal; i++) { const val = Number(sc['ind_'+i]); if(!isNaN(val)) indSum += val; }
                                 
                                 return `
                                 <tr class="hover:bg-gray-50 ${s.statusR?'bg-yellow-50':''}">
                                     <td class="sticky-name-col bg-white p-2 text-left ${s.statusR?'bg-yellow-50':''}"><span class="w-4 sm:w-6 text-gray-400 inline-block">${s.no}.</span> ${s.name} ${isMS?'<span class="ml-1 text-[10px] bg-red-100 text-red-600 px-1 rounded font-bold">มส.</span>':''}</td>
-                                    <td class="p-1"><input type="number" value="${sc.mc!==undefined?sc.mc:''}" class="w-12 sm:w-16 text-center border rounded p-1 outline-none" onchange="window.handleScore('${s.id}', 'mc', this.value)"></td>
-                                    <td class="p-1"><input type="number" value="${sc.me!==undefined?sc.me:''}" class="w-12 sm:w-16 text-center border rounded p-1 outline-none" onchange="window.handleScore('${s.id}', 'me', this.value)"></td>
-                                    <td class="p-1"><input type="number" value="${sc.fc!==undefined?sc.fc:''}" class="w-12 sm:w-16 text-center border rounded p-1 outline-none" onchange="window.handleScore('${s.id}', 'fc', this.value)"></td>
-                                    <td class="p-1 ${isMS?'bg-red-50':''}"><input type="number" value="${isMS?0:(sc.fe!==undefined?sc.fe:'')}" class="w-12 sm:w-16 text-center border rounded p-1 outline-none ${isMS?'bg-red-100 cursor-not-allowed':''}" ${isMS?'disabled':''} onchange="window.handleScore('${s.id}', 'fe', this.value)"></td>
+                                    <td class="p-1"><input type="number" value="${sc.mc!==undefined?sc.mc:''}" class="w-12 sm:w-16 text-center border rounded p-1 outline-none ${!canEditMid?'bg-gray-100':''}" ${!canEditMid?'disabled':''} onchange="window.handleScore('${s.id}', 'mc', this.value)"></td>
+                                    <td class="p-1"><input type="number" value="${sc.me!==undefined?sc.me:''}" class="w-12 sm:w-16 text-center border rounded p-1 outline-none ${!canEditMid?'bg-gray-100':''}" ${!canEditMid?'disabled':''} onchange="window.handleScore('${s.id}', 'me', this.value)"></td>
+                                    <td class="p-1"><input type="number" value="${sc.fc!==undefined?sc.fc:''}" class="w-12 sm:w-16 text-center border rounded p-1 outline-none ${!canEditFin?'bg-gray-100':''}" ${!canEditFin?'disabled':''} onchange="window.handleScore('${s.id}', 'fc', this.value)"></td>
+                                    <td class="p-1 ${isMS?'bg-red-50':''}"><input type="number" value="${isMS?0:(sc.fe!==undefined?sc.fe:'')}" class="w-12 sm:w-16 text-center border rounded p-1 outline-none ${(!canEditFin||isMS)?'bg-gray-100 cursor-not-allowed':''}" ${(!canEditFin||isMS)?'disabled':''} onchange="window.handleScore('${s.id}', 'fe', this.value)"></td>
                                     <td class="p-2 font-bold" id="tot_${s.id}">${Math.round(total)}</td>
                                     <td class="p-2"><input type="checkbox" ${s.statusR?'checked':''} class="w-4 h-4 sm:w-5 sm:h-5 cursor-pointer accent-orange-500" onchange="window.toggleR('${s.id}')"></td>
                                     <td class="sticky-pct-col p-2 text-sm sm:text-lg ${grade.c}" id="grd_${s.id}">${grade.g}</td>
                                     
                                     ${(c.indicators||[]).map((ind, i) => `
                                         <td class="p-1 bg-purple-50/30 text-center">
-                                            <select class="w-12 p-1 border rounded text-xs outline-none cursor-pointer text-center appearance-none bg-white" onchange="window.handleScore('${s.id}', 'ind_${i}', this.value)">
+                                            <select class="w-12 p-1 border rounded text-xs outline-none cursor-pointer text-center appearance-none ${!canEditFin?'bg-gray-100':'bg-white'}" ${!canEditFin?'disabled':''} onchange="window.handleScore('${s.id}', 'ind_${i}', this.value)">
                                                 <option value="" ${!sc['ind_'+i]?'selected':''}>-</option>
                                                 <option value="3" ${sc['ind_'+i]=='3'?'selected':''}>3</option>
                                                 <option value="2" ${sc['ind_'+i]=='2'?'selected':''}>2</option>
@@ -783,8 +783,8 @@ const getCourse = () => getCoursesForClass().find(c => c.id === window.state.sel
                                     
                                     ${(c.indicators||[]).length > 0 ? `
                                         <td class="p-1 text-center bg-purple-100 font-bold text-xs text-purple-800">${indSum}/${maxIndScore}</td>
-                                        <td class="p-1 text-center bg-green-50"><input type="checkbox" ${sc.ind_summary === 'ผ' ? 'checked' : ''} onchange="window.handleScore('${s.id}', 'ind_summary', this.checked ? 'ผ' : '')" class="w-4 h-4 accent-green-600 cursor-pointer rounded"></td>
-                                        <td class="p-1 text-center bg-red-50"><input type="checkbox" ${sc.ind_summary === 'มผ' ? 'checked' : ''} onchange="window.handleScore('${s.id}', 'ind_summary', this.checked ? 'มผ' : '')" class="w-4 h-4 accent-red-600 cursor-pointer rounded"></td>
+                                        <td class="p-1 text-center bg-green-50"><input type="checkbox" ${sc.ind_summary === 'ผ' ? 'checked' : ''} ${!canEditFin?'disabled':''} onchange="window.handleScore('${s.id}', 'ind_summary', this.checked ? 'ผ' : '')" class="w-4 h-4 accent-green-600 cursor-pointer rounded"></td>
+                                        <td class="p-1 text-center bg-red-50"><input type="checkbox" ${sc.ind_summary === 'มผ' ? 'checked' : ''} ${!canEditFin?'disabled':''} onchange="window.handleScore('${s.id}', 'ind_summary', this.checked ? 'มผ' : '')" class="w-4 h-4 accent-red-600 cursor-pointer rounded"></td>
                                     ` : ''}
                                 </tr>`;
                             }).join('')}
@@ -794,6 +794,7 @@ const getCourse = () => getCoursesForClass().find(c => c.id === window.state.sel
                 </div>
             `;
         }
+
 
 
 
@@ -1466,6 +1467,15 @@ const getCourse = () => getCoursesForClass().find(c => c.id === window.state.sel
 
             XLSX.writeFile(wb, `ระบบปพ5_ชั้น${cls.replace('.','')}.xlsx`);
         };
+
+
+
+                window.toggleSys = function(key, val) {
+            if(!window.state.sysConfig) window.state.sysConfig = { editStudent: true, editMidterm: true, editFinal: true };
+            window.state.sysConfig[key] = val;
+            renderApp();
+        };
+
 
 
 
