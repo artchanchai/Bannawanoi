@@ -55,42 +55,51 @@
 
 
 
-                       @media print {
-            /* 1. กำหนดขนาดกระดาษ A4 แนวตั้ง และตั้งค่าขอบกระดาษ */
+                               @media print {
+            /* 1. กำหนดขนาดกระดาษ A4 แนวตั้ง และตั้งขอบกระดาษ 10 มิลลิเมตร */
             @page { size: A4 portrait; margin: 10mm; }
             
-            /* 2. ซ่อนหัวเว็บ แถบเมนู และปุ่มที่ไม่ได้ใช้ */
+            /* 2. ซ่อนส่วนที่ไม่ต้องการพิมพ์ */
             header, #tabsContainer, .no-print { display: none !important; }
             
-            /* 3. ล้างค่าสีพื้นหลังและขอบของโครงสร้างแอป */
-            body, html { background: white !important; margin: 0; padding: 0; height: auto !important; }
+            /* 3. ล้างค่าพื้นหลังและขอบของแอป */
+            body, html { background: white !important; margin: 0; padding: 0; }
             #appWrapper, main, #contentArea { 
                 display: block !important; 
-                height: auto !important;
                 padding: 0 !important; 
                 margin: 0 !important; 
                 border: none !important; 
                 box-shadow: none !important;
                 background: transparent !important;
-                overflow: visible !important; 
                 -webkit-print-color-adjust: exact; 
                 print-color-adjust: exact; 
             }
             
-            /* 4. บังคับเนื้อหาให้อยู่ในกรอบ A4 พอดี */
+            /* 4. บังคับเนื้อหาให้อยู่ในกรอบ 1 หน้า A4 เท่านั้น */
             .a4-preview { 
-                width: 190mm !important; /* ความกว้าง A4 หักลบขอบซ้ายขวา */
-                max-width: 100% !important;
-                min-height: auto !important; 
-                box-shadow: none !important; 
+                width: 190mm !important; /* กว้าง A4 หักขอบ */
+                height: 277mm !important; /* สูง A4 หักขอบ (297 - 20) */
+                max-height: 277mm !important;
+                box-sizing: border-box !important;
                 margin: 0 auto !important; 
                 padding: 0 !important; 
-                page-break-after: avoid; 
+                page-break-inside: avoid !important; 
+                page-break-after: avoid !important;
+                page-break-before: avoid !important;
+                overflow: hidden !important; /* ป้องกันการดันเนื้อหาไปหน้า 2 เด็ดขาด */
                 position: relative;
             }
             
+            /* 5. บีบระยะห่างและขนาดอักษรลงเล็กน้อยเฉพาะตอนพิมพ์ เพื่อการันตีว่าจัดลง 1 หน้าได้พอดี */
+            .a4-preview table { margin-bottom: 10px !important; }
+            .a4-preview .mt-8 { margin-top: 1.5rem !important; }
+            .a4-preview .mb-6 { margin-bottom: 1rem !important; }
+            .a4-preview .space-y-6 > :not([hidden]) ~ :not([hidden]) { margin-top: 1rem !important; }
+            .a4-preview h1 { font-size: 1.25rem !important; margin-bottom: 4px !important; }
+            .a4-preview h2 { font-size: 1.1rem !important; margin-bottom: 8px !important; }
             .print-flex-wrap { flex-wrap: wrap; }
         }
+
 
 
 
@@ -765,7 +774,7 @@ const getCourse = () => getCoursesForClass().find(c => c.id === window.state.sel
             `;
         }
 
-                function htmlPrintSummary() {
+                        function htmlPrintSummary() {
             const st = getStudents();
             const courses = window.state.courses[window.state.selectedClass] || [];
 
@@ -785,7 +794,7 @@ const getCourse = () => getCoursesForClass().find(c => c.id === window.state.sel
                 return { c: c, counts: counts };
             });
 
-            // คำนวณสรุปคุณลักษณะ และ อ่านคิดวิเคราะห์
+            // คำนวณสรุป
             let caStats = {'ดีเยี่ยม':0, 'ดี':0, 'ผ่าน':0, 'ไม่ผ่าน':0};
             let raStats = {'ดีเยี่ยม':0, 'ดี':0, 'ผ่าน':0, 'ไม่ผ่าน':0};
             const lg = ['ไม่ผ่าน', 'ผ่าน', 'ดี', 'ดีเยี่ยม'];
@@ -809,7 +818,6 @@ const getCourse = () => getCoursesForClass().find(c => c.id === window.state.sel
                 });
             }
 
-            // จัดเตรียมวิชาให้ครบ 11 บรรทัดตามแบบฟอร์ม
             const displayCourses = [];
             for(let i=0; i<11; i++) {
                 if(i < courseStats.length) displayCourses.push(courseStats[i]);
@@ -818,7 +826,7 @@ const getCourse = () => getCoursesForClass().find(c => c.id === window.state.sel
 
             return `
                 <div class="flex flex-col sm:flex-row justify-between sm:items-center mb-4 gap-2 no-print">
-                    <h2 class="text-base sm:text-lg font-bold text-gray-800">ตัวอย่างก่อนพิมพ์ (A4 แนวตั้ง)</h2>
+                    <h2 class="text-base sm:text-lg font-bold text-gray-800">ตัวอย่างก่อนพิมพ์ <span class="text-blue-600 text-sm ml-2 font-normal bg-blue-50 px-2 py-1 rounded"><i class="fa-solid fa-pen"></i> คลิกที่ข้อความสีน้ำเงินบนกระดาษเพื่อแก้ไขข้อมูล</span></h2>
                     <button onclick="window.print()" class="px-4 py-2 bg-blue-600 text-white rounded-lg shadow hover:bg-blue-700 font-bold text-sm"><i class="fa-solid fa-print"></i> สั่งพิมพ์รายงาน</button>
                 </div>
                 
@@ -827,50 +835,57 @@ const getCourse = () => getCoursesForClass().find(c => c.id === window.state.sel
                         
                         <div class="absolute top-4 right-8 font-bold text-[12pt]">ปพ.๕</div>
                         
-                        <div class="text-center mb-6 mt-4">
+                        <!-- โลโก้ -->
+                        <div class="text-center relative group cursor-pointer no-print inline-block mx-auto w-full mb-2" onclick="window.changeLogo()" title="คลิกเพื่อเปลี่ยนโลโก้">
+                            <img src="${window.state.logoUrl || 'IMG_4847.jpeg'}" class="h-20 w-auto mx-auto object-contain">
+                            <div class="absolute inset-0 bg-black bg-opacity-40 flex items-center justify-center text-white text-xs opacity-0 group-hover:opacity-100 transition rounded w-20 mx-auto"><i class="fa-solid fa-image"></i> เปลี่ยน</div>
+                        </div>
+                        <img src="${window.state.logoUrl || 'IMG_4847.jpeg'}" class="h-20 w-auto mx-auto object-contain mb-2 print:block hidden">
+
+                        <div class="text-center mb-6">
                             <h1 class="text-2xl font-bold mb-2">สมุดบันทึกการพัฒนาคุณภาพผู้เรียน</h1>
                             <h2 class="text-xl font-bold mb-6">ชั้นประถมศึกษาปีที่ ${window.state.selectedClass.replace('ป.','')}</h2>
                         </div>
 
-                        <!-- Header Information -->
+                        <!-- ข้อมูลส่วนหัว -->
                         <div class="space-y-4 mb-6 text-[12pt]">
                             <div class="flex">
                                 <span class="whitespace-nowrap">โรงเรียน</span>
-                                <span class="flex-1 border-b border-dotted border-black ml-2 text-center text-blue-800 font-medium tracking-wide">บ้านนาหว้าน้อย</span>
+                                <span contenteditable="true" onblur="window.savePrintConfig('schoolName', this.innerText)" class="flex-1 border-b border-dotted border-black ml-2 text-center text-blue-800 font-medium outline-none focus:bg-yellow-50 cursor-text">${window.state.schoolName || 'บ้านนาหว้าน้อย'}</span>
                             </div>
                             <div class="flex">
                                 <span class="whitespace-nowrap">ตำบล/แขวง</span>
-                                <span class="w-1/3 border-b border-dotted border-black mx-2 text-center text-blue-800 font-medium">กกสะทอน</span>
+                                <span contenteditable="true" onblur="window.savePrintConfig('subDistrict', this.innerText)" class="w-1/3 border-b border-dotted border-black mx-2 text-center text-blue-800 font-medium outline-none focus:bg-yellow-50 cursor-text">${window.state.subDistrict || 'กกสะทอน'}</span>
                                 <span class="whitespace-nowrap">อำเภอ/เขต</span>
-                                <span class="flex-1 border-b border-dotted border-black ml-2 text-center text-blue-800 font-medium">ด่านซ้าย</span>
+                                <span contenteditable="true" onblur="window.savePrintConfig('district', this.innerText)" class="flex-1 border-b border-dotted border-black ml-2 text-center text-blue-800 font-medium outline-none focus:bg-yellow-50 cursor-text">${window.state.district || 'ด่านซ้าย'}</span>
                             </div>
                             <div class="flex">
                                 <span class="whitespace-nowrap">จังหวัด</span>
-                                <span class="flex-1 border-b border-dotted border-black ml-2 text-center text-blue-800 font-medium">เลย</span>
+                                <span contenteditable="true" onblur="window.savePrintConfig('province', this.innerText)" class="flex-1 border-b border-dotted border-black ml-2 text-center text-blue-800 font-medium outline-none focus:bg-yellow-50 cursor-text">${window.state.province || 'เลย'}</span>
                             </div>
                             <div class="flex">
                                 <span class="whitespace-nowrap">เขตพื้นที่การศึกษาประถมศึกษา</span>
-                                <span class="w-1/2 border-b border-dotted border-black mx-2 text-center text-blue-800 font-medium">เลย</span>
+                                <span contenteditable="true" onblur="window.savePrintConfig('eduArea', this.innerText)" class="w-1/2 border-b border-dotted border-black mx-2 text-center text-blue-800 font-medium outline-none focus:bg-yellow-50 cursor-text">${window.state.eduArea || 'เลย'}</span>
                                 <span class="whitespace-nowrap">เขต</span>
-                                <span class="flex-1 border-b border-dotted border-black ml-2 text-center text-blue-800 font-medium">3</span>
+                                <span contenteditable="true" onblur="window.savePrintConfig('eduAreaZone', this.innerText)" class="flex-1 border-b border-dotted border-black ml-2 text-center text-blue-800 font-medium outline-none focus:bg-yellow-50 cursor-text">${window.state.eduAreaZone || '3'}</span>
                             </div>
                             <div class="flex">
                                 <span class="whitespace-nowrap">ชั้น</span>
-                                <span class="w-1/3 border-b border-dotted border-black mx-2 text-center text-blue-800 font-medium">ประถมศึกษาปีที่ ${window.state.selectedClass.replace('ป.','')}</span>
+                                <span class="w-1/3 border-b border-dotted border-black mx-2 text-center text-black font-medium">ประถมศึกษาปีที่ ${window.state.selectedClass.replace('ป.','')}</span>
                                 <span class="whitespace-nowrap">ปีการศึกษา</span>
-                                <span class="flex-1 border-b border-dotted border-black ml-2 text-center text-blue-800 font-medium">${window.state.academicYear}</span>
+                                <span contenteditable="true" onblur="window.savePrintConfig('academicYear', this.innerText)" class="flex-1 border-b border-dotted border-black ml-2 text-center text-blue-800 font-medium outline-none focus:bg-yellow-50 cursor-text">${window.state.academicYear || '2568'}</span>
                             </div>
                             <div class="flex">
                                 <span class="whitespace-nowrap">ครูประจำชั้น</span>
-                                <span class="flex-1 border-b border-dotted border-black ml-2 text-center text-blue-800 font-medium">${window.state.teacherName}</span>
+                                <span contenteditable="true" onblur="window.savePrintConfig('teacherName', this.innerText)" class="flex-1 border-b border-dotted border-black ml-2 text-center text-blue-800 font-medium outline-none focus:bg-yellow-50 cursor-text">${window.state.teacherName || 'นางสาวเพ็ญพิชชา สุมา'}</span>
                             </div>
                             <div class="flex">
                                 <span class="whitespace-nowrap">ผู้อำนวยการโรงเรียน</span>
-                                <span class="flex-1 border-b border-dotted border-black ml-2 text-center text-blue-800 font-medium">${window.state.directorName}</span>
+                                <span contenteditable="true" onblur="window.savePrintConfig('directorName', this.innerText)" class="flex-1 border-b border-dotted border-black ml-2 text-center text-blue-800 font-medium outline-none focus:bg-yellow-50 cursor-text">${window.state.directorName || 'นางจันทวา ทองพุฒิ'}</span>
                             </div>
                         </div>
 
-                        <!-- Main Complex Table -->
+                        <!-- ตาราง -->
                         <table class="w-full border-collapse border border-black text-center text-[10pt] mb-6">
                             <thead>
                                 <tr>
@@ -890,76 +905,65 @@ const getCourse = () => getCoursesForClass().find(c => c.id === window.state.sel
                                 </tr>
                             </thead>
                             <tbody>
-                                <!-- Row 1 -->
                                 <tr>
                                     <td class="border border-black p-1 text-left px-2 truncate max-w-[100px]">${displayCourses[0].c.name}</td>
                                     ${['0','1','1.5','2','2.5','3','3.5','4'].map(g => `<td class="border border-black p-1">${displayCourses[0].counts[g]||'-'}</td>`).join('')}
                                     <td class="border border-black p-1">คุณลักษณะอันพึงประสงค์</td>
                                     <td class="border border-black p-1">${caStats['ดีเยี่ยม']||'-'}</td><td class="border border-black p-1">${caStats['ดี']||'-'}</td><td class="border border-black p-1">${caStats['ผ่าน']||'-'}</td><td class="border border-black p-1">${caStats['ไม่ผ่าน']||'-'}</td>
                                 </tr>
-                                <!-- Row 2 -->
                                 <tr>
                                     <td class="border border-black p-1 text-left px-2 truncate max-w-[100px]">${displayCourses[1].c.name}</td>
                                     ${['0','1','1.5','2','2.5','3','3.5','4'].map(g => `<td class="border border-black p-1">${displayCourses[1].counts[g]||'-'}</td>`).join('')}
                                     <td class="border border-black p-1">การอ่าน คิดวิเคราะห์ และเขียน</td>
                                     <td class="border border-black p-1">${raStats['ดีเยี่ยม']||'-'}</td><td class="border border-black p-1">${raStats['ดี']||'-'}</td><td class="border border-black p-1">${raStats['ผ่าน']||'-'}</td><td class="border border-black p-1">${raStats['ไม่ผ่าน']||'-'}</td>
                                 </tr>
-                                <!-- Row 3 -->
                                 <tr>
                                     <td class="border border-black p-1 text-left px-2 truncate max-w-[100px]">${displayCourses[2].c.name}</td>
                                     ${['0','1','1.5','2','2.5','3','3.5','4'].map(g => `<td class="border border-black p-1">${displayCourses[2].counts[g]||'-'}</td>`).join('')}
                                     <td class="border border-black p-1">ผลการประเมิน</td>
                                     <td class="border border-black p-1" colspan="2">ผ่าน</td><td class="border border-black p-1" colspan="2">ไม่ผ่าน</td>
                                 </tr>
-                                <!-- Row 4 -->
                                 <tr>
                                     <td class="border border-black p-1 text-left px-2 truncate max-w-[100px]">${displayCourses[3].c.name}</td>
                                     ${['0','1','1.5','2','2.5','3','3.5','4'].map(g => `<td class="border border-black p-1">${displayCourses[3].counts[g]||'-'}</td>`).join('')}
                                     <td class="border border-black p-1">กิจกรรมพัฒนาผู้เรียน</td>
                                     <td class="border border-black p-1" colspan="2">${actPass||'-'}</td><td class="border border-black p-1" colspan="2">${actFail||'-'}</td>
                                 </tr>
-                                <!-- Row 5 -->
                                 <tr>
                                     <td class="border border-black p-1 text-left px-2 truncate max-w-[100px]">${displayCourses[4].c.name}</td>
                                     ${['0','1','1.5','2','2.5','3','3.5','4'].map(g => `<td class="border border-black p-1">${displayCourses[4].counts[g]||'-'}</td>`).join('')}
                                     <td class="border border-black p-1 font-bold" rowspan="2">การอนุมัติ<br>ผลการเรียน</td>
                                     <td class="border border-black p-1">ชาย</td><td class="border border-black p-1">หญิง</td><td class="border border-black p-1" colspan="2">รวม</td>
                                 </tr>
-                                <!-- Row 6 -->
                                 <tr>
                                     <td class="border border-black p-1 text-left px-2 truncate max-w-[100px]">${displayCourses[5].c.name}</td>
                                     ${['0','1','1.5','2','2.5','3','3.5','4'].map(g => `<td class="border border-black p-1">${displayCourses[5].counts[g]||'-'}</td>`).join('')}
                                     <td class="border border-black p-1 bg-gray-100"></td><td class="border border-black p-1 bg-gray-100"></td><td class="border border-black p-1 bg-gray-100" colspan="2"></td>
                                 </tr>
-                                <!-- Row 7 -->
                                 <tr>
                                     <td class="border border-black p-1 text-left px-2 truncate max-w-[100px]">${displayCourses[6].c.name}</td>
                                     ${['0','1','1.5','2','2.5','3','3.5','4'].map(g => `<td class="border border-black p-1">${displayCourses[6].counts[g]||'-'}</td>`).join('')}
                                     <td class="border border-black p-1 text-left px-2">จำนวนนักเรียน<br>ในบัญชี</td>
                                     <td class="border border-black p-1">${mCount||'-'}</td><td class="border border-black p-1">${fCount||'-'}</td><td class="border border-black p-1" colspan="2">${totalStudents||'-'}</td>
                                 </tr>
-                                <!-- Row 8 -->
                                 <tr>
                                     <td class="border border-black p-1 text-left px-2 truncate max-w-[100px]">${displayCourses[7].c.name}</td>
                                     ${['0','1','1.5','2','2.5','3','3.5','4'].map(g => `<td class="border border-black p-1">${displayCourses[7].counts[g]||'-'}</td>`).join('')}
                                     <td class="border border-black p-1 text-left px-2">จำนวนนักเรียน<br>ที่เข้าระหว่างปี</td>
                                     <td class="border border-black p-1">-</td><td class="border border-black p-1">-</td><td class="border border-black p-1" colspan="2">-</td>
                                 </tr>
-                                <!-- Row 9 -->
                                 <tr>
                                     <td class="border border-black p-1 text-left px-2 truncate max-w-[100px]">${displayCourses[8].c.name}</td>
                                     ${['0','1','1.5','2','2.5','3','3.5','4'].map(g => `<td class="border border-black p-1">${displayCourses[8].counts[g]||'-'}</td>`).join('')}
                                     <td class="border border-black p-1 text-left px-2">จำนวนนักเรียน<br>ที่ออกระหว่างปี</td>
                                     <td class="border border-black p-1">-</td><td class="border border-black p-1">-</td><td class="border border-black p-1" colspan="2">-</td>
                                 </tr>
-                                <!-- Row 10 -->
                                 <tr>
                                     <td class="border border-black p-1 text-left px-2 truncate max-w-[100px]">${displayCourses[9].c.name}</td>
                                     ${['0','1','1.5','2','2.5','3','3.5','4'].map(g => `<td class="border border-black p-1">${displayCourses[9].counts[g]||'-'}</td>`).join('')}
                                     <td class="border border-black p-1 text-left px-2">จำนวนนักเรียน<br>ที่ตัดสินให้ซ้ำชั้น</td>
                                     <td class="border border-black p-1">-</td><td class="border border-black p-1">-</td><td class="border border-black p-1" colspan="2">-</td>
                                 </tr>
-                                <!-- Row 11 -->
                                 <tr>
                                     <td class="border border-black p-1 text-left px-2 truncate max-w-[100px]">${displayCourses[10].c.name}</td>
                                     ${['0','1','1.5','2','2.5','3','3.5','4'].map(g => `<td class="border border-black p-1">${displayCourses[10].counts[g]||'-'}</td>`).join('')}
@@ -969,60 +973,78 @@ const getCourse = () => getCoursesForClass().find(c => c.id === window.state.sel
                             </tbody>
                         </table>
 
-                        <!-- Signatures -->
-                        <div class="mt-8 mx-auto w-full text-[11pt] flex flex-col items-end pr-8 space-y-6">
+                        <!-- ลายเซ็นต์ -->
+                        <div class="mt-8 mx-auto w-full text-[11pt] flex flex-col items-end pr-8 space-y-4">
                             
-                            <div class="flex items-end">
-                                <span class="w-16">ลงชื่อ</span>
-                                <span class="w-48 border-b border-dotted border-black text-center text-blue-800"></span>
-                                <span class="w-20 ml-2">ผู้กรอก</span>
-                            </div>
-                            <div class="flex items-end -mt-4 mr-24">
-                                <span>(</span><span class="w-44 border-b border-dotted border-black text-center text-blue-800">${window.state.teacherName}</span><span>)</span>
-                            </div>
-
-                            <div class="flex items-end">
-                                <span class="w-16">ลงชื่อ</span>
-                                <span class="w-48 border-b border-dotted border-black text-center text-blue-800"></span>
-                                <span class="w-20 ml-2">ผู้ทาน</span>
-                            </div>
-                            <div class="flex items-end -mt-4 mr-24">
-                                <span>(</span><span class="w-44 border-b border-dotted border-black text-center text-blue-800"></span><span>)</span>
+                            <div class="flex flex-col items-center w-[320px]">
+                                <div class="flex w-full items-end">
+                                    <span class="w-12 text-right">ลงชื่อ</span>
+                                    <span class="flex-1 border-b border-dotted border-black mx-2"></span>
+                                    <span class="w-16 text-left">ผู้กรอก</span>
+                                </div>
+                                <div class="flex w-full mt-1 items-center">
+                                    <span class="w-12"></span>
+                                    <span class="flex-1 text-center text-blue-800">(<span contenteditable="true" onblur="window.savePrintConfig('teacherName', this.innerText)" class="outline-none focus:bg-yellow-50 cursor-text">${window.state.teacherName || 'นางสาวเพ็ญพิชชา สุมา'}</span>)</span>
+                                    <span class="w-16"></span>
+                                </div>
                             </div>
 
-                            <div class="flex items-end">
-                                <span class="w-16">ลงชื่อ</span>
-                                <span class="w-48 border-b border-dotted border-black text-center text-blue-800"></span>
-                                <span class="w-20 ml-2">ผู้ตรวจ</span>
+                            <div class="flex flex-col items-center w-[320px]">
+                                <div class="flex w-full items-end">
+                                    <span class="w-12 text-right">ลงชื่อ</span>
+                                    <span class="flex-1 border-b border-dotted border-black mx-2"></span>
+                                    <span class="w-16 text-left">ผู้ทาน</span>
+                                </div>
+                                <div class="flex w-full mt-1 items-center">
+                                    <span class="w-12"></span>
+                                    <span class="flex-1 text-center text-blue-800">(<span contenteditable="true" onblur="window.savePrintConfig('checkerName', this.innerText)" class="outline-none focus:bg-yellow-50 cursor-text px-6">${window.state.checkerName || ''}</span>)</span>
+                                    <span class="w-16"></span>
+                                </div>
                             </div>
-                            <div class="flex items-end -mt-4 mr-24">
-                                <span>(</span><span class="w-44 border-b border-dotted border-black text-center text-blue-800"></span><span>)</span>
+
+                            <div class="flex flex-col items-center w-[320px]">
+                                <div class="flex w-full items-end">
+                                    <span class="w-12 text-right">ลงชื่อ</span>
+                                    <span class="flex-1 border-b border-dotted border-black mx-2"></span>
+                                    <span class="w-16 text-left">ผู้ตรวจ</span>
+                                </div>
+                                <div class="flex w-full mt-1 items-center">
+                                    <span class="w-12"></span>
+                                    <span class="flex-1 text-center text-blue-800">(<span contenteditable="true" onblur="window.savePrintConfig('reviewerName', this.innerText)" class="outline-none focus:bg-yellow-50 cursor-text px-6">${window.state.reviewerName || ''}</span>)</span>
+                                    <span class="w-16"></span>
+                                </div>
                             </div>
 
                         </div>
 
-                        <!-- Approval Section -->
+                        <!-- อนุมัติ -->
                         <div class="mt-8 text-[11pt]">
                             <div class="flex items-end">
                                 <span>อนุมัติผลการเรียน เมื่อวันที่</span>
-                                <span class="w-12 border-b border-dotted border-black mx-2 text-center text-blue-800">31</span>
+                                <span contenteditable="true" onblur="window.savePrintConfig('approveDay', this.innerText)" class="w-12 border-b border-dotted border-black mx-2 text-center text-blue-800 font-medium outline-none focus:bg-yellow-50 cursor-text">${window.state.approveDay || '31'}</span>
                                 <span>เดือน</span>
-                                <span class="w-32 border-b border-dotted border-black mx-2 text-center text-blue-800">มีนาคม</span>
+                                <span contenteditable="true" onblur="window.savePrintConfig('approveMonth', this.innerText)" class="w-24 border-b border-dotted border-black mx-2 text-center text-blue-800 font-medium outline-none focus:bg-yellow-50 cursor-text">${window.state.approveMonth || 'มีนาคม'}</span>
                                 <span>พ.ศ.</span>
-                                <span class="w-16 border-b border-dotted border-black mx-2 text-center text-blue-800">2568</span>
+                                <span contenteditable="true" onblur="window.savePrintConfig('approveYear', this.innerText)" class="w-16 border-b border-dotted border-black mx-2 text-center text-blue-800 font-medium outline-none focus:bg-yellow-50 cursor-text">${window.state.approveYear || '2568'}</span>
                             </div>
                             
-                            <div class="flex flex-col items-end pr-8 mt-6 space-y-2">
-                                <div class="flex items-end">
-                                    <span class="w-16 text-right mr-2">ลงชื่อ</span>
-                                    <span class="w-48 border-b border-dotted border-black text-center text-blue-800"></span>
-                                    <span class="w-24 ml-2">ผู้อนุมัติ</span>
-                                </div>
-                                <div class="flex items-end mr-28">
-                                    <span>(</span><span class="w-44 border-b border-dotted border-black text-center text-blue-800">${window.state.directorName}</span><span>)</span>
-                                </div>
-                                <div class="flex items-end mr-28 pt-2">
-                                    <span class="w-48 text-center">ผู้อำนวยการโรงเรียน</span>
+                            <div class="flex flex-col items-end pr-8 mt-6">
+                                <div class="flex flex-col items-center w-[320px]">
+                                    <div class="flex w-full items-end">
+                                        <span class="w-16 text-right">ลงชื่อ</span>
+                                        <span class="flex-1 border-b border-dotted border-black mx-2"></span>
+                                        <span class="w-20 text-left">ผู้อนุมัติ</span>
+                                    </div>
+                                    <div class="flex w-full mt-1 items-center">
+                                        <span class="w-16"></span>
+                                        <span class="flex-1 text-center text-blue-800">(<span contenteditable="true" onblur="window.savePrintConfig('directorName', this.innerText)" class="outline-none focus:bg-yellow-50 cursor-text">${window.state.directorName || 'นางจันทวา ทองพุฒิ'}</span>)</span>
+                                        <span class="w-20"></span>
+                                    </div>
+                                    <div class="flex w-full mt-1 items-center">
+                                        <span class="w-16"></span>
+                                        <span class="flex-1 text-center">ผู้อำนวยการโรงเรียน</span>
+                                        <span class="w-20"></span>
+                                    </div>
                                 </div>
                             </div>
                         </div>
