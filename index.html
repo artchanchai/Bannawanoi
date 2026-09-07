@@ -99,7 +99,8 @@
         <div class="bg-white rounded-xl shadow-2xl p-6 sm:p-8 w-full max-w-md">
             <div class="text-center mb-6">
                 <img src="IMG_4847.jpeg" class="w-16 h-16 sm:w-20 sm:h-20 mx-auto mb-3 object-contain">
-                <h2 class="text-xl sm:text-2xl font-bold text-gray-800">เข้าสู่ระบบ ปพ.5 โรงเรียนบ้านนาหว้าน้อย </h2>
+                <h2 class="text-xl sm:text-2xl font-bold text-gray-800">เข้าสู่ระบบ ปพ.5 </h2>
+                <h3 class="text-xl sm:text-1xl font-bold text-gray-800">โรงเรียนบ้านนาหว้าน้อย </h3>
                 <p class="text-sm text-gray-500 mt-1">กรุณาระบุข้อมูลผู้ใช้งาน</p>
             </div>
             <div id="loginError" class="hidden bg-red-100 text-red-600 p-2 sm:p-3 rounded-lg text-sm mb-4 text-center border border-red-200 font-medium"></div>
@@ -1318,7 +1319,7 @@ const getCourse = () => getCoursesForClass().find(c => c.id === window.state.sel
 
 
         
-                window.exportAllToExcel = function() {
+                       window.exportAllToExcel = function() {
             if(typeof XLSX === 'undefined') { alert('กำลังเชื่อมต่อระบบสร้าง Excel โปรดรอสักครู่...'); return; }
             
             const wb = XLSX.utils.book_new();
@@ -1336,10 +1337,13 @@ const getCourse = () => getCoursesForClass().find(c => c.id === window.state.sel
             });
             XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(studentRows), "ข้อมูลนักเรียน");
 
-            // แผ่นที่ 2: คะแนนและตัวชี้วัด
+            // แผ่นที่ 2: คะแนนและตัวชี้วัด (ดึงข้อความตัวชี้วัดแบบเต็มมาแสดง)
             const indTotal = (c.indicators || []).length;
             const scoreHeaders = ["เลขที่", "ชื่อ-สกุล", "เก็บกลางภาค", "สอบกลางภาค", "เก็บปลายภาค", "สอบปลายภาค", "คะแนนรวม", "เกรด"];
-            (c.indicators || []).forEach((ind, i) => scoreHeaders.push(`ชี้วัด ${i+1}`));
+            
+            // ตรงนี้คือการดึงข้อความที่ครูพิมพ์เข้ามาเป็นหัวคอลัมน์
+            (c.indicators || []).forEach((ind, i) => scoreHeaders.push(ind));
+            
             if(indTotal > 0) { scoreHeaders.push("ผ่าน(ตัว)"); scoreHeaders.push("สรุปชี้วัด(ผ/มผ)"); }
             
             const scoreRows = [scoreHeaders];
@@ -1369,7 +1373,28 @@ const getCourse = () => getCoursesForClass().find(c => c.id === window.state.sel
             });
             XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(actRows), "กิจกรรมพัฒนาผู้เรียน");
 
-            // แผ่นที่ 4: หน้า ปพ.5 (SAR)
+            // แผ่นที่ 4: เวลาเรียน
+            const attHeaders = ["เลขที่", "ชื่อ-สกุล"];
+            yearDates.forEach(d => { attHeaders.push(`${d.date}/${d.monthIdx + 1}`); });
+            attHeaders.push("มา (วัน)", "เต็ม (วัน)", "ร้อยละ (%)");
+
+            const attRows = [attHeaders];
+            students.forEach(s => {
+                const stats = calcAtt(s.id);
+                const row = [s.no, s.name];
+                
+                yearDates.forEach(d => {
+                    const def = (d.isWeekend || d.isHoliday) ? 'หยุด' : 'มา';
+                    const val = ((window.state.attendance[window.state.selectedCourseId]||{})[s.id]||{})[d.id] || def;
+                    row.push(val);
+                });
+                
+                row.push(stats.p, stats.t, stats.pct + "%");
+                attRows.push(row);
+            });
+            XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(attRows), "เวลาเรียน");
+
+            // แผ่นที่ 5: หน้า ปพ.5 (SAR)
             const cfg = (window.state.printConfigs && window.state.printConfigs[cls]) ? window.state.printConfigs[cls] : {};
             const courses = window.state.courses[cls] || [];
             
@@ -1408,16 +1433,17 @@ const getCourse = () => getCoursesForClass().find(c => c.id === window.state.sel
 
             const wsSar = XLSX.utils.aoa_to_sheet(sarRows);
             
-            // สั่งผสานเซลล์ (Merge Cells) ในหน้า SAR เพื่อให้เหมือนหน้าปก
+            // สั่งผสานเซลล์ในหน้า SAR
             wsSar['!merges'] = [
-                { s: {r: 1, c: 0}, e: {r: 1, c: 6} }, // รวมหัวข้อสมุดบันทึกฯ
-                { s: {r: 7, c: 0}, e: {r: 7, c: 11} } // รวมหัวข้อตารางสรุป
+                { s: {r: 1, c: 0}, e: {r: 1, c: 6} },
+                { s: {r: 7, c: 0}, e: {r: 7, c: 11} }
             ];
             XLSX.utils.book_append_sheet(wb, wsSar, "สรุปรายงาน ปพ.5");
 
             // บังคับดาวน์โหลด
             XLSX.writeFile(wb, `ระบบปพ5_ชั้น${cls.replace('.','')}.xlsx`);
         };
+
 
 
 
