@@ -99,7 +99,7 @@
         <div class="bg-white rounded-xl shadow-2xl p-6 sm:p-8 w-full max-w-md">
             <div class="text-center mb-6">
                 <img src="IMG_4847.jpeg" class="w-16 h-16 sm:w-20 sm:h-20 mx-auto mb-3 object-contain">
-                <h2 class="text-xl sm:text-2xl font-bold text-gray-800">เข้าสู่ระบบ ปพ.5</h2>
+                <h2 class="text-xl sm:text-2xl font-bold text-gray-800">เข้าสู่ระบบ ปพ.5 โรงเรียนบ้านนาหว้าน้อย </h2>
                 <p class="text-sm text-gray-500 mt-1">กรุณาระบุข้อมูลผู้ใช้งาน</p>
             </div>
             <div id="loginError" class="hidden bg-red-100 text-red-600 p-2 sm:p-3 rounded-lg text-sm mb-4 text-center border border-red-200 font-medium"></div>
@@ -108,14 +108,14 @@
                     <label class="block text-sm font-medium text-gray-700 mb-1">ชื่อผู้ใช้งาน (Username)</label>
                     <div class="relative">
                         <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"><i class="fa-solid fa-user text-gray-400"></i></div>
-                        <input type="text" id="username" class="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm sm:text-base" placeholder="admin หรือ teacher">
+                        <input type="text" id="username" class="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm sm:text-base" placeholder="ชื่อผู้ใช้">
                     </div>
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">รหัสผ่าน (Password)</label>
                     <div class="relative">
                         <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"><i class="fa-solid fa-lock text-gray-400"></i></div>
-                        <input type="password" id="password" class="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm sm:text-base" placeholder="admin123 หรือ teacher123" onkeypress="if(event.key==='Enter') window.handleLogin()">
+                        <input type="password" id="password" class="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm sm:text-base" placeholder="รหัสผ่าน" onkeypress="if(event.key==='Enter') window.handleLogin()">
                     </div>
                 </div>
                 <button onclick="window.handleLogin()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 sm:py-3 rounded-lg transition duration-200 shadow-md text-sm sm:text-base">เข้าสู่ระบบ</button>
@@ -1318,7 +1318,7 @@ const getCourse = () => getCoursesForClass().find(c => c.id === window.state.sel
 
 
         
-        window.exportAllToExcel = function() {
+                window.exportAllToExcel = function() {
             if(typeof XLSX === 'undefined') { alert('กำลังเชื่อมต่อระบบสร้าง Excel โปรดรอสักครู่...'); return; }
             
             const wb = XLSX.utils.book_new();
@@ -1326,31 +1326,22 @@ const getCourse = () => getCoursesForClass().find(c => c.id === window.state.sel
             const students = getStudents();
             const c = getCourse();
 
-            // แผ่นที่ 1: ข้อมูลหน้าปก
-            const cfg = (window.state.printConfigs && window.state.printConfigs[cls]) ? window.state.printConfigs[cls] : {};
-            const coverData = [
-                ["หัวข้อข้อมูล", "รายละเอียด"],
-                ["โรงเรียน", cfg.schoolName || window.state.schoolName || 'บ้านนาหว้าน้อย'],
-                ["ชั้น", cls],
-                ["ปีการศึกษา", cfg.academicYear || window.state.academicYear || '2568'],
-                ["ครูประจำชั้น", cfg.teacherName || window.state.teacherName || ''],
-                ["ผู้อำนวยการ", cfg.directorName || window.state.directorName || '']
-            ];
-            XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(coverData), "ข้อมูลพื้นฐาน");
-
-            // แผ่นที่ 2: ข้อมูลนักเรียน
-            const studentRows = [["เลขที่", "เลขประจำตัว", "เลข ปชช.", "ชื่อ-สกุล", "วันเกิด", "หมู่เลือด", "ชื่อบิดา", "ชื่อมารดา", "ผู้ปกครอง", "เบอร์โทร"]];
+            // แผ่นที่ 1: ข้อมูลนักเรียน (แบบจัดเต็มทุกช่อง)
+            const studentRows = [["เลขที่", "ชั้น", "เลขประจำตัว", "เลข ปชช.", "ชื่อ-สกุล", "หมู่เลือด", "วันเดือนปีเกิด", "อายุ", "ชื่อบิดา", "ชื่อมารดา", "ชื่อผู้ปกครอง", "ความสัมพันธ์", "อาชีพ", "ที่อยู่", "เบอร์โทรศัพท์", "นักเรียนที่ใกล้เคียง"]];
             students.forEach(s => {
-                studentRows.push([s.no, s.code||'', s.nid||'', s.name, s.dob||'', s.bloodType||'', s.fatherName||'', s.motherName||'', s.guardianName||'', s.phone||'']);
+                studentRows.push([
+                    s.no, cls, s.code||'', s.nid||'', s.name, s.bloodType||'', s.dob||'', s.age||'', 
+                    s.fatherName||'', s.motherName||'', s.guardianName||'', s.relation||'', s.occupation||'', s.address||'', s.phone||'', s.closeFriend||''
+                ]);
             });
             XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(studentRows), "ข้อมูลนักเรียน");
 
-            // แผ่นที่ 3: คะแนนและเกรด
+            // แผ่นที่ 2: คะแนนและตัวชี้วัด
             const indTotal = (c.indicators || []).length;
             const scoreHeaders = ["เลขที่", "ชื่อ-สกุล", "เก็บกลางภาค", "สอบกลางภาค", "เก็บปลายภาค", "สอบปลายภาค", "คะแนนรวม", "เกรด"];
             (c.indicators || []).forEach((ind, i) => scoreHeaders.push(`ชี้วัด ${i+1}`));
-            if(indTotal > 0) scoreHeaders.push("สรุปชี้วัด");
-
+            if(indTotal > 0) { scoreHeaders.push("ผ่าน(ตัว)"); scoreHeaders.push("สรุปชี้วัด(ผ/มผ)"); }
+            
             const scoreRows = [scoreHeaders];
             students.forEach(s => {
                 const sc = (window.state.scores[c.id]||{})[s.id]||{};
@@ -1358,24 +1349,76 @@ const getCourse = () => getCoursesForClass().find(c => c.id === window.state.sel
                 let total = (sc.mc||0) + (sc.me||0) + (sc.fc||0) + (stats.pct<80?0:(sc.fe||0));
                 const grade = getGradeStr(total, stats.pct, s.statusR).g;
                 
+                let indCount = 0;
+                for(let i=0; i<indTotal; i++) { if(sc['ind_'+i]=='1'||sc['ind_'+i]=='2'||sc['ind_'+i]=='3') indCount++; }
+
                 const row = [s.no, s.name, sc.mc||0, sc.me||0, sc.fc||0, sc.fe||0, Math.round(total), grade];
                 (c.indicators || []).forEach((ind, i) => row.push(sc['ind_'+i] || '-'));
-                if(indTotal > 0) row.push(sc.ind_summary || '-');
+                if(indTotal > 0) { row.push(`${indCount}/${indTotal}`); row.push(sc.ind_summary || '-'); }
                 scoreRows.push(row);
             });
-            XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(scoreRows), "คะแนนวิชา" + (c.code||''));
+            XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(scoreRows), "คะแนนวิชาและตัวชี้วัด");
 
-            // แผ่นที่ 4: คุณลักษณะ 8 ประการ
-            const evRows = [["เลขที่", "ชื่อ-สกุล", "รักชาติฯ", "ซื่อสัตย์", "วินัย", "ใฝ่เรียน", "อยู่อย่างพอเพียง", "มุ่งมั่น", "รักความฯ", "จิตสาธารณะ", "อ่าน", "คิด", "เขียน"]];
+            // แผ่นที่ 3: กิจกรรมพัฒนาผู้เรียน
+            const acts = window.state.extraActivities || [];
+            const actHeaders = ["เลขที่", "ชื่อ-สกุล", ...acts.map(a => a.name)];
+            const actRows = [actHeaders];
             students.forEach(s => {
-                const ev = window.state.evaluations[s.id] || {};
-                evRows.push([s.no, s.name, ev.q1??3, ev.q2??3, ev.q3??3, ev.q4??3, ev.q5??3, ev.q6??3, ev.q7??3, ev.q8??3, ev.r1??3, ev.r2??3, ev.r3??3]);
+                const sc = window.state.extraScores[s.id] || {};
+                actRows.push([s.no, s.name, ...acts.map(a => sc[a.id] || '-')]);
             });
-            XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(evRows), "คุณลักษณะและอ่านเขียน");
+            XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(actRows), "กิจกรรมพัฒนาผู้เรียน");
 
-            // บังคับดาวน์โหลดไฟล์
-            XLSX.writeFile(wb, `BACKUP_ปพ5_ชั้น${cls.replace('.','')}_${Date.now()}.xlsx`);
+            // แผ่นที่ 4: หน้า ปพ.5 (SAR)
+            const cfg = (window.state.printConfigs && window.state.printConfigs[cls]) ? window.state.printConfigs[cls] : {};
+            const courses = window.state.courses[cls] || [];
+            
+            let mCount = 0, fCount = 0;
+            students.forEach(s => { if(s.name.includes('ด.ช.')) mCount++; else fCount++; });
+            const totalStudents = mCount + fCount;
+            
+            const sarRows = [
+                ["", "", "", "", "", "", "ปพ.๕"],
+                ["สมุดบันทึกการพัฒนาคุณภาพผู้เรียน ชั้นประถมศึกษาปีที่ " + cls.replace('ป.','')],
+                [],
+                ["โรงเรียน", cfg.schoolName || window.state.schoolName || 'บ้านนาหว้าน้อย', "ตำบล/แขวง", cfg.subDistrict || 'กกสะทอน', "อำเภอ/เขต", cfg.district || 'ด่านซ้าย'],
+                ["จังหวัด", cfg.province || 'เลย', "เขตพื้นที่การศึกษา", cfg.eduArea || 'เลย', "เขต", cfg.eduAreaZone || '3'],
+                ["ปีการศึกษา", cfg.academicYear || window.state.academicYear || '2568', "ครูประจำชั้น", cfg.teacherName || '', "ผู้อำนวยการ", cfg.directorName || ''],
+                [],
+                ["ตารางสรุปผลสัมฤทธิ์ทางการเรียน"],
+                ["รายวิชา", "หน่วยกิต", "4", "3.5", "3", "2.5", "2", "1.5", "1", "0", "ร", "มส"]
+            ];
+            
+            courses.forEach(cObj => {
+                let counts = {'4':0, '3.5':0, '3':0, '2.5':0, '2':0, '1.5':0, '1':0, '0':0, 'ร':0, 'มส':0};
+                students.forEach(s => {
+                    const sc = (window.state.scores[cObj.id]||{})[s.id]||{};
+                    const att = calcAtt(s.id);
+                    let tot = (sc.mc||0)+(sc.me||0)+(sc.fc||0); if(att.pct>=80) tot+=(sc.fe||0);
+                    counts[getGradeStr(tot, att.pct, s.statusR).g]++;
+                });
+                sarRows.push([
+                    cObj.name, cObj.credit, counts['4']||'-', counts['3.5']||'-', counts['3']||'-', counts['2.5']||'-', 
+                    counts['2']||'-', counts['1.5']||'-', counts['1']||'-', counts['0']||'-', counts['ร']||'-', counts['มส']||'-'
+                ]);
+            });
+
+            sarRows.push([]);
+            sarRows.push(["ข้อมูลจำนวนนักเรียน", "ชาย", mCount, "หญิง", fCount, "รวม", totalStudents]);
+
+            const wsSar = XLSX.utils.aoa_to_sheet(sarRows);
+            
+            // สั่งผสานเซลล์ (Merge Cells) ในหน้า SAR เพื่อให้เหมือนหน้าปก
+            wsSar['!merges'] = [
+                { s: {r: 1, c: 0}, e: {r: 1, c: 6} }, // รวมหัวข้อสมุดบันทึกฯ
+                { s: {r: 7, c: 0}, e: {r: 7, c: 11} } // รวมหัวข้อตารางสรุป
+            ];
+            XLSX.utils.book_append_sheet(wb, wsSar, "สรุปรายงาน ปพ.5");
+
+            // บังคับดาวน์โหลด
+            XLSX.writeFile(wb, `ระบบปพ5_ชั้น${cls.replace('.','')}.xlsx`);
         };
+
 
 
 
