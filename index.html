@@ -888,7 +888,7 @@ const getCourse = () => getCoursesForClass().find(c => c.id === window.state.sel
             `;
         }
 
-                      function htmlPrintSummary() {
+                        function htmlPrintSummary() {
             const cls = window.state.selectedClass;
             if(!window.state.printConfigs) window.state.printConfigs = {};
             if(!window.state.printConfigs[cls]) window.state.printConfigs[cls] = {};
@@ -949,21 +949,23 @@ const getCourse = () => getCoursesForClass().find(c => c.id === window.state.sel
                 });
             }
 
+            // คำนวณจำนวนบรรทัด (ขั้นต่ำ 11 บรรทัด ถ้ารายวิชาเยอะกว่า 11 ให้งอกเพิ่มอัตโนมัติ)
+            const minRows = 11;
+            const totalRows = Math.max(minRows, courseStats.length);
             const displayCourses = [];
-            for(let i=0; i<11; i++) {
+            for(let i=0; i<totalRows; i++) {
                 if(i < courseStats.length) displayCourses.push(courseStats[i]);
-                else displayCourses.push({ c: { name: '-' }, counts: {} });
+                else displayCourses.push({ c: { name: '' }, counts: {} });
             }
 
             return `
-                                <div class="flex flex-col sm:flex-row justify-between sm:items-center mb-4 gap-2 no-print">
-                    <h2 class="text-base sm:text-lg font-bold text-gray-800">ตัวอย่างก่อนพิมพ์ <span class="text-blue-600 text-sm ml-2 font-normal bg-blue-50 px-2 py-1 rounded"><i class="fa-solid fa-pen"></i> คลิกที่ข้อความสีน้ำเงินเพื่อแก้ไข</span></h2>
+                <div class="flex flex-col sm:flex-row justify-between sm:items-center mb-4 gap-2 no-print">
+                    <h2 class="text-base sm:text-lg font-bold text-gray-800">ตัวอย่างก่อนพิมพ์ <span class="text-blue-600 text-sm ml-2 font-normal bg-blue-50 px-2 py-1 rounded"><i class="fa-solid fa-pen"></i> คลิกที่ข้อความสีน้ำเงินเพื่อแก้ไข (แยกตามชั้น)</span></h2>
                     <div class="flex gap-2">
                         <button onclick="window.exportAllToExcel()" class="px-4 py-2 bg-green-600 text-white rounded-lg shadow hover:bg-green-700 font-bold text-sm"><i class="fa-solid fa-file-excel"></i> ส่งออกข้อมูลทั้งหมด (Excel)</button>
                         <button onclick="window.print()" class="px-4 py-2 bg-blue-600 text-white rounded-lg shadow hover:bg-blue-700 font-bold text-sm"><i class="fa-solid fa-print"></i> สั่งพิมพ์รายงาน</button>
                     </div>
                 </div>
-
                 
                 <div class="overflow-x-auto py-4 bg-gray-200 rounded flex justify-start lg:justify-center custom-scrollbar">
                     <div class="a4-preview font-serif relative text-[11pt] leading-tight text-black bg-white p-8">
@@ -1007,17 +1009,29 @@ const getCourse = () => getCoursesForClass().find(c => c.id === window.state.sel
                                 </tr>
                             </thead>
                             <tbody>
-                                <tr><td class="border border-black p-1 text-left px-2 truncate max-w-[100px]">${displayCourses[0].c.name}</td>${['0','1','1.5','2','2.5','3','3.5','4'].map(g => `<td class="border border-black p-1">${displayCourses[0].counts[g]||'-'}</td>`).join('')}<td class="border border-black p-1">คุณลักษณะอันพึงประสงค์</td><td class="border border-black p-1">${caStats['ดีเยี่ยม']||'-'}</td><td class="border border-black p-1">${caStats['ดี']||'-'}</td><td class="border border-black p-1">${caStats['ผ่าน']||'-'}</td><td class="border border-black p-1">${caStats['ไม่ผ่าน']||'-'}</td></tr>
-                                <tr><td class="border border-black p-1 text-left px-2 truncate max-w-[100px]">${displayCourses[1].c.name}</td>${['0','1','1.5','2','2.5','3','3.5','4'].map(g => `<td class="border border-black p-1">${displayCourses[1].counts[g]||'-'}</td>`).join('')}<td class="border border-black p-1">การอ่าน คิดวิเคราะห์ฯ</td><td class="border border-black p-1">${raStats['ดีเยี่ยม']||'-'}</td><td class="border border-black p-1">${raStats['ดี']||'-'}</td><td class="border border-black p-1">${raStats['ผ่าน']||'-'}</td><td class="border border-black p-1">${raStats['ไม่ผ่าน']||'-'}</td></tr>
-                                <tr><td class="border border-black p-1 text-left px-2 truncate max-w-[100px]">${displayCourses[2].c.name}</td>${['0','1','1.5','2','2.5','3','3.5','4'].map(g => `<td class="border border-black p-1">${displayCourses[2].counts[g]||'-'}</td>`).join('')}<td class="border border-black p-1">ผลการประเมิน</td><td class="border border-black p-1" colspan="2">ผ่าน</td><td class="border border-black p-1" colspan="2">ไม่ผ่าน</td></tr>
-                                <tr><td class="border border-black p-1 text-left px-2 truncate max-w-[100px]">${displayCourses[3].c.name}</td>${['0','1','1.5','2','2.5','3','3.5','4'].map(g => `<td class="border border-black p-1">${displayCourses[3].counts[g]||'-'}</td>`).join('')}<td class="border border-black p-1">กิจกรรมพัฒนาผู้เรียน</td><td class="border border-black p-1" colspan="2">${actPass||'-'}</td><td class="border border-black p-1" colspan="2">${actFail||'-'}</td></tr>
-                                <tr><td class="border border-black p-1 text-left px-2 truncate max-w-[100px]">${displayCourses[4].c.name}</td>${['0','1','1.5','2','2.5','3','3.5','4'].map(g => `<td class="border border-black p-1">${displayCourses[4].counts[g]||'-'}</td>`).join('')}<td class="border border-black p-1 font-bold" rowspan="2">การอนุมัติ<br>ผลการเรียน</td><td class="border border-black p-1">ชาย</td><td class="border border-black p-1">หญิง</td><td class="border border-black p-1" colspan="2">รวม</td></tr>
-                                <tr><td class="border border-black p-1 text-left px-2 truncate max-w-[100px]">${displayCourses[5].c.name}</td>${['0','1','1.5','2','2.5','3','3.5','4'].map(g => `<td class="border border-black p-1">${displayCourses[5].counts[g]||'-'}</td>`).join('')}<td class="border border-black p-1 bg-gray-100"></td><td class="border border-black p-1 bg-gray-100"></td><td class="border border-black p-1 bg-gray-100" colspan="2"></td></tr>
-                                <tr><td class="border border-black p-1 text-left px-2 truncate max-w-[100px]">${displayCourses[6].c.name}</td>${['0','1','1.5','2','2.5','3','3.5','4'].map(g => `<td class="border border-black p-1">${displayCourses[6].counts[g]||'-'}</td>`).join('')}<td class="border border-black p-1 text-left px-2">จำนวนนักเรียนบัญชี</td><td class="border border-black p-1">${mCount||'-'}</td><td class="border border-black p-1">${fCount||'-'}</td><td class="border border-black p-1" colspan="2">${totalStudents||'-'}</td></tr>
-                                <tr><td class="border border-black p-1 text-left px-2 truncate max-w-[100px]">${displayCourses[7].c.name}</td>${['0','1','1.5','2','2.5','3','3.5','4'].map(g => `<td class="border border-black p-1">${displayCourses[7].counts[g]||'-'}</td>`).join('')}<td class="border border-black p-1 text-left px-2">เข้าเรียนระหว่างปี</td><td class="border border-black p-1">-</td><td class="border border-black p-1">-</td><td class="border border-black p-1" colspan="2">-</td></tr>
-                                <tr><td class="border border-black p-1 text-left px-2 truncate max-w-[100px]">${displayCourses[8].c.name}</td>${['0','1','1.5','2','2.5','3','3.5','4'].map(g => `<td class="border border-black p-1">${displayCourses[8].counts[g]||'-'}</td>`).join('')}<td class="border border-black p-1 text-left px-2">ออกระหว่างปี</td><td class="border border-black p-1">-</td><td class="border border-black p-1">-</td><td class="border border-black p-1" colspan="2">-</td></tr>
-                                <tr><td class="border border-black p-1 text-left px-2 truncate max-w-[100px]">${displayCourses[9].c.name}</td>${['0','1','1.5','2','2.5','3','3.5','4'].map(g => `<td class="border border-black p-1">${displayCourses[9].counts[g]||'-'}</td>`).join('')}<td class="border border-black p-1 text-left px-2">ตัดสินให้ซ้ำชั้น</td><td class="border border-black p-1">-</td><td class="border border-black p-1">-</td><td class="border border-black p-1" colspan="2">-</td></tr>
-                                <tr><td class="border border-black p-1 text-left px-2 truncate max-w-[100px]">${displayCourses[10].c.name}</td>${['0','1','1.5','2','2.5','3','3.5','4'].map(g => `<td class="border border-black p-1">${displayCourses[10].counts[g]||'-'}</td>`).join('')}<td class="border border-black p-1 text-left px-2">ตัดสินเลื่อนชั้นปลายปี</td><td class="border border-black p-1">${mCount||'-'}</td><td class="border border-black p-1">${fCount||'-'}</td><td class="border border-black p-1" colspan="2">${totalStudents||'-'}</td></tr>
+                                ${displayCourses.map((courseItem, i) => {
+                                    let rightHtml = '';
+                                    if (i === 0) rightHtml = `<td class="border border-black p-1">คุณลักษณะอันพึงประสงค์</td><td class="border border-black p-1">${caStats['ดีเยี่ยม']||'-'}</td><td class="border border-black p-1">${caStats['ดี']||'-'}</td><td class="border border-black p-1">${caStats['ผ่าน']||'-'}</td><td class="border border-black p-1">${caStats['ไม่ผ่าน']||'-'}</td>`;
+                                    else if (i === 1) rightHtml = `<td class="border border-black p-1">การอ่าน คิดวิเคราะห์ฯ</td><td class="border border-black p-1">${raStats['ดีเยี่ยม']||'-'}</td><td class="border border-black p-1">${raStats['ดี']||'-'}</td><td class="border border-black p-1">${raStats['ผ่าน']||'-'}</td><td class="border border-black p-1">${raStats['ไม่ผ่าน']||'-'}</td>`;
+                                    else if (i === 2) rightHtml = `<td class="border border-black p-1">ผลการประเมิน</td><td class="border border-black p-1" colspan="2">ผ่าน</td><td class="border border-black p-1" colspan="2">ไม่ผ่าน</td>`;
+                                    else if (i === 3) rightHtml = `<td class="border border-black p-1">กิจกรรมพัฒนาผู้เรียน</td><td class="border border-black p-1" colspan="2">${actPass||'-'}</td><td class="border border-black p-1" colspan="2">${actFail||'-'}</td>`;
+                                    else if (i === 4) rightHtml = `<td class="border border-black p-1 font-bold" rowspan="2">การอนุมัติ<br>ผลการเรียน</td><td class="border border-black p-1">ชาย</td><td class="border border-black p-1">หญิง</td><td class="border border-black p-1" colspan="2">รวม</td>`;
+                                    else if (i === 5) rightHtml = `<td class="border border-black p-1 bg-gray-100"></td><td class="border border-black p-1 bg-gray-100"></td><td class="border border-black p-1 bg-gray-100" colspan="2"></td>`;
+                                    else if (i === 6) rightHtml = `<td class="border border-black p-1 text-left px-2">จำนวนนักเรียนบัญชี</td><td class="border border-black p-1">${mCount||'-'}</td><td class="border border-black p-1">${fCount||'-'}</td><td class="border border-black p-1" colspan="2">${totalStudents||'-'}</td>`;
+                                    else if (i === 7) rightHtml = `<td class="border border-black p-1 text-left px-2">เข้าเรียนระหว่างปี</td><td class="border border-black p-1">-</td><td class="border border-black p-1">-</td><td class="border border-black p-1" colspan="2">-</td>`;
+                                    else if (i === 8) rightHtml = `<td class="border border-black p-1 text-left px-2">ออกระหว่างปี</td><td class="border border-black p-1">-</td><td class="border border-black p-1">-</td><td class="border border-black p-1" colspan="2">-</td>`;
+                                    else if (i === 9) rightHtml = `<td class="border border-black p-1 text-left px-2">ตัดสินให้ซ้ำชั้น</td><td class="border border-black p-1">-</td><td class="border border-black p-1">-</td><td class="border border-black p-1" colspan="2">-</td>`;
+                                    else if (i === 10) rightHtml = `<td class="border border-black p-1 text-left px-2">ตัดสินเลื่อนชั้นปลายปี</td><td class="border border-black p-1">${mCount||'-'}</td><td class="border border-black p-1">${fCount||'-'}</td><td class="border border-black p-1" colspan="2">${totalStudents||'-'}</td>`;
+                                    else rightHtml = `<td class="border border-black p-1"></td><td class="border border-black p-1"></td><td class="border border-black p-1"></td><td class="border border-black p-1"></td><td class="border border-black p-1"></td>`;
+
+                                    return `
+                                        <tr>
+                                            <td class="border border-black p-1 text-left px-2 whitespace-normal break-words leading-tight align-top w-28">${courseItem.c.name}</td>
+                                            ${['0','1','1.5','2','2.5','3','3.5','4'].map(g => `<td class="border border-black p-1">${courseItem.counts[g] || (courseItem.c.name ? '-' : '')}</td>`).join('')}
+                                            ${rightHtml}
+                                        </tr>
+                                    `;
+                                }).join('')}
                             </tbody>
                         </table>
 
@@ -1057,6 +1071,7 @@ const getCourse = () => getCoursesForClass().find(c => c.id === window.state.sel
                 </div>
             `;
         }
+
 
 
 
