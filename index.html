@@ -6,6 +6,10 @@
     <title>ระบบ ปพ.5 โรงเรียนบ้านนาหว้าน้อย </title>
     <link rel="icon" href="IMG_4847.jpeg" type="image/png">
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
+
+    
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     
@@ -548,7 +552,7 @@ const getCourse = () => getCoursesForClass().find(c => c.id === window.state.sel
         }
 
 
-                      function htmlStudentInfo() {
+                           function htmlStudentInfo() {
             const students = getStudents();
             return `
                 <div class="mb-4 flex flex-col sm:flex-row justify-between sm:items-center gap-2">
@@ -582,9 +586,11 @@ const getCourse = () => getCoursesForClass().find(c => c.id === window.state.sel
                         <tbody>
                             ${students.map(s => `
                                 <tr class="hover:bg-gray-50">
-                                    <td class="sticky-name-col bg-white p-2 border-r-2 border-gray-300 z-20 flex items-center">
-                                        <span class="w-6 text-gray-500 font-bold text-center">${s.no}.</span>
-                                        <input type="text" value="${s.name || ''}" class="flex-1 p-1 border-b border-transparent hover:border-gray-300 focus:border-blue-500 outline-none bg-transparent font-medium" onchange="window.updateStudent('${s.id}', 'name', this.value)">
+                                    <td class="sticky-name-col bg-white p-2 border-r-2 border-gray-300">
+                                        <div class="flex items-center w-full">
+                                            <span class="w-6 text-gray-500 font-bold text-center flex-shrink-0">${s.no}.</span>
+                                            <input type="text" value="${s.name || ''}" class="flex-1 p-1 border-b border-transparent hover:border-gray-300 focus:border-blue-500 outline-none bg-transparent font-medium min-w-[120px]" onchange="window.updateStudent('${s.id}', 'name', this.value)">
+                                        </div>
                                     </td>
                                     <td class="p-2 text-center text-gray-500 font-medium">${window.state.selectedClass}</td>
                                     <td class="p-1"><input type="text" value="${s.code || ''}" class="w-full p-1 border rounded outline-none text-blue-600 font-medium" onchange="window.updateStudent('${s.id}', 'code', this.value)"></td>
@@ -608,6 +614,7 @@ const getCourse = () => getCoursesForClass().find(c => c.id === window.state.sel
                 </div>
             `;
         }
+
 
 
 
@@ -705,7 +712,7 @@ const getCourse = () => getCoursesForClass().find(c => c.id === window.state.sel
         
 
 
-        function htmlGrading() {
+               function htmlGrading() {
             const c = getCourse(); const students = getStudents();
             return `
                 <div class="flex flex-col sm:flex-row justify-between sm:items-center mb-4 gap-2">
@@ -722,12 +729,17 @@ const getCourse = () => getCoursesForClass().find(c => c.id === window.state.sel
                                 <th rowSpan="2" class="bg-gray-100 p-2 w-16">รวม<br>(100)</th>
                                 <th rowSpan="2" class="bg-gray-100 p-2 w-12">ติด ร.</th>
                                 <th rowSpan="2" class="bg-blue-100 p-2 w-16 sticky-pct-header">เกรด</th>
-                                ${(c.indicators||[]).length > 0 ? `<th colSpan="${c.indicators.length}" class="bg-purple-50 p-2 border-l-2 border-purple-200">ประเมินตัวชี้วัด (✓ = ผ่าน)</th>` : ''}
+                                ${(c.indicators||[]).length > 0 ? `<th colSpan="${c.indicators.length + 3}" class="bg-purple-50 p-2 border-l-2 border-purple-200">ประเมินตัวชี้วัด (ใส่คะแนน 1-3)</th>` : ''}
                             </tr>
                             <tr>
                                 <th class="bg-indigo-50 p-1 text-[10px]">เก็บ (${c.midCollect})</th><th class="bg-indigo-50 p-1 text-[10px]">สอบ (${c.midExam})</th>
                                 <th class="bg-teal-50 p-1 text-[10px]">เก็บ (${c.finalCollect})</th><th class="bg-teal-50 p-1 text-[10px]">สอบ (${c.finalExam})</th>
-                                ${(c.indicators||[]).map(ind => `<th class="bg-purple-50 p-1 text-[11px] min-w-[200px] max-w-[250px] whitespace-normal align-top leading-tight text-left" title="${ind}">${ind}</th>`).join('')}
+                                ${(c.indicators||[]).map(ind => `<th class="bg-purple-50 p-1 text-[11px] min-w-[150px] max-w-[250px] whitespace-normal align-top leading-tight text-left" title="${ind}">${ind}</th>`).join('')}
+                                ${(c.indicators||[]).length > 0 ? `
+                                    <th class="bg-purple-100 p-1 w-16 text-[10px] whitespace-normal leading-tight">ผ่าน<br>(ตัว)</th>
+                                    <th class="bg-green-100 p-1 w-12 text-[10px]">ผ.</th>
+                                    <th class="bg-red-100 p-1 w-12 text-[10px]">มผ.</th>
+                                ` : ''}
                             </tr>
                         </thead>
                         <tbody>
@@ -736,6 +748,13 @@ const getCourse = () => getCoursesForClass().find(c => c.id === window.state.sel
                                 const stats = calcAtt(s.id); const isMS = stats.pct < 80;
                                 let total = (sc.mc||0) + (sc.me||0) + (sc.fc||0); if (!isMS) total += (sc.fe||0);
                                 const grade = getGradeStr(total, stats.pct, s.statusR);
+                                
+                                // นับจำนวนตัวชี้วัดที่ผ่านการประเมิน (มีคะแนน 1, 2 หรือ 3)
+                                let indCount = 0;
+                                const indTotal = (c.indicators||[]).length;
+                                for(let i=0; i<indTotal; i++) {
+                                    if(sc['ind_'+i] == '1' || sc['ind_'+i] == '2' || sc['ind_'+i] == '3') indCount++;
+                                }
                                 
                                 return `
                                 <tr class="hover:bg-gray-50 ${s.statusR?'bg-yellow-50':''}">
@@ -747,17 +766,36 @@ const getCourse = () => getCoursesForClass().find(c => c.id === window.state.sel
                                     <td class="p-2 font-bold" id="tot_${s.id}">${Math.round(total)}</td>
                                     <td class="p-2"><input type="checkbox" ${s.statusR?'checked':''} class="w-4 h-4 sm:w-5 sm:h-5 cursor-pointer accent-orange-500" onchange="window.toggleR('${s.id}')"></td>
                                     <td class="sticky-pct-col p-2 text-sm sm:text-lg ${grade.c}" id="grd_${s.id}">${grade.g}</td>
+                                    
                                     ${(c.indicators||[]).map((ind, i) => `
-                                        <td class="p-1 bg-purple-50/30 text-center"><input type="checkbox" ${sc['ind_'+i]?'checked':''} class="w-4 h-4 sm:w-5 sm:h-5 cursor-pointer accent-purple-600 rounded" onchange="window.handleScore('${s.id}', 'ind_${i}', this.checked)"></td>
+                                        <td class="p-1 bg-purple-50/30 text-center">
+                                            <select class="w-12 p-1 border rounded text-xs outline-none cursor-pointer text-center appearance-none bg-white" onchange="window.handleScore('${s.id}', 'ind_${i}', this.value)">
+                                                <option value="" ${!sc['ind_'+i]?'selected':''}>-</option>
+                                                <option value="3" ${sc['ind_'+i]=='3'?'selected':''}>3</option>
+                                                <option value="2" ${sc['ind_'+i]=='2'?'selected':''}>2</option>
+                                                <option value="1" ${sc['ind_'+i]=='1'?'selected':''}>1</option>
+                                            </select>
+                                        </td>
                                     `).join('')}
+                                    
+                                    ${(c.indicators||[]).length > 0 ? `
+                                        <td class="p-1 text-center bg-purple-100 font-bold text-xs text-purple-800">${indCount}/${indTotal}</td>
+                                        <td class="p-1 text-center bg-green-50"><input type="checkbox" ${sc.ind_summary === 'ผ' ? 'checked' : ''} onchange="window.handleScore('${s.id}', 'ind_summary', this.checked ? 'ผ' : '')" class="w-4 h-4 accent-green-600 cursor-pointer rounded"></td>
+                                        <td class="p-1 text-center bg-red-50"><input type="checkbox" ${sc.ind_summary === 'มผ' ? 'checked' : ''} onchange="window.handleScore('${s.id}', 'ind_summary', this.checked ? 'มผ' : '')" class="w-4 h-4 accent-red-600 cursor-pointer rounded"></td>
+                                    ` : ''}
                                 </tr>`;
                             }).join('')}
-                            ${students.length===0?'<tr><td colSpan="10" class="p-4 text-gray-500">ไม่มีข้อมูลนักเรียน</td></tr>':''}
+                            ${students.length===0?`<tr><td colSpan="${8 + (c.indicators||[]).length + ((c.indicators||[]).length>0?3:0)}" class="p-4 text-center text-gray-500">ไม่มีข้อมูลนักเรียน</td></tr>`:''}
                         </tbody>
                     </table>
                 </div>
             `;
         }
+
+
+
+
+        
 
         function htmlEvaluations() {
             const students = getStudents();
@@ -914,10 +952,14 @@ const getCourse = () => getCoursesForClass().find(c => c.id === window.state.sel
             }
 
             return `
-                <div class="flex flex-col sm:flex-row justify-between sm:items-center mb-4 gap-2 no-print">
-                    <h2 class="text-base sm:text-lg font-bold text-gray-800">ตัวอย่างก่อนพิมพ์ <span class="text-blue-600 text-sm ml-2 font-normal bg-blue-50 px-2 py-1 rounded"><i class="fa-solid fa-pen"></i> คลิกที่ข้อความสีน้ำเงินเพื่อแก้ไข (แยกตามชั้น)</span></h2>
-                    <button onclick="window.print()" class="px-4 py-2 bg-blue-600 text-white rounded-lg shadow hover:bg-blue-700 font-bold text-sm"><i class="fa-solid fa-print"></i> สั่งพิมพ์รายงาน</button>
+                                <div class="flex flex-col sm:flex-row justify-between sm:items-center mb-4 gap-2 no-print">
+                    <h2 class="text-base sm:text-lg font-bold text-gray-800">ตัวอย่างก่อนพิมพ์ <span class="text-blue-600 text-sm ml-2 font-normal bg-blue-50 px-2 py-1 rounded"><i class="fa-solid fa-pen"></i> คลิกที่ข้อความสีน้ำเงินเพื่อแก้ไข</span></h2>
+                    <div class="flex gap-2">
+                        <button onclick="window.exportAllToExcel()" class="px-4 py-2 bg-green-600 text-white rounded-lg shadow hover:bg-green-700 font-bold text-sm"><i class="fa-solid fa-file-excel"></i> ส่งออกข้อมูลทั้งหมด (Excel)</button>
+                        <button onclick="window.print()" class="px-4 py-2 bg-blue-600 text-white rounded-lg shadow hover:bg-blue-700 font-bold text-sm"><i class="fa-solid fa-print"></i> สั่งพิมพ์รายงาน</button>
+                    </div>
                 </div>
+
                 
                 <div class="overflow-x-auto py-4 bg-gray-200 rounded flex justify-start lg:justify-center custom-scrollbar">
                     <div class="a4-preview font-serif relative text-[11pt] leading-tight text-black bg-white p-8">
@@ -1276,6 +1318,64 @@ const getCourse = () => getCoursesForClass().find(c => c.id === window.state.sel
 
 
         
+        window.exportAllToExcel = function() {
+            if(typeof XLSX === 'undefined') { alert('กำลังเชื่อมต่อระบบสร้าง Excel โปรดรอสักครู่...'); return; }
+            
+            const wb = XLSX.utils.book_new();
+            const cls = window.state.selectedClass;
+            const students = getStudents();
+            const c = getCourse();
+
+            // แผ่นที่ 1: ข้อมูลหน้าปก
+            const cfg = (window.state.printConfigs && window.state.printConfigs[cls]) ? window.state.printConfigs[cls] : {};
+            const coverData = [
+                ["หัวข้อข้อมูล", "รายละเอียด"],
+                ["โรงเรียน", cfg.schoolName || window.state.schoolName || 'บ้านนาหว้าน้อย'],
+                ["ชั้น", cls],
+                ["ปีการศึกษา", cfg.academicYear || window.state.academicYear || '2568'],
+                ["ครูประจำชั้น", cfg.teacherName || window.state.teacherName || ''],
+                ["ผู้อำนวยการ", cfg.directorName || window.state.directorName || '']
+            ];
+            XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(coverData), "ข้อมูลพื้นฐาน");
+
+            // แผ่นที่ 2: ข้อมูลนักเรียน
+            const studentRows = [["เลขที่", "เลขประจำตัว", "เลข ปชช.", "ชื่อ-สกุล", "วันเกิด", "หมู่เลือด", "ชื่อบิดา", "ชื่อมารดา", "ผู้ปกครอง", "เบอร์โทร"]];
+            students.forEach(s => {
+                studentRows.push([s.no, s.code||'', s.nid||'', s.name, s.dob||'', s.bloodType||'', s.fatherName||'', s.motherName||'', s.guardianName||'', s.phone||'']);
+            });
+            XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(studentRows), "ข้อมูลนักเรียน");
+
+            // แผ่นที่ 3: คะแนนและเกรด
+            const indTotal = (c.indicators || []).length;
+            const scoreHeaders = ["เลขที่", "ชื่อ-สกุล", "เก็บกลางภาค", "สอบกลางภาค", "เก็บปลายภาค", "สอบปลายภาค", "คะแนนรวม", "เกรด"];
+            (c.indicators || []).forEach((ind, i) => scoreHeaders.push(`ชี้วัด ${i+1}`));
+            if(indTotal > 0) scoreHeaders.push("สรุปชี้วัด");
+
+            const scoreRows = [scoreHeaders];
+            students.forEach(s => {
+                const sc = (window.state.scores[c.id]||{})[s.id]||{};
+                const stats = calcAtt(s.id);
+                let total = (sc.mc||0) + (sc.me||0) + (sc.fc||0) + (stats.pct<80?0:(sc.fe||0));
+                const grade = getGradeStr(total, stats.pct, s.statusR).g;
+                
+                const row = [s.no, s.name, sc.mc||0, sc.me||0, sc.fc||0, sc.fe||0, Math.round(total), grade];
+                (c.indicators || []).forEach((ind, i) => row.push(sc['ind_'+i] || '-'));
+                if(indTotal > 0) row.push(sc.ind_summary || '-');
+                scoreRows.push(row);
+            });
+            XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(scoreRows), "คะแนนวิชา" + (c.code||''));
+
+            // แผ่นที่ 4: คุณลักษณะ 8 ประการ
+            const evRows = [["เลขที่", "ชื่อ-สกุล", "รักชาติฯ", "ซื่อสัตย์", "วินัย", "ใฝ่เรียน", "อยู่อย่างพอเพียง", "มุ่งมั่น", "รักความฯ", "จิตสาธารณะ", "อ่าน", "คิด", "เขียน"]];
+            students.forEach(s => {
+                const ev = window.state.evaluations[s.id] || {};
+                evRows.push([s.no, s.name, ev.q1??3, ev.q2??3, ev.q3??3, ev.q4??3, ev.q5??3, ev.q6??3, ev.q7??3, ev.q8??3, ev.r1??3, ev.r2??3, ev.r3??3]);
+            });
+            XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(evRows), "คุณลักษณะและอ่านเขียน");
+
+            // บังคับดาวน์โหลดไฟล์
+            XLSX.writeFile(wb, `BACKUP_ปพ5_ชั้น${cls.replace('.','')}_${Date.now()}.xlsx`);
+        };
 
 
 
