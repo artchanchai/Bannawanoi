@@ -457,7 +457,7 @@ const getCourse = () => getCoursesForClass().find(c => c.id === window.state.sel
 
 
         // ----------------- HTML TEMPLATES -----------------
-              function htmlSettings() {
+                     function htmlSettings() {
             const c = getCourse(); const isAdmin = window.currentUserRole === 'admin';
             const sys = window.state.sysConfig || {};
             return `
@@ -467,12 +467,15 @@ const getCourse = () => getCoursesForClass().find(c => c.id === window.state.sel
                     ${isAdmin ? `
                     <div class="bg-red-50 p-4 rounded-lg border border-red-200 mb-6">
                         <h2 class="text-base font-bold text-red-800 mb-3"><i class="fa-solid fa-lock"></i> ระบบควบคุมการกรอกข้อมูล (แอดมิน)</h2>
-                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                            <label class="flex items-center space-x-2 cursor-pointer"><input type="checkbox" class="w-5 h-5 accent-red-600" ${sys.editStudent !== false ? 'checked' : ''} onchange="window.toggleSys('editStudent', this.checked)"><span class="text-sm font-bold text-gray-700">เปิดให้แก้ข้อมูลนักเรียน</span></label>
-                            <label class="flex items-center space-x-2 cursor-pointer"><input type="checkbox" class="w-5 h-5 accent-red-600" ${sys.editMidterm !== false ? 'checked' : ''} onchange="window.toggleSys('editMidterm', this.checked)"><span class="text-sm font-bold text-gray-700">เปิดกรอกคะแนนกลางภาค</span></label>
-                            <label class="flex items-center space-x-2 cursor-pointer"><input type="checkbox" class="w-5 h-5 accent-red-600" ${sys.editFinal !== false ? 'checked' : ''} onchange="window.toggleSys('editFinal', this.checked)"><span class="text-sm font-bold text-gray-700">เปิดกรอกคะแนนปลายภาค</span></label>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                            <label class="flex items-center space-x-2 cursor-pointer"><input type="checkbox" class="w-5 h-5 accent-red-600" ${sys.editStudent !== false ? 'checked' : ''} onchange="window.toggleSys('editStudent', this.checked)"><span class="text-sm font-bold text-gray-700">1. ข้อมูลนักเรียน</span></label>
+                            <label class="flex items-center space-x-2 cursor-pointer"><input type="checkbox" class="w-5 h-5 accent-red-600" ${sys.editMidterm !== false ? 'checked' : ''} onchange="window.toggleSys('editMidterm', this.checked)"><span class="text-sm font-bold text-gray-700">2. คะแนนกลางภาค</span></label>
+                            <label class="flex items-center space-x-2 cursor-pointer"><input type="checkbox" class="w-5 h-5 accent-red-600" ${sys.editFinal !== false ? 'checked' : ''} onchange="window.toggleSys('editFinal', this.checked)"><span class="text-sm font-bold text-gray-700">3. คะแนนปลายภาค</span></label>
+                            <label class="flex items-center space-x-2 cursor-pointer"><input type="checkbox" class="w-5 h-5 accent-red-600" ${sys.editEvaluations !== false ? 'checked' : ''} onchange="window.toggleSys('editEvaluations', this.checked)"><span class="text-sm font-bold text-gray-700">4. คุณลักษณะฯ</span></label>
+                            <label class="flex items-center space-x-2 cursor-pointer"><input type="checkbox" class="w-5 h-5 accent-red-600" ${sys.editActivities !== false ? 'checked' : ''} onchange="window.toggleSys('editActivities', this.checked)"><span class="text-sm font-bold text-gray-700">5. กิจกรรมพัฒนาผู้เรียน</span></label>
+                            <label class="flex items-center space-x-2 cursor-pointer"><input type="checkbox" class="w-5 h-5 accent-red-600" ${sys.editPrint !== false ? 'checked' : ''} onchange="window.toggleSys('editPrint', this.checked)"><span class="text-sm font-bold text-gray-700">6. แก้ไขหน้า ปพ.5</span></label>
                         </div>
-                        <p class="text-xs text-red-600 mt-2">* หากติ๊กออก ครูผู้สอนจะไม่สามารถพิมพ์แก้ไขข้อมูลในหน้านั้นๆ ได้</p>
+                        <p class="text-xs text-red-600 mt-3 font-medium">* หากแอดมินติ๊กเครื่องหมายถูกออก ครูผู้สอนจะไม่สามารถพิมพ์แก้ไขข้อมูลในหน้าเมนูนั้นๆ ได้</p>
                     </div>` : ''}
 
                     <div class="flex flex-col sm:flex-row justify-between sm:items-end border-b pb-2 gap-2">
@@ -560,6 +563,7 @@ const getCourse = () => getCoursesForClass().find(c => c.id === window.state.sel
                 </div>
             `;
         }
+
 
 
 
@@ -799,15 +803,18 @@ const getCourse = () => getCoursesForClass().find(c => c.id === window.state.sel
 
 
 
-
-        
-
         function htmlEvaluations() {
             const students = getStudents();
-            const opts = `<option value="3">3</option><option value="2">2</option><option value="1">1</option><option value="0">0</option>`;
+            const isAdmin = window.currentUserRole === 'admin';
+            const sys = window.state.sysConfig || {};
+            const canEdit = isAdmin || sys.editEvaluations !== false;
+            
             const evTitle = ['รักชาติฯ', 'ซื่อสัตย์', 'วินัย', 'ใฝ่เรียน', 'อยู่อย่างพอเพียง', 'มุ่งมั่น', 'รักความฯ', 'จิตสาธารณะ'];
             return `
-                <div class="mb-4"><h2 class="text-base sm:text-lg font-bold text-gray-800">ประเมินคุณลักษณะฯ และ อ่านคิดวิเคราะห์เขียน</h2></div>
+                <div class="flex flex-col sm:flex-row justify-between sm:items-center mb-4 gap-2">
+                    <h2 class="text-base sm:text-lg font-bold text-gray-800">ประเมินคุณลักษณะฯ และ อ่านคิดวิเคราะห์เขียน</h2>
+                </div>
+                ${!canEdit ? `<div class="bg-red-100 text-red-700 p-2 rounded mb-2 text-sm font-bold w-full border border-red-200"><i class="fa-solid fa-lock"></i> แอดมินได้ปิดระบบการประเมินคุณลักษณะฯ ชั่วคราว</div>` : ''}
                 <div class="overflow-x-auto overflow-y-auto border rounded-lg max-h-[60vh] custom-scrollbar attendance-table bg-white w-full">
                     <table class="w-full text-xs sm:text-sm text-center whitespace-nowrap min-w-max">
                         <thead>
@@ -835,9 +842,19 @@ const getCourse = () => getCoursesForClass().find(c => c.id === window.state.sel
                                 return `
                                 <tr class="hover:bg-gray-50 border-b">
                                     <td class="sticky-name-col bg-white p-2 text-left"><span class="w-4 sm:w-6 text-gray-400 inline-block">${s.no}.</span> ${s.name}</td>
-                                    ${[1,2,3,4,5,6,7,8].map(i => `<td class="p-1"><select class="w-full p-1 border rounded bg-white outline-none cursor-pointer text-center appearance-none" onchange="window.handleEval('${s.id}', 'q${i}', this.value)">${opts.replace(`value="${ev['q'+i]!==undefined?ev['q'+i]:3}"`, `value="${ev['q'+i]!==undefined?ev['q'+i]:3}" selected`)}</select></td>`).join('')}
+                                    ${[1,2,3,4,5,6,7,8].map(i => {
+                                        const val = ev['q'+i]!==undefined?ev['q'+i]:3;
+                                        return `<td class="p-1"><select class="w-full p-1 border rounded outline-none cursor-pointer text-center appearance-none ${!canEdit?'bg-gray-100 cursor-not-allowed':'bg-white'}" ${!canEdit?'disabled':''} onchange="window.handleEval('${s.id}', 'q${i}', this.value)">
+                                            <option value="3" ${val==3?'selected':''}>3</option><option value="2" ${val==2?'selected':''}>2</option><option value="1" ${val==1?'selected':''}>1</option><option value="0" ${val==0?'selected':''}>0</option>
+                                        </select></td>`;
+                                    }).join('')}
                                     <td class="p-2 font-bold ${ca<2?'text-red-500':'text-green-600'}" id="ev_c_${s.id}">${lg[ca]}</td>
-                                    ${[1,2,3].map(i => `<td class="p-1 bg-pink-50/20"><select class="w-full p-1 border rounded bg-white outline-none cursor-pointer text-center appearance-none" onchange="window.handleEval('${s.id}', 'r${i}', this.value)">${opts.replace(`value="${ev['r'+i]!==undefined?ev['r'+i]:3}"`, `value="${ev['r'+i]!==undefined?ev['r'+i]:3}" selected`)}</select></td>`).join('')}
+                                    ${[1,2,3].map(i => {
+                                        const val = ev['r'+i]!==undefined?ev['r'+i]:3;
+                                        return `<td class="p-1 bg-pink-50/20"><select class="w-full p-1 border rounded outline-none cursor-pointer text-center appearance-none ${!canEdit?'bg-gray-100 cursor-not-allowed':'bg-white'}" ${!canEdit?'disabled':''} onchange="window.handleEval('${s.id}', 'r${i}', this.value)">
+                                            <option value="3" ${val==3?'selected':''}>3</option><option value="2" ${val==2?'selected':''}>2</option><option value="1" ${val==1?'selected':''}>1</option><option value="0" ${val==0?'selected':''}>0</option>
+                                        </select></td>`;
+                                    }).join('')}
                                     <td class="sticky-pct-col p-2 font-bold ${ra<2?'text-red-500':'text-green-600'}" id="ev_r_${s.id}">${lg[ra]}</td>
                                 </tr>`;
                             }).join('')}
@@ -848,14 +865,20 @@ const getCourse = () => getCoursesForClass().find(c => c.id === window.state.sel
             `;
         }
 
-        function htmlActivities() {
+
+               function htmlActivities() {
             const students = getStudents();
             const acts = window.state.extraActivities || [];
+            const isAdmin = window.currentUserRole === 'admin';
+            const sys = window.state.sysConfig || {};
+            const canEdit = isAdmin || sys.editActivities !== false;
+
             return `
-                <div class="mb-4 flex justify-between items-center">
+                <div class="mb-4 flex justify-between items-center flex-wrap gap-2">
                     <h2 class="text-base sm:text-lg font-bold text-gray-800">ประเมินกิจกรรมพัฒนาผู้เรียน</h2>
                     <span class="text-xs bg-indigo-50 text-indigo-700 px-3 py-1 rounded-full border border-indigo-200">เกณฑ์การประเมิน: ผ่าน / ไม่ผ่าน</span>
                 </div>
+                ${!canEdit ? `<div class="bg-red-100 text-red-700 p-2 rounded mb-2 text-sm font-bold w-full border border-red-200"><i class="fa-solid fa-lock"></i> แอดมินได้ปิดระบบการประเมินกิจกรรมฯ ชั่วคราว</div>` : ''}
                 <div class="overflow-x-auto overflow-y-auto border rounded-lg max-h-[60vh] custom-scrollbar attendance-table bg-white w-full">
                     <table class="w-full text-xs sm:text-sm text-center whitespace-nowrap min-w-max">
                         <thead class="bg-gray-100">
@@ -872,8 +895,10 @@ const getCourse = () => getCoursesForClass().find(c => c.id === window.state.sel
                                     <td class="sticky-name-col bg-white p-2 text-left"><span class="w-4 sm:w-6 text-gray-400 inline-block">${s.no}.</span> ${s.name}</td>
                                     ${acts.map(a => {
                                         const val = sc[a.id] || '-';
+                                        let bgClass = val==='ไม่ผ่าน'?'bg-red-50 text-red-600 font-bold border-red-200':val==='ผ่าน'?'bg-green-50 text-green-600 font-bold border-green-200':'bg-white text-gray-400';
+                                        if(!canEdit) bgClass += ' opacity-70 cursor-not-allowed';
                                         return `<td class="p-1">
-                                            <select class="w-full p-2 border rounded outline-none cursor-pointer text-center ${val==='ไม่ผ่าน'?'bg-red-50 text-red-600 font-bold border-red-200':val==='ผ่าน'?'bg-green-50 text-green-600 font-bold border-green-200':'bg-white text-gray-400'}" onchange="window.handleExtraScore('${s.id}', '${a.id}', this.value)">
+                                            <select class="w-full p-2 border rounded outline-none cursor-pointer text-center ${bgClass}" ${!canEdit?'disabled':''} onchange="window.handleExtraScore('${s.id}', '${a.id}', this.value)">
                                                 <option value="-" ${val==='-'?'selected':''}>-</option>
                                                 <option value="ผ่าน" ${val==='ผ่าน'?'selected':''}>ผ่าน</option>
                                                 <option value="ไม่ผ่าน" ${val==='ไม่ผ่าน'?'selected':''}>ไม่ผ่าน</option>
@@ -889,8 +914,13 @@ const getCourse = () => getCoursesForClass().find(c => c.id === window.state.sel
             `;
         }
 
-                        function htmlPrintSummary() {
+
+                          function htmlPrintSummary() {
             const cls = window.state.selectedClass;
+            const isAdmin = window.currentUserRole === 'admin';
+            const sys = window.state.sysConfig || {};
+            const canEdit = isAdmin || sys.editPrint !== false;
+
             if(!window.state.printConfigs) window.state.printConfigs = {};
             if(!window.state.printConfigs[cls]) window.state.printConfigs[cls] = {};
             const cfg = window.state.printConfigs[cls];
@@ -950,7 +980,6 @@ const getCourse = () => getCoursesForClass().find(c => c.id === window.state.sel
                 });
             }
 
-            // คำนวณจำนวนบรรทัด (ขั้นต่ำ 11 บรรทัด ถ้ารายวิชาเยอะกว่า 11 ให้งอกเพิ่มอัตโนมัติ)
             const minRows = 11;
             const totalRows = Math.max(minRows, courseStats.length);
             const displayCourses = [];
@@ -961,7 +990,9 @@ const getCourse = () => getCoursesForClass().find(c => c.id === window.state.sel
 
             return `
                 <div class="flex flex-col sm:flex-row justify-between sm:items-center mb-4 gap-2 no-print">
-                    <h2 class="text-base sm:text-lg font-bold text-gray-800">ตัวอย่างก่อนพิมพ์ <span class="text-blue-600 text-sm ml-2 font-normal bg-blue-50 px-2 py-1 rounded"><i class="fa-solid fa-pen"></i> คลิกที่ข้อความสีน้ำเงินเพื่อแก้ไข (แยกตามชั้น)</span></h2>
+                    <h2 class="text-base sm:text-lg font-bold text-gray-800">ตัวอย่างก่อนพิมพ์ 
+                        ${canEdit ? `<span class="text-blue-600 text-sm ml-2 font-normal bg-blue-50 px-2 py-1 rounded"><i class="fa-solid fa-pen"></i> คลิกที่ข้อความสีน้ำเงินเพื่อแก้ไข</span>` : `<span class="text-red-600 text-sm ml-2 font-bold bg-red-100 px-2 py-1 rounded border border-red-200"><i class="fa-solid fa-lock"></i> แอดมินปิดการแก้ไขชั่วคราว</span>`}
+                    </h2>
                     <div class="flex gap-2">
                         <button onclick="window.exportAllToExcel()" class="px-4 py-2 bg-green-600 text-white rounded-lg shadow hover:bg-green-700 font-bold text-sm"><i class="fa-solid fa-file-excel"></i> ส่งออกข้อมูลทั้งหมด (Excel)</button>
                         <button onclick="window.print()" class="px-4 py-2 bg-blue-600 text-white rounded-lg shadow hover:bg-blue-700 font-bold text-sm"><i class="fa-solid fa-print"></i> สั่งพิมพ์รายงาน</button>
@@ -972,9 +1003,9 @@ const getCourse = () => getCoursesForClass().find(c => c.id === window.state.sel
                     <div class="a4-preview font-serif relative text-[11pt] leading-tight text-black bg-white p-8">
                         <div class="absolute top-4 right-8 font-bold text-[12pt]">ปพ.๕</div>
                         
-                        <div class="text-center relative group cursor-pointer no-print inline-block mx-auto w-full mb-2" onclick="window.changeLogo()">
+                        <div class="text-center relative group ${canEdit?'cursor-pointer':''} no-print inline-block mx-auto w-full mb-2" ${canEdit?'onclick="window.changeLogo()"':''}>
                             <img src="${window.state.logoUrl || 'IMG_4847.jpeg'}" class="h-20 w-auto mx-auto object-contain">
-                            <div class="absolute inset-0 bg-black bg-opacity-40 flex items-center justify-center text-white text-xs opacity-0 group-hover:opacity-100 transition rounded w-20 mx-auto"><i class="fa-solid fa-image"></i> เปลี่ยน</div>
+                            ${canEdit ? `<div class="absolute inset-0 bg-black bg-opacity-40 flex items-center justify-center text-white text-xs opacity-0 group-hover:opacity-100 transition rounded w-20 mx-auto"><i class="fa-solid fa-image"></i> เปลี่ยน</div>` : ''}
                         </div>
                         <img src="${window.state.logoUrl || 'IMG_4847.jpeg'}" class="h-20 w-auto mx-auto object-contain mb-2 print:block hidden">
 
@@ -984,13 +1015,13 @@ const getCourse = () => getCoursesForClass().find(c => c.id === window.state.sel
                         </div>
 
                         <div class="space-y-4 mb-6 text-[12pt]">
-                            <div class="flex"><span class="whitespace-nowrap">โรงเรียน</span><span contenteditable="true" onblur="window.savePrintConfig('schoolName', this.innerText)" class="flex-1 border-b border-dotted border-black ml-2 text-center text-blue-800 font-medium outline-none">${schoolName}</span></div>
-                            <div class="flex"><span class="whitespace-nowrap">ตำบล/แขวง</span><span contenteditable="true" onblur="window.savePrintConfig('subDistrict', this.innerText)" class="w-1/3 border-b border-dotted border-black mx-2 text-center text-blue-800 font-medium outline-none">${subDistrict}</span><span class="whitespace-nowrap">อำเภอ/เขต</span><span contenteditable="true" onblur="window.savePrintConfig('district', this.innerText)" class="flex-1 border-b border-dotted border-black ml-2 text-center text-blue-800 font-medium outline-none">${district}</span></div>
-                            <div class="flex"><span class="whitespace-nowrap">จังหวัด</span><span contenteditable="true" onblur="window.savePrintConfig('province', this.innerText)" class="flex-1 border-b border-dotted border-black ml-2 text-center text-blue-800 font-medium outline-none">${province}</span></div>
-                            <div class="flex"><span class="whitespace-nowrap">เขตพื้นที่การศึกษาประถมศึกษา</span><span contenteditable="true" onblur="window.savePrintConfig('eduArea', this.innerText)" class="w-1/2 border-b border-dotted border-black mx-2 text-center text-blue-800 font-medium outline-none">${eduArea}</span><span class="whitespace-nowrap">เขต</span><span contenteditable="true" onblur="window.savePrintConfig('eduAreaZone', this.innerText)" class="flex-1 border-b border-dotted border-black ml-2 text-center text-blue-800 font-medium outline-none">${eduAreaZone}</span></div>
-                            <div class="flex"><span class="whitespace-nowrap">ชั้น</span><span class="w-1/3 border-b border-dotted border-black mx-2 text-center text-black font-medium">ประถมศึกษาปีที่ ${cls.replace('ป.','')}</span><span class="whitespace-nowrap">ปีการศึกษา</span><span contenteditable="true" onblur="window.savePrintConfig('academicYear', this.innerText)" class="flex-1 border-b border-dotted border-black ml-2 text-center text-blue-800 font-medium outline-none">${academicYear}</span></div>
-                            <div class="flex"><span class="whitespace-nowrap">ครูประจำชั้น</span><span contenteditable="true" onblur="window.savePrintConfig('teacherName', this.innerText)" class="flex-1 border-b border-dotted border-black ml-2 text-center text-blue-800 font-medium outline-none">${teacherName}</span></div>
-                            <div class="flex"><span class="whitespace-nowrap">ผู้อำนวยการโรงเรียน</span><span contenteditable="true" onblur="window.savePrintConfig('directorName', this.innerText)" class="flex-1 border-b border-dotted border-black ml-2 text-center text-blue-800 font-medium outline-none">${directorName}</span></div>
+                            <div class="flex"><span class="whitespace-nowrap">โรงเรียน</span><span contenteditable="${canEdit?'true':'false'}" onblur="window.savePrintConfig('schoolName', this.innerText)" class="flex-1 border-b border-dotted border-black ml-2 text-center text-blue-800 font-medium outline-none">${schoolName}</span></div>
+                            <div class="flex"><span class="whitespace-nowrap">ตำบล/แขวง</span><span contenteditable="${canEdit?'true':'false'}" onblur="window.savePrintConfig('subDistrict', this.innerText)" class="w-1/3 border-b border-dotted border-black mx-2 text-center text-blue-800 font-medium outline-none">${subDistrict}</span><span class="whitespace-nowrap">อำเภอ/เขต</span><span contenteditable="${canEdit?'true':'false'}" onblur="window.savePrintConfig('district', this.innerText)" class="flex-1 border-b border-dotted border-black ml-2 text-center text-blue-800 font-medium outline-none">${district}</span></div>
+                            <div class="flex"><span class="whitespace-nowrap">จังหวัด</span><span contenteditable="${canEdit?'true':'false'}" onblur="window.savePrintConfig('province', this.innerText)" class="flex-1 border-b border-dotted border-black ml-2 text-center text-blue-800 font-medium outline-none">${province}</span></div>
+                            <div class="flex"><span class="whitespace-nowrap">เขตพื้นที่การศึกษาประถมศึกษา</span><span contenteditable="${canEdit?'true':'false'}" onblur="window.savePrintConfig('eduArea', this.innerText)" class="w-1/2 border-b border-dotted border-black mx-2 text-center text-blue-800 font-medium outline-none">${eduArea}</span><span class="whitespace-nowrap">เขต</span><span contenteditable="${canEdit?'true':'false'}" onblur="window.savePrintConfig('eduAreaZone', this.innerText)" class="flex-1 border-b border-dotted border-black ml-2 text-center text-blue-800 font-medium outline-none">${eduAreaZone}</span></div>
+                            <div class="flex"><span class="whitespace-nowrap">ชั้น</span><span class="w-1/3 border-b border-dotted border-black mx-2 text-center text-black font-medium">ประถมศึกษาปีที่ ${cls.replace('ป.','')}</span><span class="whitespace-nowrap">ปีการศึกษา</span><span contenteditable="${canEdit?'true':'false'}" onblur="window.savePrintConfig('academicYear', this.innerText)" class="flex-1 border-b border-dotted border-black ml-2 text-center text-blue-800 font-medium outline-none">${academicYear}</span></div>
+                            <div class="flex"><span class="whitespace-nowrap">ครูประจำชั้น</span><span contenteditable="${canEdit?'true':'false'}" onblur="window.savePrintConfig('teacherName', this.innerText)" class="flex-1 border-b border-dotted border-black ml-2 text-center text-blue-800 font-medium outline-none">${teacherName}</span></div>
+                            <div class="flex"><span class="whitespace-nowrap">ผู้อำนวยการโรงเรียน</span><span contenteditable="${canEdit?'true':'false'}" onblur="window.savePrintConfig('directorName', this.innerText)" class="flex-1 border-b border-dotted border-black ml-2 text-center text-blue-800 font-medium outline-none">${directorName}</span></div>
                         </div>
 
                         <table class="w-full border-collapse border border-black text-center text-[10pt] mb-6">
@@ -1039,31 +1070,31 @@ const getCourse = () => getCoursesForClass().find(c => c.id === window.state.sel
                         <div class="mt-8 mx-auto w-full text-[11pt] flex flex-col items-end pr-8 space-y-4">
                             <div class="flex flex-col items-center w-[320px]">
                                 <div class="flex w-full items-end"><span class="w-12 text-right">ลงชื่อ</span><span class="flex-1 border-b border-dotted border-black mx-2"></span><span class="w-16 text-left">ผู้กรอก</span></div>
-                                <div class="flex w-full mt-1 items-center"><span class="w-12"></span><span class="flex-1 text-center text-blue-800">(<span contenteditable="true" onblur="window.savePrintConfig('teacherName', this.innerText)" class="outline-none">${teacherName}</span>)</span><span class="w-16"></span></div>
+                                <div class="flex w-full mt-1 items-center"><span class="w-12"></span><span class="flex-1 text-center text-blue-800">(<span contenteditable="${canEdit?'true':'false'}" onblur="window.savePrintConfig('teacherName', this.innerText)" class="outline-none">${teacherName}</span>)</span><span class="w-16"></span></div>
                             </div>
                             <div class="flex flex-col items-center w-[320px]">
                                 <div class="flex w-full items-end"><span class="w-12 text-right">ลงชื่อ</span><span class="flex-1 border-b border-dotted border-black mx-2"></span><span class="w-16 text-left">ผู้ทาน</span></div>
-                                <div class="flex w-full mt-1 items-center"><span class="w-12"></span><span class="flex-1 text-center text-blue-800">(<span contenteditable="true" onblur="window.savePrintConfig('checkerName', this.innerText)" class="outline-none px-6">${checkerName}</span>)</span><span class="w-16"></span></div>
+                                <div class="flex w-full mt-1 items-center"><span class="w-12"></span><span class="flex-1 text-center text-blue-800">(<span contenteditable="${canEdit?'true':'false'}" onblur="window.savePrintConfig('checkerName', this.innerText)" class="outline-none px-6">${checkerName}</span>)</span><span class="w-16"></span></div>
                             </div>
                             <div class="flex flex-col items-center w-[320px]">
                                 <div class="flex w-full items-end"><span class="w-12 text-right">ลงชื่อ</span><span class="flex-1 border-b border-dotted border-black mx-2"></span><span class="w-16 text-left">ผู้ตรวจ</span></div>
-                                <div class="flex w-full mt-1 items-center"><span class="w-12"></span><span class="flex-1 text-center text-blue-800">(<span contenteditable="true" onblur="window.savePrintConfig('reviewerName', this.innerText)" class="outline-none px-6">${reviewerName}</span>)</span><span class="w-16"></span></div>
+                                <div class="flex w-full mt-1 items-center"><span class="w-12"></span><span class="flex-1 text-center text-blue-800">(<span contenteditable="${canEdit?'true':'false'}" onblur="window.savePrintConfig('reviewerName', this.innerText)" class="outline-none px-6">${reviewerName}</span>)</span><span class="w-16"></span></div>
                             </div>
                         </div>
 
                         <div class="mt-8 text-[11pt]">
                             <div class="flex items-end">
                                 <span>อนุมัติผลการเรียน เมื่อวันที่</span>
-                                <span contenteditable="true" onblur="window.savePrintConfig('approveDay', this.innerText)" class="w-12 border-b border-dotted border-black mx-2 text-center text-blue-800 font-medium outline-none">${approveDay}</span>
+                                <span contenteditable="${canEdit?'true':'false'}" onblur="window.savePrintConfig('approveDay', this.innerText)" class="w-12 border-b border-dotted border-black mx-2 text-center text-blue-800 font-medium outline-none">${approveDay}</span>
                                 <span>เดือน</span>
-                                <span contenteditable="true" onblur="window.savePrintConfig('approveMonth', this.innerText)" class="w-24 border-b border-dotted border-black mx-2 text-center text-blue-800 font-medium outline-none">${approveMonth}</span>
+                                <span contenteditable="${canEdit?'true':'false'}" onblur="window.savePrintConfig('approveMonth', this.innerText)" class="w-24 border-b border-dotted border-black mx-2 text-center text-blue-800 font-medium outline-none">${approveMonth}</span>
                                 <span>พ.ศ.</span>
-                                <span contenteditable="true" onblur="window.savePrintConfig('approveYear', this.innerText)" class="w-16 border-b border-dotted border-black mx-2 text-center text-blue-800 font-medium outline-none">${approveYear}</span>
+                                <span contenteditable="${canEdit?'true':'false'}" onblur="window.savePrintConfig('approveYear', this.innerText)" class="w-16 border-b border-dotted border-black mx-2 text-center text-blue-800 font-medium outline-none">${approveYear}</span>
                             </div>
                             <div class="flex flex-col items-end pr-8 mt-6">
                                 <div class="flex flex-col items-center w-[320px]">
                                     <div class="flex w-full items-end"><span class="w-16 text-right">ลงชื่อ</span><span class="flex-1 border-b border-dotted border-black mx-2"></span><span class="w-20 text-left">ผู้อนุมัติ</span></div>
-                                    <div class="flex w-full mt-1 items-center"><span class="w-16"></span><span class="flex-1 text-center text-blue-800">(<span contenteditable="true" onblur="window.savePrintConfig('directorName', this.innerText)" class="outline-none">${directorName}</span>)</span><span class="w-20"></span></div>
+                                    <div class="flex w-full mt-1 items-center"><span class="w-16"></span><span class="flex-1 text-center text-blue-800">(<span contenteditable="${canEdit?'true':'false'}" onblur="window.savePrintConfig('directorName', this.innerText)" class="outline-none">${directorName}</span>)</span><span class="w-20"></span></div>
                                     <div class="flex w-full mt-1 items-center"><span class="w-16"></span><span class="flex-1 text-center">ผู้อำนวยการโรงเรียน</span><span class="w-20"></span></div>
                                 </div>
                             </div>
@@ -1072,6 +1103,7 @@ const getCourse = () => getCoursesForClass().find(c => c.id === window.state.sel
                 </div>
             `;
         }
+
 
 
 
