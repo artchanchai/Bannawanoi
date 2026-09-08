@@ -344,19 +344,22 @@ function saveDataToCloud() {
         const yearDates = [];
         const monthGroups = [];
         let currMonth = -1;
-        
-        const startDate = new Date(2026, 0, 1);
-        const endDate = new Date(2026, 11, 31);
+                // กำหนดให้เริ่ม 1 พฤษภาคม (เดือน Index 4) และสิ้นสุด 31 มีนาคม ปีถัดไป (เดือน Index 2)
+        const startDate = new Date(2026, 4, 1); 
+        const endDate = new Date(2027, 2, 31);
         
         while (startDate <= endDate) {
+            const y = startDate.getFullYear(); // ดึงค่าปีแบบไดนามิก เพื่อให้ระบบรู้ว่าเปลี่ยนปีแล้ว
             const m = startDate.getMonth();
             const d = startDate.getDate();
             const mStr = String(m + 1).padStart(2, '0');
             const dStr = String(d).padStart(2, '0');
-            const id = `2026-${mStr}-${dStr}`;
+            
+            // เปลี่ยนรูปแบบ ID ให้ใช้ตัวแปร y เพื่อไม่ให้ข้อมูลวันที่ของปีถัดไปซ้ำซ้อน
+            const id = `${y}-${mStr}-${dStr}`;
             
             const isWeekend = (startDate.getDay() === 0 || startDate.getDay() === 6);
-            const holidayName = holidaysMap[`${mStr}-${dStr}`];
+            const holidayName = holidaysMap[`${mStr}-${dStr}`]; // ระบบคำนวณวันหยุดจะยังทำงานได้ปกติตามวัน-เดือน
             
             const nextDay = new Date(startDate); nextDay.setDate(nextDay.getDate() + 1);
             const isEndOfMonth = nextDay.getMonth() !== m;
@@ -371,6 +374,7 @@ function saveDataToCloud() {
             
             startDate.setDate(startDate.getDate() + 1);
         }
+
 
         // ----------------- CORE FUNCTIONS -----------------
         const getStudents = () => (window.state.students[window.state.selectedClass] || []).sort((a,b)=>a.no-b.no);
@@ -675,7 +679,7 @@ const getCourse = () => getCoursesForClass().find(c => c.id === window.state.sel
 
             return `
                 <div class="flex flex-col sm:flex-row justify-between sm:items-center mb-4 gap-2">
-                    <h2 class="text-base sm:text-lg font-bold text-gray-800">เวลาเรียน 1 ปีการศึกษา (ม.ค. - ธ.ค.)</h2>
+                    <h2 class="text-base sm:text-lg font-bold text-gray-800">เวลาเรียน 1 ปีการศึกษา (พ.ค. - มี.ค.)</h2>
                     <span class="text-xs bg-blue-50 text-blue-700 px-3 py-1 rounded-full border border-blue-200 self-start sm:self-auto">ต่ำกว่า 80% = (มส.)</span>
                 </div>
                 
