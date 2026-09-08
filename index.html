@@ -298,16 +298,23 @@
 
         // --- จุดที่ 2: ฟังก์ชันสำหรับเซฟข้อมูล ---
         let saveTimeout = null;
-        function saveDataToCloud() {
-            clearTimeout(saveTimeout);
-            saveTimeout = setTimeout(() => {
-                fetch(SCRIPT_URL, {
-                    method: 'POST',
-                    mode: 'no-cors', // เพิ่มบรรทัดนี้เพื่อป้องกันการบล็อกข้ามโดเมนบน GitHub
-                    body: JSON.stringify(window.state)
-                }).catch(e => console.error('Error saving data:', e));
-            }, 1500); 
-        }
+function saveDataToCloud() {
+    clearTimeout(saveTimeout);
+    saveTimeout = setTimeout(() => {
+        const payload = {
+            action: 'saveClassData',
+            className: window.state.selectedClass,
+            data: window.state
+        };
+
+        fetch(SCRIPT_URL, {
+            method: 'POST',
+            mode: 'no-cors', 
+            body: JSON.stringify(payload)
+        }).catch(e => console.error('Error saving data:', e));
+    }, 1500); 
+}
+
         // ------------------------------------------------
 
 
