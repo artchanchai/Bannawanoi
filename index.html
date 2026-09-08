@@ -419,10 +419,10 @@ const getCourse = () => getCoursesForClass().find(c => c.id === window.state.sel
                 { id: 'settings', label: 'จัดการรายวิชา', icon: 'fa-gear' },
                 { id: 'student_info', label: 'ข้อมูลนักเรียน', icon: 'fa-address-card' },
                 { id: 'attendance', label: 'เช็คเวลาเรียน', icon: 'fa-calendar-check' },
-                { id: 'grading', label: 'คะแนนและเกรด', icon: 'fa-calculator' },
+                { id: 'grading', label: 'คะแนนและตัวชี้วัด', icon: 'fa-calculator' },
                 { id: 'evaluations', label: 'คุณลักษณะฯ', icon: 'fa-award' },
                 { id: 'activities', label: 'กิจกรรมพัฒนาผู้เรียน', icon: 'fa-campground' },
-                { id: 'print', label: 'พิมพ์รายงาน (SAR)', icon: 'fa-print' }
+                { id: 'print', label: 'พิมพ์รายงานปก ปพ.5', icon: 'fa-print' }
             ];
             if (window.currentUserRole === 'admin') tabsDef.push({ id: 'promotion', label: 'เลื่อนชั้น (Admin)', icon: 'fa-angles-up' });
             
@@ -481,6 +481,10 @@ const getCourse = () => getCoursesForClass().find(c => c.id === window.state.sel
                             <label class="flex items-center space-x-2 cursor-pointer"><input type="checkbox" class="w-5 h-5 accent-red-600" ${sys.editEvaluations !== false ? 'checked' : ''} onchange="window.toggleSys('editEvaluations', this.checked)"><span class="text-sm font-bold text-gray-700">4. คุณลักษณะฯ</span></label>
                             <label class="flex items-center space-x-2 cursor-pointer"><input type="checkbox" class="w-5 h-5 accent-red-600" ${sys.editActivities !== false ? 'checked' : ''} onchange="window.toggleSys('editActivities', this.checked)"><span class="text-sm font-bold text-gray-700">5. กิจกรรมพัฒนาผู้เรียน</span></label>
                             <label class="flex items-center space-x-2 cursor-pointer"><input type="checkbox" class="w-5 h-5 accent-red-600" ${sys.editPrint !== false ? 'checked' : ''} onchange="window.toggleSys('editPrint', this.checked)"><span class="text-sm font-bold text-gray-700">6. แก้ไขหน้า ปพ.5</span></label>
+                                    
+                    <!-- 2. เพิ่ม Checkbox ข้อ 7 ตรงนี้ -->
+                    <label class="flex items-center space-x-2 cursor-pointer"><input type="checkbox" class="w-5 h-5 accent-red-600" ${sys.editIndicators !== false ? 'checked' : ''} onchange="window.toggleSys('editIndicators', this.checked)"><span class="text-sm font-bold text-gray-700">7. แก้ไขตัวชี้วัดรายวิชา</span></label>
+     
                         </div>
                         <p class="text-xs text-red-600 mt-3 font-medium">* หากแอดมินติ๊กเครื่องหมายถูกออก ครูผู้สอนจะไม่สามารถพิมพ์แก้ไขข้อมูลในหน้าเมนูนั้นๆ ได้</p>
                     </div>` : ''}
@@ -502,31 +506,36 @@ const getCourse = () => getCoursesForClass().find(c => c.id === window.state.sel
 
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4 mt-4">
                             <div class="bg-indigo-50 p-3 rounded border border-indigo-100 flex flex-col sm:flex-row justify-between items-center gap-2">
-                                <span class="font-bold text-indigo-800 text-sm">กลางภาค</span>
+                                <span class="font-bold text-indigo-800 text-sm">ภาคเรียนที่ 1</span>
                                 <div class="flex space-x-2 text-sm w-full sm:w-auto justify-center"><span>เก็บ <input type="number" id="cfg_mc" value="${c.midCollect}" class="w-14 text-center border rounded p-1" onchange="window.saveCourseCfg()"></span><span>สอบ <input type="number" id="cfg_me" value="${c.midExam}" class="w-14 text-center border rounded p-1" onchange="window.saveCourseCfg()"></span></div>
                             </div>
                             <div class="bg-teal-50 p-3 rounded border border-teal-100 flex flex-col sm:flex-row justify-between items-center gap-2">
-                                <span class="font-bold text-teal-800 text-sm">ปลายภาค</span>
+                                <span class="font-bold text-teal-800 text-sm">ภาคเรียนที่ 2 </span>
                                 <div class="flex space-x-2 text-sm w-full sm:w-auto justify-center"><span>เก็บ <input type="number" id="cfg_fc" value="${c.finalCollect}" class="w-14 text-center border rounded p-1" onchange="window.saveCourseCfg()"></span><span>สอบ <input type="number" id="cfg_fe" value="${c.finalExam}" class="w-14 text-center border rounded p-1" onchange="window.saveCourseCfg()"></span></div>
                             </div>
                         </div>
                         
                         <div class="mt-4">
-                            <label class="block text-xs text-gray-600 font-bold mb-2">ตัวชี้วัดของรายวิชานี้ (แสดงเป็นคอลัมน์ในหน้าคะแนน)</label>
-                            <div class="flex flex-col sm:flex-row gap-2 mb-2">
-                                <input type="text" id="new_ind" placeholder="พิมพ์ข้อความตัวชี้วัด..." class="flex-1 p-2 text-sm border rounded">
-                                <button onclick="window.addIndicator()" class="px-4 py-2 bg-purple-600 text-white rounded text-sm w-full sm:w-auto"><i class="fa-solid fa-plus"></i> เพิ่มตัวชี้วัด</button>
-                            </div>
-                            <div class="flex flex-col gap-1 max-h-40 overflow-y-auto custom-scrollbar border p-2 bg-white rounded">
-                                ${(c.indicators||[]).map((ind, i) => `
-                                    <div class="flex justify-between items-start bg-gray-50 p-2 border rounded text-xs gap-2">
-                                        <span class="flex-1 whitespace-pre-wrap leading-tight">${ind}</span> 
-                                        <button onclick="window.delIndicator(${i})" class="text-red-500 px-2 py-1 hover:bg-red-100 rounded flex-shrink-0"><i class="fa-solid fa-xmark"></i></button>
-                                    </div>
-                                `).join('')}
-                                ${(c.indicators||[]).length===0?'<div class="text-gray-400 text-xs text-center py-2">ยังไม่มีตัวชี้วัด</div>':''}
-                            </div>
-                        </div>
+    <label class="block text-xs text-gray-600 font-bold mb-2">ตัวชี้วัดของรายวิชานี้ (แสดงเป็นคอลัมน์ในหน้าคะแนน)</label>
+    <div class="flex flex-col sm:flex-row gap-2 mb-2">
+        <!-- 3. ล็อกช่องพิมพ์และปุ่มเพิ่มตัวชี้วัด -->
+        <input type="text" id="new_ind" placeholder="พิมพ์ข้อความตัวชี้วัด..." class="flex-1 p-2 text-sm border rounded ${!canEditInd?'bg-gray-100 cursor-not-allowed':''}" ${!canEditInd?'disabled':''}>
+        <button onclick="window.addIndicator()" class="px-4 py-2 bg-purple-600 text-white rounded text-sm w-full sm:w-auto ${!canEditInd?'opacity-50 cursor-not-allowed':''}" ${!canEditInd?'disabled':''}><i class="fa-solid fa-plus"></i> เพิ่มตัวชี้วัด</button>
+    </div>
+    <div class="flex flex-col gap-1 max-h-40 overflow-y-auto custom-scrollbar border p-2 bg-white rounded">
+        ${(c.indicators||[]).map((ind, i) => `
+            <div class="flex justify-between items-start bg-gray-50 p-2 border rounded text-xs gap-2">
+                <span class="flex-1 whitespace-pre-wrap leading-tight">${ind}</span> 
+                <!-- 4. ซ่อนปุ่มลบตัวชี้วัดเมื่อโดนล็อก -->
+                ${canEditInd ? `<button onclick="window.delIndicator(${i})" class="text-red-500 px-2 py-1 hover:bg-red-100 rounded flex-shrink-0"><i class="fa-solid fa-xmark"></i></button>` : ''}
+            </div>
+        `).join('')}
+        ${(c.indicators||[]).length===0?'<div class="text-gray-400 text-xs text-center py-2">ยังไม่มีตัวชี้วัด</div>':''}
+    </div>
+</div>
+
+
+                        
                     </div>
 
                     <h2 class="text-base sm:text-lg font-bold text-gray-800 border-b pb-2 mt-8">รายชื่อนักเรียนชั้น ${window.state.selectedClass}</h2>
@@ -741,15 +750,15 @@ const getCourse = () => getCoursesForClass().find(c => c.id === window.state.sel
                     <h2 class="text-base sm:text-lg font-bold text-gray-800">บันทึกคะแนนและตัวชี้วัด</h2>
                     <div class="text-xs flex gap-4"><span class="flex items-center"><span class="w-3 h-3 bg-red-100 rounded-full mr-1"></span> มส. (ปลายภาค = 0)</span></div>
                 </div>
-                ${(!canEditMid || !canEditFin) ? `<div class="bg-red-100 text-red-700 p-2 rounded mb-2 text-sm font-bold w-full border border-red-200"><i class="fa-solid fa-lock"></i> แอดมินได้ปิดระบบการกรอกคะแนน ${!canEditMid?'กลางภาค':''} ${(!canEditMid&&!canEditFin)?'และ':''} ${!canEditFin?'ปลายภาค':''} ชั่วคราว</div>` : ''}
+                ${(!canEditMid || !canEditFin) ? `<div class="bg-red-100 text-red-700 p-2 rounded mb-2 text-sm font-bold w-full border border-red-200"><i class="fa-solid fa-lock"></i> แอดมินได้ปิดระบบการกรอกคะแนน ${!canEditMid?'ภาคเรียนที่ 1':''} ${(!canEditMid&&!canEditFin)?'และ':''} ${!canEditFin?'ภาคเรียนที่ 2':''} ชั่วคราว</div>` : ''}
                 
                 <div class="overflow-x-auto overflow-y-auto max-h-[60vh] border rounded-lg custom-scrollbar bg-white attendance-table w-full">
                     <table class="w-full text-xs sm:text-sm text-center whitespace-nowrap min-w-max">
                         <thead>
                             <tr>
                                 <th rowSpan="2" class="sticky-name-header p-2 min-w-[150px] sm:min-w-[200px] text-left">ชื่อ - สกุล</th>
-                                <th colSpan="2" class="bg-indigo-50 p-2">กลางภาค</th>
-                                <th colSpan="2" class="bg-teal-50 p-2">ปลายภาค</th>
+                                <th colSpan="2" class="bg-indigo-50 p-2">ภาคเรียนที่ 1</th>
+                                <th colSpan="2" class="bg-teal-50 p-2">ภาคเรียนที่ 2</th>
                                 <th rowSpan="2" class="bg-gray-100 p-2 w-16">รวม<br>(100)</th><th rowSpan="2" class="bg-gray-100 p-2 w-12">ติด ร.</th><th rowSpan="2" class="bg-blue-100 p-2 w-16 sticky-pct-header">เกรด</th>
                                 ${(c.indicators||[]).length > 0 ? `<th colSpan="${c.indicators.length + 3}" class="bg-purple-50 p-2 border-l-2 border-purple-200">ประเมินตัวชี้วัด (ใส่คะแนน 1-3)</th>` : ''}
                             </tr>
