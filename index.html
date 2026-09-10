@@ -198,6 +198,34 @@
                 <!-- Content Area -->
                 <div class="bg-white shadow-sm rounded-b-lg p-3 sm:p-6 min-h-[70vh] relative" id="contentArea"></div>
             </div>
+
+
+
+
+
+<!-- วิดเจ็ตเครื่องเล่นเพลง (มุมขวาล่าง) -->
+        <div class="fixed bottom-6 right-6 bg-white/90 backdrop-blur-sm p-2 rounded-full shadow-lg border border-gray-200 flex items-center space-x-2 z-[100] no-print hover:shadow-xl transition-all group">
+            <button id="musicToggleBtn" onclick="window.toggleMusic()" class="w-10 h-10 flex items-center justify-center bg-blue-50 text-blue-600 rounded-full hover:bg-blue-100 transition-colors shadow-sm" title="เล่น/หยุดเพลง">
+                <i class="fa-solid fa-music text-lg"></i>
+            </button>
+            
+            <!-- แถบปรับเสียง (จะขยายออกเมื่อเอาเมาส์ไปชี้หรือกดเล่น) -->
+            <div id="musicControls" class="w-0 overflow-hidden group-hover:w-24 transition-all duration-300 flex items-center">
+                <div class="flex items-center space-x-2 px-2 w-24">
+                    <i class="fa-solid fa-volume-low text-gray-500 text-xs"></i>
+                    <input type="range" id="musicVolume" min="0" max="1" step="0.05" value="0.15" class="w-full h-1 bg-gray-300 rounded-lg appearance-none cursor-pointer accent-blue-600" onchange="window.changeVolume(this.value)" oninput="window.changeVolume(this.value)" title="ปรับระดับเสียง">
+                </div>
+            </div>
+            
+            <!-- ไฟล์เสียง (ซ่อนไว้) -->
+            <!-- สามารถเปลี่ยนลิงก์ src เป็นไฟล์ mp3 ในเครื่อง เช่น src="music.mp3" ได้ครับ -->
+            <audio id="bgMusic" loop>
+                <source src="SS11.mp3" type="audio/mpeg">
+            </audio>
+        </div>
+
+
+
         </main>
     </div>
 
@@ -673,75 +701,117 @@ const getCourse = () => getCoursesForClass().find(c => c.id === window.state.sel
 
 
 
-        function htmlAttendance() {
-            const students = getStudents();
-            const holidayDetails = yearDates.filter(d => d.isHoliday).map(d => `<span class="text-red-600 font-bold">*</span> วันที่ ${d.date} ${thaiMonthsFull[d.monthIdx]} (${d.dayNameFull}): <span class="font-bold">${d.holidayName}</span>`).join('<br>');
+        // 1. เพิ่มฟังก์ชันนี้ไว้ด้านบนหรือด้านล่างของฟังก์ชัน window.handleAtt ก็ได้ครับ
+window.changeAttMonth = function(monthIdx) {
+    window.state.attMonthFilter = monthIdx;
+    renderApp();
+};
 
-            return `
-                <div class="flex flex-col sm:flex-row justify-between sm:items-center mb-4 gap-2">
-                    <h2 class="text-base sm:text-lg font-bold text-gray-800">เวลาเรียน 1 ปีการศึกษา (พ.ค. - มี.ค.)</h2>
-                    <span class="text-xs bg-blue-50 text-blue-700 px-3 py-1 rounded-full border border-blue-200 self-start sm:self-auto">ต่ำกว่า 80% = (มส.)</span>
-                </div>
-                
-                <div class="overflow-x-auto overflow-y-auto max-h-[60vh] rounded-lg border border-gray-300 custom-scrollbar relative bg-white w-full">
-                    <table class="text-xs text-center attendance-table whitespace-nowrap min-w-max">
-                        <thead>
-                            <tr>
-                                <th rowSpan="2" class="sticky-name-header p-2 min-w-[150px] sm:min-w-[200px] text-left text-gray-800">ชื่อ - สกุล</th>
-                                ${monthGroups.map(mg => `<th colSpan="${mg.count}" class="p-1 sm:p-2 bg-month-${mg.idx} font-bold text-gray-800 border-r-2 border-gray-400">${mg.name}</th>`).join('')}
-                                <th rowSpan="2" class="sticky-pct-header p-2 w-16 text-gray-800">% มา</th>
-                            </tr>
-                            <tr>
-                                ${yearDates.map(d => `<th class="p-1 border-r ${d.isEndOfMonth?'border-r-2 border-gray-400':''} ${d.isHoliday?'holiday-header':d.isWeekend?'bg-gray-200 text-gray-500':'bg-month-'+d.monthIdx}" title="${d.holidayName}"> 
-                                    ${d.isHoliday?'<div class="text-white font-black text-sm leading-none">*</div>':''}
-                                    <div class="text-[9px] sm:text-[10px] font-medium leading-tight">${d.dayName}</div>
-                                    <div class="font-bold text-xs">${d.date}</div>
-                                </th>`).join('')}
-                            </tr>
-                        </thead>
-                        <tbody>
-                            ${students.map(s => {
-                                const stats = calcAtt(s.id);
-                                return `
-                                <tr class="hover:bg-gray-50">
-                                    <td class="sticky-name-col p-2 text-left font-medium text-gray-800"><span class="w-4 sm:w-6 text-gray-400 inline-block">${s.no}.</span> ${s.name}</td>
-                                    ${yearDates.map(d => {
-                                        const def = (d.isWeekend || d.isHoliday) ? 'หยุด' : 'มา';
-                                        const val = ((window.state.attendance[window.state.selectedCourseId]||{})[s.id]||{})[d.id] || def;
-                                        const cellBg = d.isHoliday ? 'holiday-cell' : d.isWeekend ? 'bg-gray-100' : 'bg-month-' + d.monthIdx;
-                                        const selStyle = val === 'หยุด' ? 'text-red-600 font-bold bg-transparent' : val === 'มา' ? 'text-green-700 bg-white/60' : val === 'ขาด' ? 'text-white bg-red-500 font-bold' : 'text-white bg-orange-500';
+// 2. วางโค้ดนี้ทับฟังก์ชัน htmlAttendance() เดิมทั้งหมด
+function htmlAttendance() {
+    const students = getStudents();
+    const holidayDetails = yearDates.filter(d => d.isHoliday).map(d => `<span class="text-red-600 font-bold">*</span> วันที่ ${d.date}${thaiMonthsFull[d.monthIdx]} (${d.dayNameFull}): <span class="font-bold">${d.holidayName}</span>`).join('<br>');
 
-                                        return `<td class="p-1 border-r ${d.isEndOfMonth?'border-r-2 border-gray-400':''} ${cellBg}">
-                                            <select class="w-[55px] sm:w-[65px] text-[10px] sm:text-xs p-1 rounded border border-gray-300/50 outline-none cursor-pointer text-center ${selStyle} appearance-none" onchange="window.handleAtt('${s.id}', '${d.id}', this.value)">
-                                                <option value="มา" ${val==='มา'?'selected':''}>มา</option>
-                                                <option value="ขาด" ${val==='ขาด'?'selected':''}>ขาด</option>
-                                                <option value="ลาป่วย" ${val==='ลาป่วย'?'selected':''}>ลาป่วย</option>
-                                                <option value="ลากิจ" ${val==='ลากิจ'?'selected':''}>ลากิจ</option>
-                                                <option value="หยุด" ${val==='หยุด'?'selected':''}>หยุด</option>
-                                            </select>
-                                        </td>`;
-                                    }).join('')}
-                                    <td class="sticky-pct-col p-2"><span id="att_pct_${s.id}" class="font-bold text-xs sm:text-sm ${stats.pct < 80 ? 'text-red-600' : 'text-green-600'}">${stats.pct}%</span></td>
-                                </tr>`;
+    const filterVal = window.state.attMonthFilter || 'all';
+    const displayDates = filterVal === 'all' ? yearDates : yearDates.filter(d => d.monthIdx.toString() === filterVal);
+    const displayMonths = filterVal === 'all' ? monthGroups : monthGroups.filter(mg => mg.idx.toString() === filterVal);
+    
+    // ดึงปีการศึกษามาแสดง
+    const acYear = window.state.academicYear || '2569';
+
+    return `
+        <div class="flex flex-col sm:flex-row justify-between sm:items-center mb-4 gap-2 no-print">
+            <div class="flex items-center gap-3">
+                <h2 class="text-base sm:text-lg font-bold text-gray-800">เวลาเรียน ปีการศึกษา ${acYear}</h2>
+                <select id="monthFilter" class="p-1.5 border border-gray-300 rounded-md text-sm bg-white font-bold text-blue-700 outline-none cursor-pointer shadow-sm" onchange="window.changeAttMonth(this.value)">
+                    <option value="all" ${filterVal === 'all' ? 'selected' : ''}>ตลอดปีการศึกษา (พ.ค. - มี.ค.)</option>
+                    ${monthGroups.map(mg => `<option value="${mg.idx}" ${filterVal === mg.idx.toString() ? 'selected' : ''}>เฉพาะเดือน ${mg.name}</option>`).join('')}
+                </select>
+            </div>
+            <div class="flex gap-2">
+                <span class="text-xs bg-blue-50 text-blue-700 px-3 py-1.5 rounded-full border border-blue-200 self-start sm:self-auto">ต่ำกว่า 80% = (มส.)</span>
+            </div>
+        </div>
+        
+        <div class="overflow-x-auto overflow-y-auto max-h-[60vh] rounded-lg border border-gray-300 custom-scrollbar relative bg-white w-full">
+            <table class="text-xs text-center attendance-table whitespace-nowrap min-w-max">
+                <thead>
+                    <tr>
+                        <th rowSpan="2" class="sticky-name-header p-2 min-w-[150px] sm:min-w-[200px] text-left text-gray-800">ชื่อ - สกุล</th>
+                        ${displayMonths.map(mg => `<th colSpan="${mg.count}" class="p-1 sm:p-2 bg-month-${mg.idx} font-bold text-gray-800 border-r-2 border-gray-400">${mg.name}</th>`).join('')}
+                        
+                        <th rowSpan="2" class="p-1 bg-green-50 text-green-800 border-l-2 border-gray-400 shadow-[-2px_0_5px_-2px_rgba(0,0,0,0.1)] text-[11px]" style="position: sticky; right: 340px; z-index: 20; width: 60px; min-width: 60px; max-width: 60px;">มา<br>(วัน)</th>
+                        <th rowSpan="2" class="p-1 bg-red-50 text-red-800 text-[11px]" style="position: sticky; right: 280px; z-index: 20; width: 60px; min-width: 60px; max-width: 60px;">ขาด/ลา<br>(วัน)</th>
+                        <th rowSpan="2" class="p-1 bg-gray-100 text-gray-800 text-[11px]" style="position: sticky; right: 210px; z-index: 20; width: 70px; min-width: 70px; max-width: 70px;">รวมวันปกติ<br>(วัน)</th>
+                        <th rowSpan="2" class="p-1 bg-blue-50 text-blue-800 text-[11px]" style="position: sticky; right: 100px; z-index: 20; width: 110px; min-width: 110px; max-width: 110px;">ร้อยละการมาเรียน<br>${filterVal === 'all' ? 'ตลอดปีการศึกษา' : 'ในเดือนนั้น'}</th>
+                        <th rowSpan="2" class="p-1 bg-purple-100 text-purple-900 border-l-2 border-gray-400 text-[11px]" style="position: sticky; right: 0px; z-index: 20; width: 100px; min-width: 100px; max-width: 100px;">ร้อยละการมาเรียน<br>ตลอดปีการศึกษา</th>
+                    </tr>
+                    <tr>
+                        ${displayDates.map(d => `<th class="p-1 border-r ${d.isEndOfMonth?'border-r-2 border-gray-400':''} ${d.isHoliday?'holiday-header':d.isWeekend?'bg-gray-200 text-gray-500':'bg-month-'+d.monthIdx}" title="${d.holidayName}"> 
+                            ${d.isHoliday?'<div class="text-white font-black text-sm leading-none">*</div>':''}
+                            <div class="text-[9px] sm:text-[10px] font-medium leading-tight">${d.dayName}</div>
+                            <div class="font-bold text-xs">${d.date}</div>
+                        </th>`).join('')}
+                    </tr>
+                </thead>
+                <tbody>
+                    ${students.map(s => {
+                        const atts = (window.state.attendance[window.state.selectedCourseId] || {})[s.id] || {};
+                        let presentMonth = 0, absentMonth = 0, totalWorkMonth = 0;
+
+                        displayDates.forEach(d => {
+                            const def = (d.isWeekend || d.isHoliday) ? 'หยุด' : 'มา';
+                            const st = atts[d.id] || def;
+                            
+                            // เปลี่ยนโลจิก: หากไม่ใช่สถานะ "หยุด" ให้นับเป็นวันทำการ (รวมวันปกติ) ทันที
+                            if (st !== 'หยุด') {
+                                totalWorkMonth++;
+                                if (st === 'มา' || st === 'ลาป่วย' || st === 'ลากิจ') presentMonth++;
+                                if (st === 'ขาด') absentMonth++;
+                            }
+                        });
+                        
+                        const pctMonth = totalWorkMonth === 0 ? 100 : Math.round((presentMonth / totalWorkMonth) * 100);
+                        const yearStats = calcAtt(s.id); 
+
+                        return `
+                        <tr class="hover:bg-gray-50">
+                            <td class="sticky-name-col p-2 text-left font-medium text-gray-800"><span class="w-4 sm:w-6 text-gray-400 inline-block">${s.no}.</span> ${s.name}</td>
+                            ${displayDates.map(d => {
+                                const def = (d.isWeekend || d.isHoliday) ? 'หยุด' : 'มา';
+                                const val = atts[d.id] || def;
+                                const cellBg = d.isHoliday ? 'holiday-cell' : d.isWeekend ? 'bg-gray-100' : 'bg-month-' + d.monthIdx;
+                                const selStyle = val === 'หยุด' ? 'text-red-600 font-bold bg-transparent' : val === 'มา' ? 'text-green-700 bg-white/60' : val === 'ขาด' ? 'text-white bg-red-500 font-bold' : 'text-white bg-orange-500';
+
+                                return `<td class="p-1 border-r ${d.isEndOfMonth?'border-r-2 border-gray-400':''} ${cellBg}">
+                                    <select class="w-[55px] sm:w-[65px] text-[10px] sm:text-xs p-1 rounded border border-gray-300/50 outline-none cursor-pointer text-center ${selStyle} appearance-none" onchange="window.handleAtt('${s.id}', '${d.id}', this.value)">
+                                        <option value="มา" ${val==='มา'?'selected':''}>มา</option>
+                                        <option value="ขาด" ${val==='ขาด'?'selected':''}>ขาด</option>
+                                        <option value="ลาป่วย" ${val==='ลาป่วย'?'selected':''}>ลาป่วย</option>
+                                        <option value="ลากิจ" ${val==='ลากิจ'?'selected':''}>ลากิจ</option>
+                                        <option value="หยุด" ${val==='หยุด'?'selected':''}>หยุด</option>
+                                    </select>
+                                </td>`;
                             }).join('')}
-                        </tbody>
-                    </table>
-                </div>
-                <!-- ส่วนที่แก้ให้ยืดเต็มจอ -->
-                    <div class="mt-4 p-4 bg-red-50 rounded border border-red-200 text-xs text-red-800 leading-relaxed shadow-sm flex-1 overflow-y-auto custom-scrollbar">
-                        <strong class="text-sm block mb-2"><i class="fa-solid fa-calendar-xmark"></i> หมายเหตุวันหยุดนักขัตฤกษ์และวันสำคัญ:</strong> 
-                        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
-                            ${holidayDetails}
-                        </div>
-                    </div>
-                </div>
-            `;
-        }
-
-
-
-
-
+                            
+                            <td class="p-1 bg-green-50 font-bold text-green-700 text-center border-l-2 border-gray-400 shadow-[-2px_0_5px_-2px_rgba(0,0,0,0.1)]" style="position: sticky; right: 340px; z-index: 10; width: 60px; min-width: 60px; max-width: 60px;">${presentMonth}</td>
+                            <td class="p-1 bg-red-50 font-bold text-red-600 text-center" style="position: sticky; right: 280px; z-index: 10; width: 60px; min-width: 60px; max-width: 60px;">${absentMonth}</td>
+                            <td class="p-1 bg-gray-100 font-bold text-gray-700 text-center" style="position: sticky; right: 210px; z-index: 10; width: 70px; min-width: 70px; max-width: 70px;">${totalWorkMonth}</td>
+                            <td class="p-1 bg-blue-50 font-bold text-center" style="position: sticky; right: 100px; z-index: 10; width: 110px; min-width: 110px; max-width: 110px;"><span class="${pctMonth < 80 ? 'text-red-600' : 'text-blue-600'}">${pctMonth}%</span></td>
+                            <td class="p-1 bg-purple-100 font-bold text-center border-l-2 border-gray-400" style="position: sticky; right: 0px; z-index: 10; width: 100px; min-width: 100px; max-width: 100px;"><span class="${yearStats.pct < 80 ? 'text-red-600' : 'text-purple-700'}">${yearStats.pct}%</span></td>
+                        </tr>`;
+                    }).join('')}
+                </tbody>
+            </table>
+        </div>
+        <div class="mt-4 p-4 bg-red-50 rounded border border-red-200 text-xs text-red-800 leading-relaxed shadow-sm flex-1 overflow-y-auto custom-scrollbar no-print">
+            <strong class="text-sm block mb-2"><i class="fa-solid fa-calendar-xmark"></i> หมายเหตุวันหยุดนักขัตฤกษ์และวันสำคัญ:</strong> 
+            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
+                ${holidayDetails}
+            </div>
+        </div>
+    `;
+}
 
         
 
@@ -1178,6 +1248,13 @@ const getCourse = () => getCoursesForClass().find(c => c.id === window.state.sel
             document.getElementById('appWrapper').classList.add('flex');
             window.state.activeTab = 'settings'; 
             renderApp();
+
+            // 🎵 สั่งให้เพลงเล่นอัตโนมัติหลังกดล็อกอิน (ความดัง 15%)
+            const audio = document.getElementById('bgMusic');
+            if (audio && audio.paused) {
+                document.getElementById('musicVolume').value = 0.10; // ตั้งค่าหลอดเสียงเป็น 15%
+                window.toggleMusic(); // เรียกฟังก์ชันเปิดเพลง
+            }
         };
 
         window.handleLogout = function() {
@@ -1476,14 +1553,16 @@ const getCourse = () => getCoursesForClass().find(c => c.id === window.state.sel
             // แผ่นที่ 4: เวลาเรียน (ใส่วันที่แบบละเอียด)
             const attHeaders = ["เลขที่", "ชื่อ-สกุล"];
             yearDates.forEach(d => { 
-                // เพิ่ม วัน/เดือน แบบละเอียด เช่น วันจันทร์ 1 มกราคม
-                attHeaders.push(`วัน${d.dayNameFull} ${d.date} ${thaiMonthsFull[d.monthIdx]}`); 
+                attHeaders.push(`วัน${d.dayNameFull} ${d.date}${thaiMonthsFull[d.monthIdx]}`); 
             });
-            attHeaders.push("มา (วัน)", "เต็ม (วัน)", "ร้อยละ (%)");
+            // อัปเดตหัวคอลัมน์ให้ตรงกับรูปแบบ 5 คอลัมน์
+            attHeaders.push("มา (วัน)", "ขาด/ลา (วัน)", "รวมวันปกติ (วัน)", "ร้อยละตลอดปี (%)");
 
             const attRows = [attHeaders];
             students.forEach(s => {
                 const stats = calcAtt(s.id);
+                const absent = stats.t - stats.p; // คำนวณวันขาด/ลา
+                
                 const row = [s.no, s.name];
                 
                 yearDates.forEach(d => {
@@ -1492,11 +1571,11 @@ const getCourse = () => getCoursesForClass().find(c => c.id === window.state.sel
                     row.push(val);
                 });
                 
-                row.push(stats.p, stats.t, stats.pct + "%");
+                // ดันตัวเลข 4 ชุดเข้า Excel ตามลำดับ
+                row.push(stats.p, absent, stats.t, stats.pct + "%");
                 attRows.push(row);
             });
             XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(attRows), "เวลาเรียน");
-
             // แผ่นที่ 5: หน้า ปพ.5 (SAR)
             const cfg = (window.state.printConfigs && window.state.printConfigs[cls]) ? window.state.printConfigs[cls] : {};
             const courses = window.state.courses[cls] || [];
@@ -1556,7 +1635,45 @@ const getCourse = () => getCoursesForClass().find(c => c.id === window.state.sel
 
 
 
+// ----------------- MUSIC PLAYER LOGIC -----------------
+        window.toggleMusic = function() {
+            const audio = document.getElementById('bgMusic');
+            const btn = document.getElementById('musicToggleBtn');
+            const controls = document.getElementById('musicControls');
+            
+            if (audio.paused) {
+                // อัปเดตระดับเสียงจากแถบสไลด์ก่อนเล่น
+                audio.volume = document.getElementById('musicVolume').value;
+                audio.play();
+                
+                // เปลี่ยนไอคอนเป็นปุ่ม Pause และเปลี่ยนสีปุ่ม
+                btn.innerHTML = '<i class="fa-solid fa-pause text-lg"></i>';
+                btn.classList.replace('bg-blue-50', 'bg-blue-600');
+                btn.classList.replace('text-blue-600', 'text-white');
+                btn.classList.replace('hover:bg-blue-100', 'hover:bg-blue-700');
+                
+                // ล็อกให้แถบเสียงเปิดค้างไว้เวลาเพลงเล่น
+                controls.classList.remove('w-0');
+                controls.classList.add('w-24');
+            } else {
+                audio.pause();
+                
+                // เปลี่ยนไอคอนกลับเป็นรูปตัวโน้ต
+                btn.innerHTML = '<i class="fa-solid fa-music text-lg"></i>';
+                btn.classList.replace('bg-blue-600', 'bg-blue-50');
+                btn.classList.replace('text-white', 'text-blue-600');
+                btn.classList.replace('hover:bg-blue-700', 'hover:bg-blue-100');
+                
+                // ปล่อยให้แถบเสียงซ่อนอัตโนมัติ
+                controls.classList.remove('w-24');
+                controls.classList.add('w-0');
+            }
+        };
 
+        window.changeVolume = function(val) {
+            const audio = document.getElementById('bgMusic');
+            audio.volume = val;
+        };
 
 
 
