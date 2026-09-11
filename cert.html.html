@@ -218,23 +218,44 @@
       if (icon) icon.classList.remove("fa-spin");
     }
 
-    async function fetchCertificates() {
-      try {
-        // เติม timestamp ป้องกันเบราว์เซอร์จำ Cache เก่า
-        const res = await fetch(API_URL + "?t=" + new Date().getTime());
-        const json = await res.json();[cite: 2]
-        if (json.status === "success") {[cite: 2]
-          certDataList = json.data.sort((a, b) => {[cite: 2]
-            const dateA = new Date(a.eventDate);[cite: 2]
-            const dateB = new Date(b.eventDate);[cite: 2]
-            return dateB - dateA; [cite: 2]
-          });
-          filterCertificates(); // ดึงการค้นหาหรือ Filter ปัจจุบันมาแสดงผล
-        }
-      } catch (err) {
-        document.getElementById("certGrid").innerHTML = `<div class="col-span-full text-center text-red-500 py-8">ไม่สามารถโหลดข้อมูลได้ ตรวจสอบการเชื่อมต่ออินเทอร์เน็ต</div>`;
-      }
+   async function fetchCertificates() {
+  const grid = document.getElementById("certGrid");
+  try {
+    // ป้องกัน Cache ด้วยการต่อ Timestamp ท้าย URL
+    const res = await fetch(API_URL + "?nocache=" + Date.now());
+    
+    if (!res.ok) {
+      throw new Error(`HTTP Error: ${res.status}`);
     }
+    
+    const json = await res.json();
+    
+    // ตรวจสอบทั้งกรณีมี status หรือส่ง data กลับมาตรงๆ
+    const dataList = json.data || (Array.isArray(json) ? json : []);
+    
+    if (dataList.length > 0) {
+      certDataList = dataList.sort((a, b) => {
+        const dateA = new Date(a.eventDate);
+        const dateB = new Date(b.eventDate);
+        return dateB - dateA;
+      });
+      renderCertificates(certDataList);
+    } else {
+      grid.innerHTML = `<div class="col-span-full text-center py-12 text-slate-400">ยังไม่มีรายการเกียรติบัตรในระบบ</div>`;
+    }
+  } catch (err) {
+    console.error("Fetch certificates failed:", err);
+    grid.innerHTML = `
+      <div class="col-span-full text-center py-10">
+        <p class="text-red-500 font-bold mb-2">ไม่สามารถเชื่อมต่อฐานข้อมูลได้</p>
+        <p class="text-xs text-slate-500 mb-4">กรุณาตรวจสอบสิทธิ์ Who has access = Anyone ใน Google Apps Script</p>
+        <button onclick="refreshData()" class="px-4 py-1.5 bg-indigo-600 text-white text-xs rounded-lg hover:bg-indigo-700">
+          ลองใหม่อีกครั้ง
+        </button>
+      </div>
+    `;
+  }
+}
 
     function getDriveThumbnail(url) {
       if (!url) return 'https://placehold.co/600x400?text=No+Image';[cite: 2]
