@@ -7,6 +7,8 @@
   <link rel="icon" type="image/jpeg" href="PP1.jpg">
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <!-- เพิ่ม FontAwesome เพื่อใช้ไอคอนรีเฟรช -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
     body { font-family: 'Sarabun', sans-serif; }
   </style>
@@ -14,29 +16,36 @@
 <body class="bg-slate-50 min-h-screen text-slate-800 flex flex-col">
 
   <!-- Header -->
- <!-- Header -->
   <header class="bg-indigo-800 text-white py-6 shadow-md">
-    <div class="max-w-6xl mx-auto px-4 flex justify-between items-center">
+    <div class="max-w-6xl mx-auto px-4 flex flex-col sm:flex-row justify-between items-center gap-4">
       
-      <!-- ส่วนที่ 1: โลโก้และชื่อเว็บ -->
+      <!-- โลโก้และชื่อเว็บ -->
       <div class="flex items-center gap-4">
-        <!-- ใส่ลิงก์รูปโลโก้ของคุณที่ src="..." -->
         <img src="PP1.jpg" alt="โลโก้" class="w-14 h-14 object-cover rounded-full bg-white p-0.5 shadow-sm">
         <div>
-          <h1 class="text-2xl font-bold tracking-wide">คลังเกียรติบัตรและวุฒิบัตรโรงเรียนบ้านนาหว้าน้อย</h1>
-          <p class="text-indigo-200 text-sm mt-1">ระบบจัดหมวดหมู่และค้นหาผลงานส่วนบุคคล</p>
+          <h1 class="text-xl sm:text-2xl font-bold tracking-wide">คลังเกียรติบัตรและวุฒิบัตรโรงเรียนบ้านนาหว้าน้อย</h1>
+          <p class="text-indigo-200 text-xs sm:text-sm mt-1">ระบบจัดหมวดหมู่และค้นหาผลงานส่วนบุคคล</p>
         </div>
       </div>
 
-      <!-- ส่วนที่ 2: ปุ่มเพิ่มเกียรติบัตร -->
-      <button onclick="toggleModal(true)" class="bg-amber-400 hover:bg-amber-500 text-slate-900 font-semibold px-4 py-2 rounded-lg shadow transition flex items-center gap-2">
-        <span>+ เพิ่มเกียรติบัตร</span>
-      </button>
+      <!-- ปุ่มฟังก์ชันด้านบน -->
+      <div class="flex items-center gap-2">
+        <!-- ปุ่มรีเฟรชข้อมูล -->
+        <button onclick="refreshData()" id="refreshBtn" title="โหลดข้อมูลล่าสุดจากเครื่องอื่น" class="bg-indigo-700 hover:bg-indigo-600 text-white px-3.5 py-2 rounded-lg shadow transition flex items-center gap-2 text-sm">
+          <i id="refreshIcon" class="fa-solid fa-arrows-rotate"></i>
+          <span class="hidden sm:inline">รีเฟรช</span>
+        </button>
+
+        <!-- ปุ่มเพิ่มเกียรติบัตร -->
+        <button onclick="toggleModal(true)" class="bg-amber-400 hover:bg-amber-500 text-slate-900 font-semibold px-4 py-2 rounded-lg shadow transition flex items-center gap-2 text-sm">
+          <span>+ เพิ่มเกียรติบัตร</span>
+        </button>
+      </div>
     </div>
   </header>
 
   <!-- Content & Controls -->
-  <main class="max-w-6xl mx-auto px-4 py-8">
+  <main class="max-w-6xl mx-auto px-4 py-8 flex-1 w-full">
     <!-- Filter & Search Bar -->
     <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 mb-6 flex flex-col md:flex-row gap-4 justify-between items-center">
       <div class="w-full md:w-1/2">
@@ -60,8 +69,7 @@
     </div>
   </main>
 
-
-  <!-- Footer (แถบเครดิตด้านล่าง) -->
+  <!-- Footer -->
   <footer class="bg-white border-t border-slate-200 mt-auto">
     <div class="max-w-6xl mx-auto px-4 py-6 flex flex-col md:flex-row justify-between items-center gap-4">
       <p class="text-sm text-slate-500">
@@ -139,8 +147,7 @@
     </div>
   </div>
 
-
-<!-- Modal สำหรับแก้ไขข้อมูล -->
+  <!-- Modal สำหรับแก้ไขข้อมูล -->
   <div id="editModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm hidden flex items-center justify-center p-4 z-50">
     <div class="bg-white rounded-2xl p-6 w-full max-w-lg shadow-xl relative">
       <h2 class="text-xl font-bold text-slate-800 mb-4">แก้ไขข้อมูลเกียรติบัตร</h2>
@@ -181,71 +188,73 @@
     </div>
   </div>
 
-
-
-
   <script>
-    // ⚠️ อย่าลืมแก้ลิงก์ API_URL ให้เป็น Web App URL ของคุณเอง
-    const API_URL = "https://script.google.com/macros/s/AKfycbzTTol4eYp_K1mzV-0fG6Cg3ah0uF2Fb9kfvW5HZOdzq92dvC_s_CKH7wnZc_o2ygU-lQ/exec"; 
-    let certDataList = [];
-    let currentDeleteUrl = "";
+    const API_URL = "https://script.google.com/macros/s/AKfycbzTTol4eYp_K1mzV-0fG6Cg3ah0uF2Fb9kfvW5HZOdzq92dvC_s_CKH7wnZc_o2ygU-lQ/exec";[cite: 2]
+    let certDataList = [];[cite: 2]
+    let currentDeleteUrl = "";[cite: 2]
 
     function toggleModal(show) {
-      const modal = document.getElementById("uploadModal");
-      if (show) modal.classList.remove("hidden");
-      else modal.classList.add("hidden");
+      const modal = document.getElementById("uploadModal");[cite: 2]
+      if (show) modal.classList.remove("hidden");[cite: 2]
+      else modal.classList.add("hidden");[cite: 2]
     }
 
     function openDeleteModal(fileUrl) {
-      currentDeleteUrl = fileUrl;
-      document.getElementById("deletePassword").value = ""; 
-      document.getElementById("deleteModal").classList.remove("hidden");
+      currentDeleteUrl = fileUrl;[cite: 2]
+      document.getElementById("deletePassword").value = "";  [cite: 2]
+      document.getElementById("deleteModal").classList.remove("hidden");[cite: 2]
     }
 
     function closeDeleteModal() {
-      currentDeleteUrl = "";
-      document.getElementById("deleteModal").classList.add("hidden");
+      currentDeleteUrl = "";[cite: 2]
+      document.getElementById("deleteModal").classList.add("hidden");[cite: 2]
+    }
+
+    // ฟังก์ชันกดรีเฟรชเอง (Manual Refresh)
+    async function refreshData() {
+      const icon = document.getElementById("refreshIcon");
+      if (icon) icon.classList.add("fa-spin");
+      await fetchCertificates();
+      if (icon) icon.classList.remove("fa-spin");
     }
 
     async function fetchCertificates() {
       try {
-        const res = await fetch(API_URL);
-        const json = await res.json();
-        if (json.status === "success") {
-          
-          // ใช้การ sort() แปลงวันที่และเรียงลำดับจากใหม่สุด (dateB) ไปเก่าสุด (dateA)
-          certDataList = json.data.sort((a, b) => {
-            const dateA = new Date(a.eventDate);
-            const dateB = new Date(b.eventDate);
-            return dateB - dateA; 
+        // เติม timestamp ป้องกันเบราว์เซอร์จำ Cache เก่า
+        const res = await fetch(API_URL + "?t=" + new Date().getTime());
+        const json = await res.json();[cite: 2]
+        if (json.status === "success") {[cite: 2]
+          certDataList = json.data.sort((a, b) => {[cite: 2]
+            const dateA = new Date(a.eventDate);[cite: 2]
+            const dateB = new Date(b.eventDate);[cite: 2]
+            return dateB - dateA; [cite: 2]
           });
-          
-          renderCertificates(certDataList);
+          filterCertificates(); // ดึงการค้นหาหรือ Filter ปัจจุบันมาแสดงผล
         }
       } catch (err) {
-        document.getElementById("certGrid").innerHTML = `<div class="col-span-full text-center text-red-500 py-8">ไม่สามารถโหลดข้อมูลได้ ตรวจสอบ URL หรือสิทธิ์การเข้าถึง</div>`;
+        document.getElementById("certGrid").innerHTML = `<div class="col-span-full text-center text-red-500 py-8">ไม่สามารถโหลดข้อมูลได้ ตรวจสอบการเชื่อมต่ออินเทอร์เน็ต</div>`;
       }
     }
 
     function getDriveThumbnail(url) {
-      if (!url) return 'https://placehold.co/600x400?text=No+Image';
-      const match = url.match(/\/d\/([a-zA-Z0-9_-]+)/);
-      if (match && match[1]) {
-        const fileId = match[1];
-        return `https://drive.google.com/thumbnail?id=${fileId}&sz=w600`;
+      if (!url) return 'https://placehold.co/600x400?text=No+Image';[cite: 2]
+      const match = url.match(/\/d\/([a-zA-Z0-9_-]+)/);[cite: 2]
+      if (match && match[1]) {[cite: 2]
+        const fileId = match[1];[cite: 2]
+        return `https://drive.google.com/thumbnail?id=${fileId}&sz=w600`;[cite: 2]
       }
-      return 'https://placehold.co/600x400?text=No+Preview';
+      return 'https://placehold.co/600x400?text=No+Preview';[cite: 2]
     }
 
     function renderCertificates(list) {
-      const grid = document.getElementById("certGrid");
-      if (list.length === 0) {
-        grid.innerHTML = `<div class="col-span-full text-center py-12 text-slate-400">ยังไม่มีรายการเกียรติบัตรที่บันทึกไว้ หรือไม่พบข้อมูลที่ค้นหา</div>`;
-        return;
+      const grid = document.getElementById("certGrid");[cite: 2]
+      if (list.length === 0) {[cite: 2]
+        grid.innerHTML = `<div class="col-span-full text-center py-12 text-slate-400">ยังไม่มีรายการเกียรติบัตรที่บันทึกไว้ หรือไม่พบข้อมูลที่ค้นหา</div>`;[cite: 2]
+        return;[cite: 2]
       }
 
-      grid.innerHTML = list.map(item => {
-        const thumbnailUrl = getDriveThumbnail(item.fileUrl);
+      grid.innerHTML = list.map(item => {[cite: 2]
+        const thumbnailUrl = getDriveThumbnail(item.fileUrl);[cite: 2]
 
         return `
         <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden hover:shadow-md transition flex flex-col justify-between group">
@@ -263,7 +272,6 @@
           </div>
           <div class="bg-slate-50 px-5 py-3 border-t border-slate-100 flex justify-between items-center">
             <div class="flex gap-3">
-              <!-- เพิ่มปุ่มแก้ไขตรงนี้ -->
               <button onclick="openEditModal('${item.fileUrl}')" class="text-xs font-medium text-amber-500 hover:text-amber-700 cursor-pointer">
                 แก้ไข
               </button>
@@ -276,186 +284,174 @@
             </a>
           </div>
         </div>
-      `}).join('');
+      `}).join('');[cite: 2]
     }
-    
 
     function filterCertificates() {
-      const query = document.getElementById("searchInput").value.toLowerCase();
-      const category = document.getElementById("categoryFilter").value;
+      const query = document.getElementById("searchInput").value.toLowerCase();[cite: 2]
+      const category = document.getElementById("categoryFilter").value;[cite: 2]
 
-      const filtered = certDataList.filter(item => {
-        const holder = item.holderName ? item.holderName.toLowerCase() : "";
-        const matchesQuery = holder.includes(query);
-        const matchesCategory = category ? item.category === category : true;
+      const filtered = certDataList.filter(item => {[cite: 2]
+        const holder = item.holderName ? item.holderName.toLowerCase() : "";[cite: 2]
+        const matchesQuery = holder.includes(query);[cite: 2]
+        const matchesCategory = category ? item.category === category : true;[cite: 2]
         
-        return matchesQuery && matchesCategory;
+        return matchesQuery && matchesCategory;[cite: 2]
       });
 
-      renderCertificates(filtered);
+      renderCertificates(filtered);[cite: 2]
     }
 
     async function handleFormSubmit(e) {
-      e.preventDefault();
-      const submitBtn = document.getElementById("submitBtn");
-      submitBtn.disabled = true;
-      submitBtn.innerText = "กำลังอัปโหลด...";
+      e.preventDefault();[cite: 2]
+      const submitBtn = document.getElementById("submitBtn");[cite: 2]
+      submitBtn.disabled = true;[cite: 2]
+      submitBtn.innerText = "กำลังอัปโหลด...";[cite: 2]
 
-      const fileInput = document.getElementById("m_file");
-      const file = fileInput.files[0];
-      const reader = new FileReader();
+      const fileInput = document.getElementById("m_file");[cite: 2]
+      const file = fileInput.files[0];[cite: 2]
+      const reader = new FileReader();[cite: 2]
 
-      reader.onload = async function() {
-        const payload = {
-          action: "upload",
-          holderName: document.getElementById("m_holderName").value,
-          title: document.getElementById("m_title").value,
-          issuer: document.getElementById("m_issuer").value,
-          category: document.getElementById("m_category").value,
-          eventDate: document.getElementById("m_eventDate").value,
-          fileName: file.name,
-          fileData: reader.result
-        };
+      reader.onload = async function() {[cite: 2]
+        const payload = {[cite: 2]
+          action: "upload",[cite: 2]
+          holderName: document.getElementById("m_holderName").value,[cite: 2]
+          title: document.getElementById("m_title").value,[cite: 2]
+          issuer: document.getElementById("m_issuer").value,[cite: 2]
+          category: document.getElementById("m_category").value,[cite: 2]
+          eventDate: document.getElementById("m_eventDate").value,[cite: 2]
+          fileName: file.name,[cite: 2]
+          fileData: reader.result[cite: 2]
+        };[cite: 2]
 
-        try {
-          const res = await fetch(API_URL, {
-            method: "POST",
-            body: JSON.stringify(payload)
-          });
-          const result = await res.json();
-          if (result.status === "success") {
-            toggleModal(false);
-            document.getElementById("uploadForm").reset();
-            fetchCertificates();
+        try {[cite: 2]
+          const res = await fetch(API_URL, {[cite: 2]
+            method: "POST",[cite: 2]
+            body: JSON.stringify(payload)[cite: 2]
+          });[cite: 2]
+          const result = await res.json();[cite: 2]
+          if (result.status === "success") {[cite: 2]
+            toggleModal(false);[cite: 2]
+            document.getElementById("uploadForm").reset();[cite: 2]
+            fetchCertificates();[cite: 2]
           } else {
-            alert("เกิดข้อผิดพลาด: " + result.message);
+            alert("เกิดข้อผิดพลาด: " + result.message);[cite: 2]
           }
-        } catch (err) {
-          alert("ไม่สามารถอัปโหลดได้ โปรดตรวจสอบการเชื่อมต่อ");
+        } catch (err) {[cite: 2]
+          alert("ไม่สามารถอัปโหลดได้ โปรดตรวจสอบการเชื่อมต่อ");[cite: 2]
         } finally {
-          submitBtn.disabled = false;
-          submitBtn.innerText = "บันทึกข้อมูล";
+          submitBtn.disabled = false;[cite: 2]
+          submitBtn.innerText = "บันทึกข้อมูล";[cite: 2]
         }
-      };
+      };[cite: 2]
 
-      reader.readAsDataURL(file);
+      reader.readAsDataURL(file);[cite: 2]
     }
 
     async function confirmDelete() {
-      const code = document.getElementById("deletePassword").value;
-      
-      if (code !== "Nawanoi") {
-        alert("รหัสยืนยันไม่ถูกต้อง!");
-        return;
+      const code = document.getElementById("deletePassword").value;[cite: 2]
+      if (code !== "Nawanoi") {[cite: 2]
+        alert("รหัสยืนยันไม่ถูกต้อง!");[cite: 2]
+        return;[cite: 2]
       }
 
-      const btn = document.getElementById("confirmDeleteBtn");
-      btn.disabled = true;
-      btn.innerText = "กำลังลบ...";
+      const btn = document.getElementById("confirmDeleteBtn");[cite: 2]
+      btn.disabled = true;[cite: 2]
+      btn.innerText = "กำลังลบ...";[cite: 2]
 
-      try {
-        const payload = {
-          action: "delete",
-          fileUrl: currentDeleteUrl
-        };
+      try {[cite: 2]
+        const payload = { action: "delete", fileUrl: currentDeleteUrl };[cite: 2]
+        const res = await fetch(API_URL, {[cite: 2]
+          method: "POST",[cite: 2]
+          body: JSON.stringify(payload)[cite: 2]
+        });[cite: 2]
+        const result = await res.json();[cite: 2]
         
-        const res = await fetch(API_URL, {
-          method: "POST",
-          body: JSON.stringify(payload)
-        });
-        const result = await res.json();
-        
-        if (result.status === "success") {
-          closeDeleteModal(); 
-          fetchCertificates(); 
+        if (result.status === "success") {[cite: 2]
+          closeDeleteModal(); [cite: 2]
+          fetchCertificates(); [cite: 2]
         } else {
-          alert("เกิดข้อผิดพลาด: " + result.message);
+          alert("เกิดข้อผิดพลาด: " + result.message);[cite: 2]
         }
-      } catch (err) {
-        alert("ไม่สามารถลบข้อมูลได้ โปรดตรวจสอบการเชื่อมต่อ");
+      } catch (err) {[cite: 2]
+        alert("ไม่สามารถลบข้อมูลได้ โปรดตรวจสอบการเชื่อมต่อ");[cite: 2]
       } finally {
-        btn.disabled = false;
-        btn.innerText = "ลบข้อมูล";
+        btn.disabled = false;[cite: 2]
+        btn.innerText = "ลบข้อมูล";[cite: 2]
       }
     }
 
-
-
-
-
-let currentEditUrl = "";
+    let currentEditUrl = "";[cite: 2]
 
     function openEditModal(fileUrl) {
-      // ค้นหาข้อมูลเดิมจากอาเรย์เพื่อเอามาเติมในช่องกรอก
-      const item = certDataList.find(c => c.fileUrl === fileUrl);
-      if (!item) return;
+      const item = certDataList.find(c => c.fileUrl === fileUrl);[cite: 2]
+      if (!item) return;[cite: 2]
 
-      currentEditUrl = fileUrl;
-      document.getElementById("e_holderName").value = item.holderName;
-      document.getElementById("e_title").value = item.title;
-      document.getElementById("e_issuer").value = item.issuer;
-      document.getElementById("e_category").value = item.category;
+      currentEditUrl = fileUrl;[cite: 2]
+      document.getElementById("e_holderName").value = item.holderName;[cite: 2]
+      document.getElementById("e_title").value = item.title;[cite: 2]
+      document.getElementById("e_issuer").value = item.issuer;[cite: 2]
+      document.getElementById("e_category").value = item.category;[cite: 2]
       
-      // จัดการรูปแบบวันที่
-      let dateVal = item.eventDate;
-      try {
-        const d = new Date(dateVal);
-        dateVal = d.toISOString().split('T')[0];
-      } catch(e) {}
-      document.getElementById("e_eventDate").value = dateVal;
+      let dateVal = item.eventDate;[cite: 2]
+      try {[cite: 2]
+        const d = new Date(dateVal);[cite: 2]
+        dateVal = d.toISOString().split('T')[0];[cite: 2]
+      } catch(e) {}[cite: 2]
+      document.getElementById("e_eventDate").value = dateVal;[cite: 2]
 
-      document.getElementById("editModal").classList.remove("hidden");
+      document.getElementById("editModal").classList.remove("hidden");[cite: 2]
     }
 
     function closeEditModal() {
-      currentEditUrl = "";
-      document.getElementById("editModal").classList.add("hidden");
+      currentEditUrl = "";[cite: 2]
+      document.getElementById("editModal").classList.add("hidden");[cite: 2]
     }
 
     async function handleEditSubmit(e) {
-      e.preventDefault();
-      const btn = document.getElementById("editSubmitBtn");
-      btn.disabled = true;
-      btn.innerText = "กำลังบันทึก...";
+      e.preventDefault();[cite: 2]
+      const btn = document.getElementById("editSubmitBtn");[cite: 2]
+      btn.disabled = true;[cite: 2]
+      btn.innerText = "กำลังบันทึก...";[cite: 2]
 
-      try {
-        const payload = {
-          action: "edit",
-          fileUrl: currentEditUrl,
-          holderName: document.getElementById("e_holderName").value,
-          title: document.getElementById("e_title").value,
-          issuer: document.getElementById("e_issuer").value,
-          category: document.getElementById("e_category").value,
-          eventDate: document.getElementById("e_eventDate").value
-        };
+      try {[cite: 2]
+        const payload = {[cite: 2]
+          action: "edit",[cite: 2]
+          fileUrl: currentEditUrl,[cite: 2]
+          holderName: document.getElementById("e_holderName").value,[cite: 2]
+          title: document.getElementById("e_title").value,[cite: 2]
+          issuer: document.getElementById("e_issuer").value,[cite: 2]
+          category: document.getElementById("e_category").value,[cite: 2]
+          eventDate: document.getElementById("e_eventDate").value[cite: 2]
+        };[cite: 2]
         
-        const res = await fetch(API_URL, {
-          method: "POST",
-          body: JSON.stringify(payload)
-        });
-        const result = await res.json();
+        const res = await fetch(API_URL, {[cite: 2]
+          method: "POST",[cite: 2]
+          body: JSON.stringify(payload)[cite: 2]
+        });[cite: 2]
+        const result = await res.json();[cite: 2]
         
-        if (result.status === "success") {
-          closeEditModal(); 
-          fetchCertificates(); // รีเฟรชข้อมูลบนจอ
+        if (result.status === "success") {[cite: 2]
+          closeEditModal();  [cite: 2]
+          fetchCertificates();[cite: 2]
         } else {
-          alert("เกิดข้อผิดพลาด: " + result.message);
+          alert("เกิดข้อผิดพลาด: " + result.message);[cite: 2]
         }
-      } catch (err) {
-        alert("ไม่สามารถแก้ไขข้อมูลได้ โปรดตรวจสอบการเชื่อมต่อ");
+      } catch (err) {[cite: 2]
+        alert("ไม่สามารถแก้ไขข้อมูลได้ โปรดตรวจสอบการเชื่อมต่อ");[cite: 2]
       } finally {
-        btn.disabled = false;
-        btn.innerText = "บันทึกการแก้ไข";
+        btn.disabled = false;[cite: 2]
+        btn.innerText = "บันทึกการแก้ไข";[cite: 2]
       }
     }
 
+    // โหลดครั้งแรกตอนเปิดหน้าเว็บ
+    fetchCertificates();[cite: 2]
 
-
-
-
-
-
-    fetchCertificates();
+    // ตั้งเวลาดึงข้อมูลใหม่ทุกๆ 30 วินาทีอัตโนมัติ (เผื่อเครื่องอื่นเพิ่มข้อมูลเข้ามา)
+    setInterval(() => {
+      fetchCertificates();
+    }, 30000);
   </script>
 </body>
 </html>
