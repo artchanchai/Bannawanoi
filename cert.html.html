@@ -208,7 +208,22 @@
       document.getElementById("deleteModal").classList.add("hidden");[cite: 2]
     }
 
-    // ฟังก์ชันกดรีเฟรชข้อมูล
+    // ฟังก์ชันแปลงรูปแบบวันที่ให้อ่านง่าย
+    function formatDisplayDate(dateStr) {
+      if (!dateStr) return "-";
+      try {
+        const d = new Date(dateStr);
+        if (isNaN(d.getTime())) return dateStr;
+        const day = String(d.getDate()).padStart(2, '0');
+        const month = String(d.getMonth() + 1).padStart(2, '0');
+        const year = d.getFullYear() + 543; // แปลงเป็น พ.ศ.
+        return `${day}/${month}/${year}`;
+      } catch(e) {
+        return dateStr;
+      }
+    }
+
+    // ฟังก์ชันกดรีเฟรช
     async function refreshData() {
       const icon = document.getElementById("refreshIcon");
       if (icon) icon.classList.add("fa-spin");
@@ -216,29 +231,21 @@
       if (icon) icon.classList.remove("fa-spin");
     }
 
+    // ดึงข้อมูลจาก Apps Script
     async function fetchCertificates() {
       const grid = document.getElementById("certGrid");
       try {
-        // ใช้ fetch ปกติไม่ใส่ query แปลกปลอมเพื่อไม่ให้โดน redirect ผิดพลาด
         const res = await fetch(API_URL);
         const json = await res.json();[cite: 2]
         
-        let list = [];
         if (json && json.status === "success" && Array.isArray(json.data)) {[cite: 2]
-          list = json.data;[cite: 2]
-        } else if (Array.isArray(json)) {
-          list = json;
-        }
-
-        if (list.length > 0) {
-          certDataList = list.sort((a, b) => {[cite: 2]
+          certDataList = json.data.sort((a, b) => {[cite: 2]
             const dateA = new Date(a.eventDate);[cite: 2]
             const dateB = new Date(b.eventDate);[cite: 2]
             return dateB - dateA;[cite: 2]
           });
-          filterCertificates();
+          renderCertificates(certDataList);
         } else {
-          certDataList = [];
           grid.innerHTML = `<div class="col-span-full text-center py-12 text-slate-400">ยังไม่มีรายการเกียรติบัตรในระบบ</div>`;
         }
       } catch (err) {
@@ -246,9 +253,9 @@
         grid.innerHTML = `
           <div class="col-span-full text-center py-10 bg-white rounded-xl border border-red-100 p-6">
             <p class="text-red-500 font-bold mb-1"><i class="fa-solid fa-triangle-exclamation mr-1"></i> โหลดข้อมูลไม่สำเร็จ</p>
-            <p class="text-xs text-slate-500 mb-4">อาจเกิดจากสัญญาณอินเทอร์เน็ตหรือระบบฐานข้อมูลกำลังอัปเดต</p>
+            <p class="text-xs text-slate-500 mb-4">กรุณาตรวจสอบการเชื่อมต่ออินเทอร์เน็ต</p>
             <button onclick="refreshData()" class="px-4 py-1.5 bg-indigo-600 text-white text-xs rounded-lg hover:bg-indigo-700 shadow-sm transition">
-              <i class="fa-solid fa-rotate-right mr-1"></i> กดลองใหม่อีกครั้ง
+              <i class="fa-solid fa-rotate-right mr-1"></i> ลองใหม่อีกครั้ง
             </button>
           </div>
         `;
@@ -265,6 +272,7 @@
       return 'https://placehold.co/600x400?text=No+Preview';[cite: 2]
     }
 
+    // เรนเดอร์การ์ดแสดงผล
     function renderCertificates(list) {
       const grid = document.getElementById("certGrid");[cite: 2]
       if (!list || list.length === 0) {
@@ -274,6 +282,7 @@
 
       grid.innerHTML = list.map(item => {[cite: 2]
         const thumbnailUrl = getDriveThumbnail(item.fileUrl);[cite: 2]
+        const formattedDate = formatDisplayDate(item.eventDate);
 
         return `
         <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden hover:shadow-md transition flex flex-col justify-between group">
@@ -286,8 +295,8 @@
           <div class="p-5 flex-1">
             <h3 class="font-bold text-slate-800 text-base leading-snug line-clamp-2 mb-2" title="${item.title}">${item.title}</h3>
             <p class="text-xs text-slate-700 mb-1"><span class="font-medium text-slate-500">ผู้ได้รับ:</span> ${item.holderName || '-'}</p>
-            <p class="text-xs text-slate-700 mb-1"><span class="font-medium text-slate-500">หน่วยงาน:</span> ${item.issuer}</p>
-            <p class="text-xs text-slate-700"><span class="font-medium text-slate-500">วันที่:</span> ${item.eventDate}</p>
+            <p class="text-xs text-slate-700 mb-1"><span class="font-medium text-slate-500">หน่วยงาน:</span> ${item.issuer || '-'}</p>
+            <p class="text-xs text-slate-700"><span class="font-medium text-slate-500">วันที่:</span> ${formattedDate}</p>
           </div>
           <div class="bg-slate-50 px-5 py-3 border-t border-slate-100 flex justify-between items-center">
             <div class="flex gap-3">
@@ -307,12 +316,13 @@
     }
 
     function filterCertificates() {
-      const query = (document.getElementById("searchInput").value || "").toLowerCase();[cite: 2]
+      const query = (document.getElementById("searchInput").value || "").toLowerCase().trim();
       const category = document.getElementById("categoryFilter").value;[cite: 2]
 
       const filtered = certDataList.filter(item => {[cite: 2]
         const holder = item.holderName ? item.holderName.toLowerCase() : "";[cite: 2]
-        const matchesQuery = holder.includes(query);[cite: 2]
+        const title = item.title ? item.title.toLowerCase() : "";
+        const matchesQuery = holder.includes(query) || title.includes(query);
         const matchesCategory = category ? item.category === category : true;[cite: 2]
         
         return matchesQuery && matchesCategory;[cite: 2]
@@ -464,7 +474,7 @@
       }
     }
 
-    // เริ่มดึงข้อมูลเมื่อโหลดหน้าเว็บ
+    // เริ่มดึงข้อมูลทันทีเมื่อเปิดหน้า
     fetchCertificates();[cite: 2]
   </script>
 </body>
