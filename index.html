@@ -1,38 +1,190 @@
 <!DOCTYPE html>
 <html lang="th">
 <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ระบบจัดการสารสนเทศ โรงเรียนบ้านนาหว้าน้อย</title>
+  <link rel="icon" href="IMG_4847.jpeg" type="image/jpeg">
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts: Sarabun -->
+  <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <style>
+    body { font-family: 'Sarabun', sans-serif; }
+    .portal-card {
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .portal-card:hover {
+      transform: translateY(-6px);
+    }
+  </style>
+</head>
+<body class="bg-slate-100 text-slate-800 h-screen flex flex-col overflow-hidden">
+
+  <!-- แถบเมนูด้านบน (นำทางระหว่างระบบ) -->
+  <header class="bg-slate-900 text-white px-4 py-2.5 shadow-md flex items-center justify-between flex-none z-50">
+    <div class="flex items-center space-x-3 cursor-pointer" onclick="switchApp('hub')">
+      <img src="IMG_4847.jpeg" onerror="this.src='https://placehold.co/80x80?text=Logo'" class="w-8 h-8 rounded-full object-contain bg-white p-0.5 shadow">
+      <div>
+        <h1 class="text-sm sm:text-base font-bold tracking-wide leading-tight">โรงเรียนบ้านนาหว้าน้อย</h1>
+        <p class="text-[10px] sm:text-xs text-slate-300">ระบบบริหารจัดการสารสนเทศทางการศึกษา</p>
+      </div>
+    </div>
+
+    <!-- ปุ่มสลับหน้าระบบ -->
+    <nav class="flex items-center space-x-1 sm:space-x-2">
+      <button onclick="switchApp('hub')" id="btn-hub" class="px-3 py-1.5 rounded-lg text-xs sm:text-sm font-semibold transition bg-blue-600 text-white flex items-center gap-1.5">
+        <i class="fa-solid fa-house"></i>
+        <span class="hidden sm:inline">หน้าแรก</span>
+      </button>
+      <button onclick="switchApp('pp5')" id="btn-pp5" class="px-3 py-1.5 rounded-lg text-xs sm:text-sm font-semibold transition text-slate-300 hover:text-white hover:bg-slate-800 flex items-center gap-1.5">
+        <i class="fa-solid fa-book-open"></i>
+        <span>ระบบ ปพ.5</span>
+      </button>
+      <button onclick="switchApp('cert')" id="btn-cert" class="px-3 py-1.5 rounded-lg text-xs sm:text-sm font-semibold transition text-slate-300 hover:text-white hover:bg-slate-800 flex items-center gap-1.5">
+        <i class="fa-solid fa-award"></i>
+        <span>ระบบเกียรติบัตร</span>
+      </button>
+    </nav>
+  </header>
+
+  <!-- พื้นที่แสดงผลส่วนกลาง -->
+  <main class="flex-1 relative w-full h-full overflow-hidden">
+    
+    <!-- 1. หน้าแรก (Hub รวมลิงก์ไอคอน) -->
+    <div id="view-hub" class="absolute inset-0 overflow-y-auto p-4 sm:p-8 flex flex-col justify-between">
+      <div class="max-w-4xl mx-auto w-full pt-4 sm:pt-10">
+        <!-- หัวข้อหลัก -->
+        <div class="text-center mb-8 sm:mb-12">
+          <div class="inline-flex items-center justify-center p-3 bg-blue-50 text-blue-600 rounded-2xl mb-3 shadow-inner">
+            <i class="fa-solid fa-school text-3xl"></i>
+          </div>
+          <h2 class="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">ระบบจัดการต่างๆ ในโรงเรียนบ้านนาหว้าน้อย</h2>
+          <p class="text-slate-500 text-sm sm:text-base mt-2">ศูนย์รวมระบบสารสนเทศและการบันทึกข้อมูลเพื่อสนับสนุนการเรียนการสอน</p>
+        </div>
+
+        <!-- กล่องการ์ดเลือก 2 ระบบ -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8 max-w-2xl mx-auto">
+          
+          <!-- การ์ดที่ 1: ระบบ ปพ.5 -->
+          <div onclick="switchApp('pp5')" class="portal-card bg-white rounded-2xl p-6 sm:p-8 shadow-sm hover:shadow-xl border border-slate-200/80 cursor-pointer flex flex-col items-center text-center group">
+            <div class="w-20 h-20 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center text-4xl mb-5 group-hover:bg-blue-600 group-hover:text-white transition-colors duration-300 shadow-sm">
+              <i class="fa-solid fa-calculator"></i>
+            </div>
+            <h3 class="text-lg sm:text-xl font-bold text-slate-800 mb-2 group-hover:text-blue-600 transition-colors">ระบบ ปพ.5 ออนไลน์</h3>
+            <p class="text-xs sm:text-sm text-slate-500 mb-6 leading-relaxed">บันทึกคะแนน ตัวชี้วัด เช็คเวลาเรียน ประเมินคุณลักษณะฯ และพิมพ์เอกสาร ปพ.5 ทุกระดับชั้น</p>
+            <span class="mt-auto inline-flex items-center text-xs sm:text-sm font-bold text-blue-600 group-hover:translate-x-1 transition-transform">
+              เข้าสู่ระบบงาน <i class="fa-solid fa-arrow-right ml-2"></i>
+            </span>
+          </div>
+
+          <!-- การ์ดที่ 2: ระบบเกียรติบัตร -->
+          <div onclick="switchApp('cert')" class="portal-card bg-white rounded-2xl p-6 sm:p-8 shadow-sm hover:shadow-xl border border-slate-200/80 cursor-pointer flex flex-col items-center text-center group">
+            <div class="w-20 h-20 bg-amber-50 text-amber-600 rounded-2xl flex items-center justify-center text-4xl mb-5 group-hover:bg-amber-500 group-hover:text-white transition-colors duration-300 shadow-sm">
+              <i class="fa-solid fa-award"></i>
+            </div>
+            <h3 class="text-lg sm:text-xl font-bold text-slate-800 mb-2 group-hover:text-amber-600 transition-colors">ระบบจัดเก็บเกียรติบัตร</h3>
+            <p class="text-xs sm:text-sm text-slate-500 mb-6 leading-relaxed">คลังเกียรติบัตรและวุฒิบัตรออนไลน์ จัดหมวดหมู่ ค้นหาผลงาน และอัปโหลดจัดเก็บเอกสาร</p>
+            <span class="mt-auto inline-flex items-center text-xs sm:text-sm font-bold text-amber-600 group-hover:translate-x-1 transition-transform">
+              เข้าสู่ระบบงาน <i class="fa-solid fa-arrow-right ml-2"></i>
+            </span>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- เครดิตด้านล่างของหน้า Hub -->
+      <footer class="text-center text-xs text-slate-400 py-6">
+        &copy; 2026 โรงเรียนบ้านนาหว้าน้อย ต.กกสะทอน อ.ด่านซ้าย จ.เลย | พัฒนาโดย ART-CHANCHAI
+      </footer>
+    </div>
+
+    <!-- 2. Iframe สำหรับระบบ ปพ.5 -->
+    <iframe id="iframe-pp5" class="absolute inset-0 w-full h-full border-0 hidden"></iframe>
+
+    <!-- 3. Iframe สำหรับระบบเกียรติบัตร -->
+    <iframe id="iframe-cert" class="absolute inset-0 w-full h-full border-0 hidden"></iframe>
+
+  </main>
+
+  <!-- ฟังก์ชันสลับหน้า และเตรียมโหลดโค้ดทั้งสองระบบ -->
+  <script>
+    // สลับมุมมองหน้าจอ
+    function switchApp(app) {
+      const hubView = document.getElementById('view-hub');
+      const pp5Frame = document.getElementById('iframe-pp5');
+      const certFrame = document.getElementById('iframe-cert');
+
+      const btnHub = document.getElementById('btn-hub');
+      const btnPp5 = document.getElementById('btn-pp5');
+      const btnCert = document.getElementById('btn-cert');
+
+      // รีเซ็ตการแสดงผล
+      hubView.classList.add('hidden');
+      pp5Frame.classList.add('hidden');
+      certFrame.classList.add('hidden');
+
+      [btnHub, btnPp5, btnCert].forEach(b => {
+        b.className = "px-3 py-1.5 rounded-lg text-xs sm:text-sm font-semibold transition text-slate-300 hover:text-white hover:bg-slate-800 flex items-center gap-1.5";
+      });
+
+      if (app === 'pp5') {
+        pp5Frame.classList.remove('hidden');
+        btnPp5.className = "px-3 py-1.5 rounded-lg text-xs sm:text-sm font-semibold transition bg-blue-600 text-white flex items-center gap-1.5";
+      } else if (app === 'cert') {
+        certFrame.classList.remove('hidden');
+        btnCert.className = "px-3 py-1.5 rounded-lg text-xs sm:text-sm font-semibold transition bg-amber-500 text-slate-900 flex items-center gap-1.5";
+      } else {
+        hubView.classList.remove('hidden');
+        btnHub.className = "px-3 py-1.5 rounded-lg text-xs sm:text-sm font-semibold transition bg-blue-600 text-white flex items-center gap-1.5";
+      }
+    }
+
+    // ฝังโค้ดระบบ ปพ.5 ลงใน iframe เมื่อโหลดหน้าเว็บเสร็จ
+    document.addEventListener('DOMContentLoaded', () => {
+      const pp5Source = document.getElementById('pp5-template').innerHTML;
+      const certSource = document.getElementById('cert-template').innerHTML;
+
+      document.getElementById('iframe-pp5').srcdoc = pp5Source;
+      document.getElementById('iframe-cert').srcdoc = certSource;
+    });
+  </script>
+
+  <!-- แม่แบบโค้ดระบบ ปพ.5 (เดิมคือ index2) -->
+  <template id="pp5-template">
+<!DOCTYPE html>
+<html lang="th">
+<head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ระบบ ปพ.5 โรงเรียนบ้านนาหว้าน้อย </title>
     <link rel="icon" href="IMG_4847.jpeg" type="image/png">
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-
-
-    
+    <script src="https://cdn.tailwindcss.com"><\/script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"><\/script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    
     <style>
         body { font-family: 'Sarabun', sans-serif; background-color: #f3f4f6; }
-        
         .custom-scrollbar::-webkit-scrollbar { height: 8px; width: 8px; }
         .custom-scrollbar::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 4px; }
         .custom-scrollbar::-webkit-scrollbar-thumb { background: #c1c1c1; border-radius: 4px; }
         .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #a8a8a8; }
 
-        .bg-month-0 { background-color: #fce7f3; } /* ม.ค. ชมพู */
-        .bg-month-1 { background-color: #dbeafe; } /* ก.พ. ฟ้า */
-        .bg-month-2 { background-color: #dcfce7; } /* มี.ค. เขียว */
-        .bg-month-3 { background-color: #ffedd5; } /* เม.ย. ส้ม */
-        .bg-month-4 { background-color: #f3e8ff; } /* พ.ค. ม่วง */
-        .bg-month-5 { background-color: #e0e7ff; } /* มิ.ย. คราม */
-        .bg-month-6 { background-color: #ccfbf1; } /* ก.ค. ฟ้าอมเขียว */
-        .bg-month-7 { background-color: #fef08a; } /* ส.ค. เหลือง */
-        .bg-month-8 { background-color: #ffedd5; } /* ก.ย. ส้มอ่อน */
-        .bg-month-9 { background-color: #fce7f3; } /* ต.ค. ชมพูอ่อน */
-        .bg-month-10 { background-color: #dbeafe; } /* พ.ย. ฟ้าอ่อน */
-        .bg-month-11 { background-color: #dcfce7; } /* ธ.ค. เขียวอ่อน */
+        .bg-month-0 { background-color: #fce7f3; }
+        .bg-month-1 { background-color: #dbeafe; }
+        .bg-month-2 { background-color: #dcfce7; }
+        .bg-month-3 { background-color: #ffedd5; }
+        .bg-month-4 { background-color: #f3e8ff; }
+        .bg-month-5 { background-color: #e0e7ff; }
+        .bg-month-6 { background-color: #ccfbf1; }
+        .bg-month-7 { background-color: #fef08a; }
+        .bg-month-8 { background-color: #ffedd5; }
+        .bg-month-9 { background-color: #fce7f3; }
+        .bg-month-10 { background-color: #dbeafe; }
+        .bg-month-11 { background-color: #dcfce7; }
 
         .holiday-header { background-color: #ef4444 !important; color: white !important; }
         .holiday-cell { background-color: #fef2f2 !important; }
@@ -56,40 +208,27 @@
             padding: 15mm;
         }
 
-
-
         @media print {
-            /* 1. กำหนดขนาดกระดาษ A4 แนวตั้ง และขอบกระดาษ */
             @page { size: A4 portrait; margin: 10mm; }
-            
-            /* 2. ซ่อนส่วนที่ไม่ต้องการพิมพ์ */
             header, #tabsContainer, .no-print { display: none !important; }
-            
-            /* 3. ล้างค่าพื้นหลังของแอประหว่างพิมพ์ */
             body, html { background: white !important; margin: 0; padding: 0; }
             #appWrapper, main, #contentArea { 
                 display: block !important; padding: 0 !important; margin: 0 !important; 
                 border: none !important; box-shadow: none !important; background: transparent !important;
                 -webkit-print-color-adjust: exact; print-color-adjust: exact; 
             }
-            
-            /* 4. จัดการกรอบ A4 ใหม่ ปลดล็อคความสูงไม่ให้ข้อความโดนตัด */
             .a4-preview { 
                 width: 190mm !important; 
-                height: auto !important; /* ปลดล็อคความสูง */
+                height: auto !important;
                 max-height: none !important;
                 box-sizing: border-box !important; margin: 0 auto !important; padding: 0 !important; 
                 page-break-inside: avoid !important; 
-                overflow: visible !important; /* ปล่อยให้แสดงผลครบถ้วน ไม่ตัดทิ้ง */
+                overflow: visible !important;
                 position: relative;
-                
-                /* ย่อสเกลลงเล็กน้อยเพื่อให้จุวิชาได้มากขึ้นใน 1 หน้า */
                 transform: scale(0.92); 
                 transform-origin: top center; 
                 font-size: 10pt !important;
             }
-            
-            /* 5. บีบระยะห่างตารางและบรรทัดให้แน่นขึ้นเฉพาะตอนสั่งพิมพ์ */
             .a4-preview table { margin-bottom: 8px !important; }
             .a4-preview td, .a4-preview th { padding: 2px 4px !important; line-height: 1.1 !important; }
             .a4-preview .p-8 { padding: 4mm !important; }
@@ -101,32 +240,13 @@
             .a4-preview h2 { font-size: 1rem !important; margin-bottom: 4px !important; }
             .print-flex-wrap { flex-wrap: wrap; }
         }
-
-
-
-
-
-
-
-
-        
     </style>
 </head>
 <body class="overflow-hidden">
-
-    <!-- Login Screen -->
-       <!-- Login Screen -->
     <div id="loginScreen" class="fixed inset-0 flex items-center justify-center z-[100] p-4 overflow-hidden">
-        
-        <!-- วิดีโอพื้นหลัง -->
         <video autoplay loop muted playsinline class="absolute inset-0 w-full h-full object-cover z-0">
             <source src="B1.mp4" type="video/mp4">
         </video>
-        
-        <!-- แผ่นฟิล์มสีดำโปร่งแสงทับวิดีโอ (ปรับความมืดที่ bg-opacity-40) -->
-        <!-- <div class="absolute inset-0 bg-black bg-opacity-40 z-10"></div> -->
-
-        <!-- กล่องเข้าสู่ระบบ -->
         <div class="bg-white rounded-xl shadow-2xl p-6 sm:p-8 w-full max-w-md relative z-20">
             <div class="text-center mb-6">
                 <img src="IMG_4847.jpeg" class="w-16 h-16 sm:w-20 sm:h-20 mx-auto mb-3 object-contain">
@@ -160,10 +280,7 @@
         </div>
     </div>
 
-
-    <!-- Main App -->
     <div id="appWrapper" class="hidden flex-col h-screen">
-        <!-- Navbar -->
         <header class="bg-white shadow-sm no-print sticky top-0 z-50 border-b-4 border-blue-600 flex-none">
             <div class="max-w-7xl mx-auto px-2 sm:px-4 py-2 flex flex-col md:flex-row items-center justify-between gap-2 md:gap-0">
                 <div class="flex items-center space-x-3 w-full md:w-auto justify-center md:justify-start">
@@ -190,47 +307,30 @@
             </div>
         </header>
 
-        <!-- Main Content Area -->
         <main class="flex-1 overflow-y-auto bg-gray-100 ">
             <div class="max-w-7xl mx-auto px-2 sm:px-4 py-4">
-                <!-- Tabs -->
                 <div class="bg-white rounded-t-lg shadow-sm border-b border-gray-200 flex overflow-x-auto custom-scrollbar" id="tabsContainer"></div>
-                <!-- Content Area -->
                 <div class="bg-white shadow-sm rounded-b-lg p-3 sm:p-6 min-h-[70vh] relative" id="contentArea"></div>
             </div>
 
-
-
-
-
-<!-- วิดเจ็ตเครื่องเล่นเพลง (มุมขวาล่าง) -->
-        <div class="fixed bottom-6 right-6 bg-white/90 backdrop-blur-sm p-2 rounded-full shadow-lg border border-gray-200 flex items-center space-x-2 z-[100] no-print hover:shadow-xl transition-all group">
-            <button id="musicToggleBtn" onclick="window.toggleMusic()" class="w-10 h-10 flex items-center justify-center bg-blue-50 text-blue-600 rounded-full hover:bg-blue-100 transition-colors shadow-sm" title="เล่น/หยุดเพลง">
-                <i class="fa-solid fa-music text-lg"></i>
-            </button>
-            
-            <!-- แถบปรับเสียง (จะขยายออกเมื่อเอาเมาส์ไปชี้หรือกดเล่น) -->
-            <div id="musicControls" class="w-0 overflow-hidden group-hover:w-24 transition-all duration-300 flex items-center">
-                <div class="flex items-center space-x-2 px-2 w-24">
-                    <i class="fa-solid fa-volume-low text-gray-500 text-xs"></i>
-                    <input type="range" id="musicVolume" min="0" max="1" step="0.05" value="0.15" class="w-full h-1 bg-gray-300 rounded-lg appearance-none cursor-pointer accent-blue-600" onchange="window.changeVolume(this.value)" oninput="window.changeVolume(this.value)" title="ปรับระดับเสียง">
+            <div class="fixed bottom-6 right-6 bg-white/90 backdrop-blur-sm p-2 rounded-full shadow-lg border border-gray-200 flex items-center space-x-2 z-[100] no-print hover:shadow-xl transition-all group">
+                <button id="musicToggleBtn" onclick="window.toggleMusic()" class="w-10 h-10 flex items-center justify-center bg-blue-50 text-blue-600 rounded-full hover:bg-blue-100 transition-colors shadow-sm" title="เล่น/หยุดเพลง">
+                    <i class="fa-solid fa-music text-lg"></i>
+                </button>
+                <div id="musicControls" class="w-0 overflow-hidden group-hover:w-24 transition-all duration-300 flex items-center">
+                    <div class="flex items-center space-x-2 px-2 w-24">
+                        <i class="fa-solid fa-volume-low text-gray-500 text-xs"></i>
+                        <input type="range" id="musicVolume" min="0" max="1" step="0.05" value="0.15" class="w-full h-1 bg-gray-300 rounded-lg appearance-none cursor-pointer accent-blue-600" onchange="window.changeVolume(this.value)" oninput="window.changeVolume(this.value)" title="ปรับระดับเสียง">
+                    </div>
                 </div>
+                <audio id="bgMusic" loop>
+                    <source src="SS11.mp3" type="audio/mpeg">
+                </audio>
             </div>
-            
-            <!-- ไฟล์เสียง (ซ่อนไว้) -->
-            <!-- สามารถเปลี่ยนลิงก์ src เป็นไฟล์ mp3 ในเครื่อง เช่น src="music.mp3" ได้ครับ -->
-            <audio id="bgMusic" loop>
-                <source src="SS11.mp3" type="audio/mpeg">
-            </audio>
-        </div>
-
-
-
         </main>
     </div>
 
     <script>
-        // ----------------- STATE MANAGEMENT -----------------
         window.currentUserRole = null;
         window.state = {
             selectedClass: 'ป.6',
@@ -241,22 +341,12 @@
             headName: 'นางสาวเรียนดี มีวิชา',
             directorName: 'นายอำนวย บริหารเก่ง',
             logoUrl: 'IMG_4847.jpeg',
-
-
-
-                        courses: {
+            courses: {
                 'ป.1': [], 'ป.2': [], 'ป.3': [], 'ป.4': [], 'ป.5': [],
                 'ป.6': [
                     { id: 'c1', code: 'ค16101', name: 'คณิตศาสตร์พื้นฐาน', credit: '2.0', midCollect: 35, midExam: 15, finalCollect: 35, finalExam: 15, indicators: ['ค 1.1 ป.6/1 เข้าใจและประยุกต์ใช้อัตราส่วน'] }
                 ]
             },
-
-
-
-
-
-            
-            
             students: {
                 'ป.1': [{ id: '1101', no: 1, name: 'ด.ช. ทดสอบ ป.1', statusR: false }],
                 'ป.2': [], 'ป.3': [], 'ป.4': [], 'ป.5': [],
@@ -268,7 +358,6 @@
                     { id: '1005', no: 5, name: 'ด.ช. จอมซน คนเก่ง', statusR: false }
                 ]
             },
-            
             attendance: {},
             scores: {},
             evaluations: {},
@@ -279,13 +368,9 @@
             extraScores: {}
         };
 
-
-        // ... โค้ดเดิมของ window.state ...
-
-        // --- จุดที่ 1: ตั้งค่า URL และฟังก์ชันดึงข้อมูล ---
-        // นำ URL ที่ได้จากข้อ 9 มาวางแทนที่ข้อความด้านล่างนี้
         const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyWmcsqw_YAkRGSBWcz0if1dztx1yxTRiY4b7HfAGW6FoX-J-RGlkNcSc3HuHnsV2Dz/exec'; 
-                async function loadDataFromCloud(targetClass = 'ป.6') {
+        
+        async function loadDataFromCloud(targetClass = 'ป.6') {
             try {
                 const errBox = document.getElementById('loginError');
                 if(errBox) {
@@ -294,15 +379,12 @@
                     errBox.classList.replace('bg-red-100', 'bg-blue-100');
                     errBox.classList.replace('text-red-600', 'text-blue-600');
                 }
-                
-                // ส่งชื่อชั้นไปขอข้อมูลเฉพาะคอลัมน์ของชั้นนั้น
                 const response = await fetch(SCRIPT_URL + '?cls=' + targetClass);
                 const data = await response.json();
                 
                 if(Object.keys(data).length > 0) {
                     window.state = data; 
                 } else {
-                    // ถ้ายังไม่มีข้อมูลในชีต ให้ตั้งค่าเริ่มต้น
                     window.state.selectedClass = targetClass;
                     window.state.students = window.state.students || {};
                     window.state.students[targetClass] = window.state.students[targetClass] || [];
@@ -316,11 +398,9 @@
                     errBox.classList.replace('text-blue-600', 'text-red-600');
                 }
                 
-                // เลืออกวิชาแรกของชั้นอัตโนมัติ
                 const classCourses = window.state.courses[targetClass] || [];
                 window.state.selectedCourseId = classCourses.length > 0 ? classCourses[0].id : '';
                 
-                // ถ้าระบบโหลดข้อมูลเสร็จตอนที่ล็อกอินเข้ามาแล้ว ให้แสดงผลหน้าจอ
                 if (window.currentUserRole) {
                     renderApp();
                 }
@@ -329,37 +409,25 @@
             }
         }
 
-        // สั่งให้โหลดข้อมูลเริ่มต้นที่ ป.6 ทันทีที่เปิดหน้าเว็บ
         window.onload = () => loadDataFromCloud('ป.6');
 
-        // ------------------------------------------------
-
-      
-
-        // --- จุดที่ 2: ฟังก์ชันสำหรับเซฟข้อมูล ---
         let saveTimeout = null;
-function saveDataToCloud() {
-    clearTimeout(saveTimeout);
-    saveTimeout = setTimeout(() => {
-        const payload = {
-            action: 'saveClassData',
-            className: window.state.selectedClass,
-            data: window.state
-        };
+        function saveDataToCloud() {
+            clearTimeout(saveTimeout);
+            saveTimeout = setTimeout(() => {
+                const payload = {
+                    action: 'saveClassData',
+                    className: window.state.selectedClass,
+                    data: window.state
+                };
+                fetch(SCRIPT_URL, {
+                    method: 'POST',
+                    mode: 'no-cors', 
+                    body: JSON.stringify(payload)
+                }).catch(e => console.error('Error saving data:', e));
+            }, 1500); 
+        }
 
-        fetch(SCRIPT_URL, {
-            method: 'POST',
-            mode: 'no-cors', 
-            body: JSON.stringify(payload)
-        }).catch(e => console.error('Error saving data:', e));
-    }, 1500); 
-}
-
-        // ------------------------------------------------
-
-
-
-        // ----------------- CALENDAR LOGIC (1 YEAR) -----------------
         const thaiMonthsFull = ['มกราคม', 'กุมภาพันธ์', 'มีนาคม', 'เมษายน', 'พฤษภาคม', 'มิถุนายน', 'กรกฎาคม', 'สิงหาคม', 'กันยายน', 'ตุลาคม', 'พฤศจิกายน', 'ธันวาคม'];
         const daysShort = ['อา.', 'จ.', 'อ.', 'พ.', 'พฤ.', 'ศ.', 'ส.'];
         const daysFull = ['อาทิตย์', 'จันทร์', 'อังคาร', 'พุธ', 'พฤหัสบดี', 'ศุกร์', 'เสาร์'];
@@ -372,22 +440,18 @@ function saveDataToCloud() {
         const yearDates = [];
         const monthGroups = [];
         let currMonth = -1;
-                // กำหนดให้เริ่ม 1 พฤษภาคม (เดือน Index 4) และสิ้นสุด 31 มีนาคม ปีถัดไป (เดือน Index 2)
         const startDate = new Date(2026, 4, 1); 
         const endDate = new Date(2027, 2, 31);
         
         while (startDate <= endDate) {
-            const y = startDate.getFullYear(); // ดึงค่าปีแบบไดนามิก เพื่อให้ระบบรู้ว่าเปลี่ยนปีแล้ว
+            const y = startDate.getFullYear();
             const m = startDate.getMonth();
             const d = startDate.getDate();
             const mStr = String(m + 1).padStart(2, '0');
             const dStr = String(d).padStart(2, '0');
-            
-            // เปลี่ยนรูปแบบ ID ให้ใช้ตัวแปร y เพื่อไม่ให้ข้อมูลวันที่ของปีถัดไปซ้ำซ้อน
             const id = `${y}-${mStr}-${dStr}`;
-            
             const isWeekend = (startDate.getDay() === 0 || startDate.getDay() === 6);
-            const holidayName = holidaysMap[`${mStr}-${dStr}`]; // ระบบคำนวณวันหยุดจะยังทำงานได้ปกติตามวัน-เดือน
+            const holidayName = holidaysMap[`${mStr}-${dStr}`];
             
             const nextDay = new Date(startDate); nextDay.setDate(nextDay.getDate() + 1);
             const isEndOfMonth = nextDay.getMonth() !== m;
@@ -403,18 +467,10 @@ function saveDataToCloud() {
             startDate.setDate(startDate.getDate() + 1);
         }
 
-
-        // ----------------- CORE FUNCTIONS -----------------
         const getStudents = () => (window.state.students[window.state.selectedClass] || []).sort((a,b)=>a.no-b.no);
-        
-        
         const getCoursesForClass = () => window.state.courses[window.state.selectedClass] || [];
-const getCourse = () => getCoursesForClass().find(c => c.id === window.state.selectedCourseId) || getCoursesForClass()[0] || { id: '', code: '', name: '', credit: '', midCollect: '', midExam: '', finalCollect: '', finalExam: '', indicators: [] };
+        const getCourse = () => getCoursesForClass().find(c => c.id === window.state.selectedCourseId) || getCoursesForClass()[0] || { id: '', code: '', name: '', credit: '', midCollect: '', midExam: '', finalCollect: '', finalExam: '', indicators: [] };
 
-
-
-        
-        
         function calcAtt(studentId) {
             const atts = (window.state.attendance[window.state.selectedCourseId] || {})[studentId] || {};
             let present = 0, total = 0;
@@ -439,13 +495,7 @@ const getCourse = () => getCoursesForClass().find(c => c.id === window.state.sel
             if (s>=50) return {g:'1',c:'text-orange-500'}; return {g:'0',c:'text-red-500'};
         }
 
-        // ----------------- RENDERING SYSTEM -----------------
         function renderApp() {
-
-
-        // ----------------- RENDERING SYSTEM -----------------
-       
-            // --- จุดที่ 3: สั่งให้เซฟข้อมูลลงเน็ตทุกครั้งที่หน้าจอเปลี่ยน ---
             saveDataToCloud();
             document.getElementById('userRoleDisplay').innerHTML = window.currentUserRole === 'admin' ? '<i class="fa-solid fa-shield-halved"></i> ผู้ดูแลระบบ (Admin)' : '<i class="fa-solid fa-user-tie"></i> ครูผู้สอน (Teacher)';
             document.getElementById('classSelector').value = window.state.selectedClass;
@@ -455,11 +505,7 @@ const getCourse = () => getCoursesForClass().find(c => c.id === window.state.sel
             cSel.innerHTML = currentCourses.map(c => `<option value="${c.id}" ${c.id===window.state.selectedCourseId?'selected':''}>${c.code} ${c.name}</option>`).join('');
             if(currentCourses.length === 0) cSel.innerHTML = '<option value="">ไม่มีรายวิชา</option>';
 
-
-
-
-
-                        let tabsDef = [
+            let tabsDef = [
                 { id: 'settings', label: 'จัดการรายวิชา', icon: 'fa-gear' },
                 { id: 'student_info', label: 'ข้อมูลนักเรียน', icon: 'fa-address-card' },
                 { id: 'attendance', label: 'เช็คเวลาเรียน', icon: 'fa-calendar-check' },
@@ -477,15 +523,12 @@ const getCourse = () => getCoursesForClass().find(c => c.id === window.state.sel
             `).join('');
 
             const container = document.getElementById('contentArea');
-        
-            // --- 1. เพิ่มคำสั่งจำตำแหน่ง Scroll ก่อนรีเฟรชหน้า ---
             let scrollX = 0, scrollY = 0;
             const scrollable = container.querySelector('.overflow-x-auto');
             if (scrollable) {
                 scrollX = scrollable.scrollLeft;
                 scrollY = scrollable.scrollTop;
             }
-            // -----------------------------------------------
 
             if(window.state.activeTab === 'settings') container.innerHTML = htmlSettings();
             else if(window.state.activeTab === 'student_info') container.innerHTML = htmlStudentInfo();
@@ -496,30 +539,21 @@ const getCourse = () => getCoursesForClass().find(c => c.id === window.state.sel
             else if(window.state.activeTab === 'print') container.innerHTML = htmlPrintSummary();
             else if(window.state.activeTab === 'promotion') container.innerHTML = htmlPromotion();
 
-
-        // --- 2. เพิ่มคำสั่งคืนค่าตำแหน่ง Scroll ---
-        const newScrollable = container.querySelector('.overflow-x-auto');
-        if (newScrollable) {
-            newScrollable.scrollLeft = scrollX;
-            newScrollable.scrollTop = scrollY;
+            const newScrollable = container.querySelector('.overflow-x-auto');
+            if (newScrollable) {
+                newScrollable.scrollLeft = scrollX;
+                newScrollable.scrollTop = scrollY;
+            }
         }
-        // -------------------------------------
-    }
 
+        function htmlSettings() {
+            const c = getCourse(); const isAdmin = window.currentUserRole === 'admin';
+            const sys = window.state.sysConfig || {};
+            const canEditInd = isAdmin || sys.editIndicators !== false;
 
-        // ----------------- HTML TEMPLATES -----------------
-                    function htmlSettings() {
-    const c = getCourse(); const isAdmin = window.currentUserRole === 'admin';
-    const sys = window.state.sysConfig || {};
-    
-    // เพิ่มบรรทัดนี้เข้าไป เพื่อให้ระบบรู้จักตัวแปรเช็คสิทธิ์
-    const canEditInd = isAdmin || sys.editIndicators !== false;
-
-    return `
-
+            return `
                 <div class="space-y-4 sm:space-y-6">
                     ${!isAdmin ? `<div class="bg-yellow-50 text-yellow-800 p-3 rounded-lg border border-yellow-200 text-sm"><i class="fa-solid fa-triangle-exclamation mr-2"></i> สิทธิ์ครูผู้สอน: สามารถแก้ไขโครงสร้างคะแนนและตัวชี้วัดได้ แต่ไม่สามารถเพิ่ม/ลบนักเรียน, รายวิชา หรือกิจกรรมได้</div>` : ''}
-                    
                     ${isAdmin ? `
                     <div class="bg-red-50 p-4 rounded-lg border border-red-200 mb-6">
                         <h2 class="text-base font-bold text-red-800 mb-3"><i class="fa-solid fa-lock"></i> ระบบควบคุมการกรอกข้อมูล (แอดมิน)</h2>
@@ -530,10 +564,7 @@ const getCourse = () => getCoursesForClass().find(c => c.id === window.state.sel
                             <label class="flex items-center space-x-2 cursor-pointer"><input type="checkbox" class="w-5 h-5 accent-red-600" ${sys.editEvaluations !== false ? 'checked' : ''} onchange="window.toggleSys('editEvaluations', this.checked)"><span class="text-sm font-bold text-gray-700">4. คุณลักษณะฯ</span></label>
                             <label class="flex items-center space-x-2 cursor-pointer"><input type="checkbox" class="w-5 h-5 accent-red-600" ${sys.editActivities !== false ? 'checked' : ''} onchange="window.toggleSys('editActivities', this.checked)"><span class="text-sm font-bold text-gray-700">5. กิจกรรมพัฒนาผู้เรียน</span></label>
                             <label class="flex items-center space-x-2 cursor-pointer"><input type="checkbox" class="w-5 h-5 accent-red-600" ${sys.editPrint !== false ? 'checked' : ''} onchange="window.toggleSys('editPrint', this.checked)"><span class="text-sm font-bold text-gray-700">6. แก้ไขหน้า ปพ.5</span></label>
-                                    
-                    <!-- 2. เพิ่ม Checkbox ข้อ 7 ตรงนี้ -->
-                    <label class="flex items-center space-x-2 cursor-pointer"><input type="checkbox" class="w-5 h-5 accent-red-600" ${sys.editIndicators !== false ? 'checked' : ''} onchange="window.toggleSys('editIndicators', this.checked)"><span class="text-sm font-bold text-gray-700">7. แก้ไขตัวชี้วัดรายวิชา</span></label>
-     
+                            <label class="flex items-center space-x-2 cursor-pointer"><input type="checkbox" class="w-5 h-5 accent-red-600" ${sys.editIndicators !== false ? 'checked' : ''} onchange="window.toggleSys('editIndicators', this.checked)"><span class="text-sm font-bold text-gray-700">7. แก้ไขตัวชี้วัดรายวิชา</span></label>
                         </div>
                         <p class="text-xs text-red-600 mt-3 font-medium">* หากแอดมินติ๊กเครื่องหมายถูกออก ครูผู้สอนจะไม่สามารถพิมพ์แก้ไขข้อมูลในหน้าเมนูนั้นๆ ได้</p>
                     </div>` : ''}
@@ -565,26 +596,21 @@ const getCourse = () => getCoursesForClass().find(c => c.id === window.state.sel
                         </div>
                         
                         <div class="mt-4">
-    <label class="block text-xs text-gray-600 font-bold mb-2">ตัวชี้วัดของรายวิชานี้ (แสดงเป็นคอลัมน์ในหน้าคะแนน)</label>
-    <div class="flex flex-col sm:flex-row gap-2 mb-2">
-        <!-- 3. ล็อกช่องพิมพ์และปุ่มเพิ่มตัวชี้วัด -->
-        <input type="text" id="new_ind" placeholder="พิมพ์ข้อความตัวชี้วัด..." class="flex-1 p-2 text-sm border rounded ${!canEditInd?'bg-gray-100 cursor-not-allowed':''}" ${!canEditInd?'disabled':''}>
-        <button onclick="window.addIndicator()" class="px-4 py-2 bg-purple-600 text-white rounded text-sm w-full sm:w-auto ${!canEditInd?'opacity-50 cursor-not-allowed':''}" ${!canEditInd?'disabled':''}><i class="fa-solid fa-plus"></i> เพิ่มตัวชี้วัด</button>
-    </div>
-    <div class="flex flex-col gap-1 max-h-40 overflow-y-auto custom-scrollbar border p-2 bg-white rounded">
-        ${(c.indicators||[]).map((ind, i) => `
-            <div class="flex justify-between items-start bg-gray-50 p-2 border rounded text-xs gap-2">
-                <span class="flex-1 whitespace-pre-wrap leading-tight">${ind}</span> 
-                <!-- 4. ซ่อนปุ่มลบตัวชี้วัดเมื่อโดนล็อก -->
-                ${canEditInd ? `<button onclick="window.delIndicator(${i})" class="text-red-500 px-2 py-1 hover:bg-red-100 rounded flex-shrink-0"><i class="fa-solid fa-xmark"></i></button>` : ''}
-            </div>
-        `).join('')}
-        ${(c.indicators||[]).length===0?'<div class="text-gray-400 text-xs text-center py-2">ยังไม่มีตัวชี้วัด</div>':''}
-    </div>
-</div>
-
-
-                        
+                            <label class="block text-xs text-gray-600 font-bold mb-2">ตัวชี้วัดของรายวิชานี้ (แสดงเป็นคอลัมน์ในหน้าคะแนน)</label>
+                            <div class="flex flex-col sm:flex-row gap-2 mb-2">
+                                <input type="text" id="new_ind" placeholder="พิมพ์ข้อความตัวชี้วัด..." class="flex-1 p-2 text-sm border rounded ${!canEditInd?'bg-gray-100 cursor-not-allowed':''}" ${!canEditInd?'disabled':''}>
+                                <button onclick="window.addIndicator()" class="px-4 py-2 bg-purple-600 text-white rounded text-sm w-full sm:w-auto ${!canEditInd?'opacity-50 cursor-not-allowed':''}" ${!canEditInd?'disabled':''}><i class="fa-solid fa-plus"></i> เพิ่มตัวชี้วัด</button>
+                            </div>
+                            <div class="flex flex-col gap-1 max-h-40 overflow-y-auto custom-scrollbar border p-2 bg-white rounded">
+                                ${(c.indicators||[]).map((ind, i) => `
+                                    <div class="flex justify-between items-start bg-gray-50 p-2 border rounded text-xs gap-2">
+                                        <span class="flex-1 whitespace-pre-wrap leading-tight">${ind}</span> 
+                                        ${canEditInd ? `<button onclick="window.delIndicator(${i})" class="text-red-500 px-2 py-1 hover:bg-red-100 rounded flex-shrink-0"><i class="fa-solid fa-xmark"></i></button>` : ''}
+                                    </div>
+                                `).join('')}
+                                ${(c.indicators||[]).length===0?'<div class="text-gray-400 text-xs text-center py-2">ยังไม่มีตัวชี้วัด</div>':''}
+                            </div>
+                        </div>
                     </div>
 
                     <h2 class="text-base sm:text-lg font-bold text-gray-800 border-b pb-2 mt-8">รายชื่อนักเรียนชั้น ${window.state.selectedClass}</h2>
@@ -629,10 +655,7 @@ const getCourse = () => getCoursesForClass().find(c => c.id === window.state.sel
             `;
         }
 
-
-
-
-                                function htmlStudentInfo() {
+        function htmlStudentInfo() {
             const students = getStudents();
             const isAdmin = window.currentUserRole === 'admin';
             const sys = window.state.sysConfig || {};
@@ -689,147 +712,110 @@ const getCourse = () => getCoursesForClass().find(c => c.id === window.state.sel
             `;
         }
 
+        window.changeAttMonth = function(monthIdx) {
+            window.state.attMonthFilter = monthIdx;
+            renderApp();
+        };
 
+        function htmlAttendance() {
+            const students = getStudents();
+            const holidayDetails = yearDates.filter(d => d.isHoliday).map(d => `<span class="text-red-600 font-bold">*</span> วันที่ ${d.date}${thaiMonthsFull[d.monthIdx]} (${d.dayNameFull}): <span class="font-bold">${d.holidayName}</span>`).join('<br>');
+            const filterVal = window.state.attMonthFilter || 'all';
+            const displayDates = filterVal === 'all' ? yearDates : yearDates.filter(d => d.monthIdx.toString() === filterVal);
+            const displayMonths = filterVal === 'all' ? monthGroups : monthGroups.filter(mg => mg.idx.toString() === filterVal);
+            const acYear = window.state.academicYear || '2569';
 
+            return `
+                <div class="flex flex-col sm:flex-row justify-between sm:items-center mb-4 gap-2 no-print">
+                    <div class="flex items-center gap-3">
+                        <h2 class="text-base sm:text-lg font-bold text-gray-800">เวลาเรียน ปีการศึกษา ${acYear}</h2>
+                        <select id="monthFilter" class="p-1.5 border border-gray-300 rounded-md text-sm bg-white font-bold text-blue-700 outline-none cursor-pointer shadow-sm" onchange="window.changeAttMonth(this.value)">
+                            <option value="all" ${filterVal === 'all' ? 'selected' : ''}>ตลอดปีการศึกษา (พ.ค. - มี.ค.)</option>
+                            ${monthGroups.map(mg => `<option value="${mg.idx}" ${filterVal === mg.idx.toString() ? 'selected' : ''}>เฉพาะเดือน ${mg.name}</option>`).join('')}
+                        </select>
+                    </div>
+                    <div class="flex gap-2">
+                        <span class="text-xs bg-blue-50 text-blue-700 px-3 py-1.5 rounded-full border border-blue-200 self-start sm:self-auto">ต่ำกว่า 80% = (มส.)</span>
+                    </div>
+                </div>
+                
+                <div class="overflow-x-auto overflow-y-auto max-h-[60vh] rounded-lg border border-gray-300 custom-scrollbar relative bg-white w-full">
+                    <table class="text-xs text-center attendance-table whitespace-nowrap min-w-max">
+                        <thead>
+                            <tr>
+                                <th rowSpan="2" class="sticky-name-header p-2 min-w-[150px] sm:min-w-[200px] text-left text-gray-800">ชื่อ - สกุล</th>
+                                ${displayMonths.map(mg => `<th colSpan="${mg.count}" class="p-1 sm:p-2 bg-month-${mg.idx} font-bold text-gray-800 border-r-2 border-gray-400">${mg.name}</th>`).join('')}
+                                <th rowSpan="2" class="p-1 bg-green-50 text-green-800 border-l-2 border-gray-400 shadow-[-2px_0_5px_-2px_rgba(0,0,0,0.1)] text-[11px]" style="position: sticky; right: 340px; z-index: 20; width: 60px; min-width: 60px; max-width: 60px;">มา<br>(วัน)</th>
+                                <th rowSpan="2" class="p-1 bg-red-50 text-red-800 text-[11px]" style="position: sticky; right: 280px; z-index: 20; width: 60px; min-width: 60px; max-width: 60px;">ขาด/ลา<br>(วัน)</th>
+                                <th rowSpan="2" class="p-1 bg-gray-100 text-gray-800 text-[11px]" style="position: sticky; right: 210px; z-index: 20; width: 70px; min-width: 70px; max-width: 70px;">รวมวันปกติ<br>(วัน)</th>
+                                <th rowSpan="2" class="p-1 bg-blue-50 text-blue-800 text-[11px]" style="position: sticky; right: 100px; z-index: 20; width: 110px; min-width: 110px; max-width: 110px;">ร้อยละการมาเรียน<br>${filterVal === 'all' ? 'ตลอดปีการศึกษา' : 'ในเดือนนั้น'}</th>
+                                <th rowSpan="2" class="p-1 bg-purple-100 text-purple-900 border-l-2 border-gray-400 text-[11px]" style="position: sticky; right: 0px; z-index: 20; width: 100px; min-width: 100px; max-width: 100px;">ร้อยละการมาเรียน<br>ตลอดปีการศึกษา</th>
+                            </tr>
+                            <tr>
+                                ${displayDates.map(d => `<th class="p-1 border-r ${d.isEndOfMonth?'border-r-2 border-gray-400':''} ${d.isHoliday?'holiday-header':d.isWeekend?'bg-gray-200 text-gray-500':'bg-month-'+d.monthIdx}" title="${d.holidayName}"> 
+                                    ${d.isHoliday?'<div class="text-white font-black text-sm leading-none">*</div>':''}
+                                    <div class="text-[9px] sm:text-[10px] font-medium leading-tight">${d.dayName}</div>
+                                    <div class="font-bold text-xs">${d.date}</div>
+                                </th>`).join('')}
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${students.map(s => {
+                                const atts = (window.state.attendance[window.state.selectedCourseId] || {})[s.id] || {};
+                                let presentMonth = 0, absentMonth = 0, totalWorkMonth = 0;
 
+                                displayDates.forEach(d => {
+                                    const def = (d.isWeekend || d.isHoliday) ? 'หยุด' : 'มา';
+                                    const st = atts[d.id] || def;
+                                    if (st !== 'หยุด') {
+                                        totalWorkMonth++;
+                                        if (st === 'มา' || st === 'ลาป่วย' || st === 'ลากิจ') presentMonth++;
+                                        if (st === 'ขาด') absentMonth++;
+                                    }
+                                });
+                                
+                                const pctMonth = totalWorkMonth === 0 ? 100 : Math.round((presentMonth / totalWorkMonth) * 100);
+                                const yearStats = calcAtt(s.id); 
 
+                                return `
+                                <tr class="hover:bg-gray-50">
+                                    <td class="sticky-name-col p-2 text-left font-medium text-gray-800"><span class="w-4 sm:w-6 text-gray-400 inline-block">${s.no}.</span> ${s.name}</td>
+                                    ${displayDates.map(d => {
+                                        const def = (d.isWeekend || d.isHoliday) ? 'หยุด' : 'มา';
+                                        const val = atts[d.id] || def;
+                                        const cellBg = d.isHoliday ? 'holiday-cell' : d.isWeekend ? 'bg-gray-100' : 'bg-month-' + d.monthIdx;
+                                        const selStyle = val === 'หยุด' ? 'text-red-600 font-bold bg-transparent' : val === 'มา' ? 'text-green-700 bg-white/60' : val === 'ขาด' ? 'text-white bg-red-500 font-bold' : 'text-white bg-orange-500';
 
-
-
-
-        
-
-
-
-        // 1. เพิ่มฟังก์ชันนี้ไว้ด้านบนหรือด้านล่างของฟังก์ชัน window.handleAtt ก็ได้ครับ
-window.changeAttMonth = function(monthIdx) {
-    window.state.attMonthFilter = monthIdx;
-    renderApp();
-};
-
-// 2. วางโค้ดนี้ทับฟังก์ชัน htmlAttendance() เดิมทั้งหมด
-function htmlAttendance() {
-    const students = getStudents();
-    const holidayDetails = yearDates.filter(d => d.isHoliday).map(d => `<span class="text-red-600 font-bold">*</span> วันที่ ${d.date}${thaiMonthsFull[d.monthIdx]} (${d.dayNameFull}): <span class="font-bold">${d.holidayName}</span>`).join('<br>');
-
-    const filterVal = window.state.attMonthFilter || 'all';
-    const displayDates = filterVal === 'all' ? yearDates : yearDates.filter(d => d.monthIdx.toString() === filterVal);
-    const displayMonths = filterVal === 'all' ? monthGroups : monthGroups.filter(mg => mg.idx.toString() === filterVal);
-    
-    // ดึงปีการศึกษามาแสดง
-    const acYear = window.state.academicYear || '2569';
-
-    return `
-        <div class="flex flex-col sm:flex-row justify-between sm:items-center mb-4 gap-2 no-print">
-            <div class="flex items-center gap-3">
-                <h2 class="text-base sm:text-lg font-bold text-gray-800">เวลาเรียน ปีการศึกษา ${acYear}</h2>
-                <select id="monthFilter" class="p-1.5 border border-gray-300 rounded-md text-sm bg-white font-bold text-blue-700 outline-none cursor-pointer shadow-sm" onchange="window.changeAttMonth(this.value)">
-                    <option value="all" ${filterVal === 'all' ? 'selected' : ''}>ตลอดปีการศึกษา (พ.ค. - มี.ค.)</option>
-                    ${monthGroups.map(mg => `<option value="${mg.idx}" ${filterVal === mg.idx.toString() ? 'selected' : ''}>เฉพาะเดือน ${mg.name}</option>`).join('')}
-                </select>
-            </div>
-            <div class="flex gap-2">
-                <span class="text-xs bg-blue-50 text-blue-700 px-3 py-1.5 rounded-full border border-blue-200 self-start sm:self-auto">ต่ำกว่า 80% = (มส.)</span>
-            </div>
-        </div>
-        
-        <div class="overflow-x-auto overflow-y-auto max-h-[60vh] rounded-lg border border-gray-300 custom-scrollbar relative bg-white w-full">
-            <table class="text-xs text-center attendance-table whitespace-nowrap min-w-max">
-                <thead>
-                    <tr>
-                        <th rowSpan="2" class="sticky-name-header p-2 min-w-[150px] sm:min-w-[200px] text-left text-gray-800">ชื่อ - สกุล</th>
-                        ${displayMonths.map(mg => `<th colSpan="${mg.count}" class="p-1 sm:p-2 bg-month-${mg.idx} font-bold text-gray-800 border-r-2 border-gray-400">${mg.name}</th>`).join('')}
-                        
-                        <th rowSpan="2" class="p-1 bg-green-50 text-green-800 border-l-2 border-gray-400 shadow-[-2px_0_5px_-2px_rgba(0,0,0,0.1)] text-[11px]" style="position: sticky; right: 340px; z-index: 20; width: 60px; min-width: 60px; max-width: 60px;">มา<br>(วัน)</th>
-                        <th rowSpan="2" class="p-1 bg-red-50 text-red-800 text-[11px]" style="position: sticky; right: 280px; z-index: 20; width: 60px; min-width: 60px; max-width: 60px;">ขาด/ลา<br>(วัน)</th>
-                        <th rowSpan="2" class="p-1 bg-gray-100 text-gray-800 text-[11px]" style="position: sticky; right: 210px; z-index: 20; width: 70px; min-width: 70px; max-width: 70px;">รวมวันปกติ<br>(วัน)</th>
-                        <th rowSpan="2" class="p-1 bg-blue-50 text-blue-800 text-[11px]" style="position: sticky; right: 100px; z-index: 20; width: 110px; min-width: 110px; max-width: 110px;">ร้อยละการมาเรียน<br>${filterVal === 'all' ? 'ตลอดปีการศึกษา' : 'ในเดือนนั้น'}</th>
-                        <th rowSpan="2" class="p-1 bg-purple-100 text-purple-900 border-l-2 border-gray-400 text-[11px]" style="position: sticky; right: 0px; z-index: 20; width: 100px; min-width: 100px; max-width: 100px;">ร้อยละการมาเรียน<br>ตลอดปีการศึกษา</th>
-                    </tr>
-                    <tr>
-                        ${displayDates.map(d => `<th class="p-1 border-r ${d.isEndOfMonth?'border-r-2 border-gray-400':''} ${d.isHoliday?'holiday-header':d.isWeekend?'bg-gray-200 text-gray-500':'bg-month-'+d.monthIdx}" title="${d.holidayName}"> 
-                            ${d.isHoliday?'<div class="text-white font-black text-sm leading-none">*</div>':''}
-                            <div class="text-[9px] sm:text-[10px] font-medium leading-tight">${d.dayName}</div>
-                            <div class="font-bold text-xs">${d.date}</div>
-                        </th>`).join('')}
-                    </tr>
-                </thead>
-                <tbody>
-                    ${students.map(s => {
-                        const atts = (window.state.attendance[window.state.selectedCourseId] || {})[s.id] || {};
-                        let presentMonth = 0, absentMonth = 0, totalWorkMonth = 0;
-
-                        displayDates.forEach(d => {
-                            const def = (d.isWeekend || d.isHoliday) ? 'หยุด' : 'มา';
-                            const st = atts[d.id] || def;
-                            
-                            // เปลี่ยนโลจิก: หากไม่ใช่สถานะ "หยุด" ให้นับเป็นวันทำการ (รวมวันปกติ) ทันที
-                            if (st !== 'หยุด') {
-                                totalWorkMonth++;
-                                if (st === 'มา' || st === 'ลาป่วย' || st === 'ลากิจ') presentMonth++;
-                                if (st === 'ขาด') absentMonth++;
-                            }
-                        });
-                        
-                        const pctMonth = totalWorkMonth === 0 ? 100 : Math.round((presentMonth / totalWorkMonth) * 100);
-                        const yearStats = calcAtt(s.id); 
-
-                        return `
-                        <tr class="hover:bg-gray-50">
-                            <td class="sticky-name-col p-2 text-left font-medium text-gray-800"><span class="w-4 sm:w-6 text-gray-400 inline-block">${s.no}.</span> ${s.name}</td>
-                            ${displayDates.map(d => {
-                                const def = (d.isWeekend || d.isHoliday) ? 'หยุด' : 'มา';
-                                const val = atts[d.id] || def;
-                                const cellBg = d.isHoliday ? 'holiday-cell' : d.isWeekend ? 'bg-gray-100' : 'bg-month-' + d.monthIdx;
-                                const selStyle = val === 'หยุด' ? 'text-red-600 font-bold bg-transparent' : val === 'มา' ? 'text-green-700 bg-white/60' : val === 'ขาด' ? 'text-white bg-red-500 font-bold' : 'text-white bg-orange-500';
-
-                                return `<td class="p-1 border-r ${d.isEndOfMonth?'border-r-2 border-gray-400':''} ${cellBg}">
-                                    <select class="w-[55px] sm:w-[65px] text-[10px] sm:text-xs p-1 rounded border border-gray-300/50 outline-none cursor-pointer text-center ${selStyle} appearance-none" onchange="window.handleAtt('${s.id}', '${d.id}', this.value)">
-                                        <option value="มา" ${val==='มา'?'selected':''}>มา</option>
-                                        <option value="ขาด" ${val==='ขาด'?'selected':''}>ขาด</option>
-                                        <option value="ลาป่วย" ${val==='ลาป่วย'?'selected':''}>ลาป่วย</option>
-                                        <option value="ลากิจ" ${val==='ลากิจ'?'selected':''}>ลากิจ</option>
-                                        <option value="หยุด" ${val==='หยุด'?'selected':''}>หยุด</option>
-                                    </select>
-                                </td>`;
+                                        return `<td class="p-1 border-r ${d.isEndOfMonth?'border-r-2 border-gray-400':''} ${cellBg}">
+                                            <select class="w-[55px] sm:w-[65px] text-[10px] sm:text-xs p-1 rounded border border-gray-300/50 outline-none cursor-pointer text-center ${selStyle} appearance-none" onchange="window.handleAtt('${s.id}', '${d.id}', this.value)">
+                                                <option value="มา" ${val==='มา'?'selected':''}>มา</option>
+                                                <option value="ขาด" ${val==='ขาด'?'selected':''}>ขาด</option>
+                                                <option value="ลาป่วย" ${val==='ลาป่วย'?'selected':''}>ลาป่วย</option>
+                                                <option value="ลากิจ" ${val==='ลากิจ'?'selected':''}>ลากิจ</option>
+                                                <option value="หยุด" ${val==='หยุด'?'selected':''}>หยุด</option>
+                                            </select>
+                                        </td>`;
+                                    }).join('')}
+                                    <td class="p-1 bg-green-50 font-bold text-green-700 text-center border-l-2 border-gray-400 shadow-[-2px_0_5px_-2px_rgba(0,0,0,0.1)]" style="position: sticky; right: 340px; z-index: 10; width: 60px; min-width: 60px; max-width: 60px;">${presentMonth}</td>
+                                    <td class="p-1 bg-red-50 font-bold text-red-600 text-center" style="position: sticky; right: 280px; z-index: 10; width: 60px; min-width: 60px; max-width: 60px;">${absentMonth}</td>
+                                    <td class="p-1 bg-gray-100 font-bold text-gray-700 text-center" style="position: sticky; right: 210px; z-index: 10; width: 70px; min-width: 70px; max-width: 70px;">${totalWorkMonth}</td>
+                                    <td class="p-1 bg-blue-50 font-bold text-center" style="position: sticky; right: 100px; z-index: 10; width: 110px; min-width: 110px; max-width: 110px;"><span class="${pctMonth < 80 ? 'text-red-600' : 'text-blue-600'}">${pctMonth}%</span></td>
+                                    <td class="p-1 bg-purple-100 font-bold text-center border-l-2 border-gray-400" style="position: sticky; right: 0px; z-index: 10; width: 100px; min-width: 100px; max-width: 100px;"><span class="${yearStats.pct < 80 ? 'text-red-600' : 'text-purple-700'}">${yearStats.pct}%</span></td>
+                                </tr>`;
                             }).join('')}
-                            
-                            <td class="p-1 bg-green-50 font-bold text-green-700 text-center border-l-2 border-gray-400 shadow-[-2px_0_5px_-2px_rgba(0,0,0,0.1)]" style="position: sticky; right: 340px; z-index: 10; width: 60px; min-width: 60px; max-width: 60px;">${presentMonth}</td>
-                            <td class="p-1 bg-red-50 font-bold text-red-600 text-center" style="position: sticky; right: 280px; z-index: 10; width: 60px; min-width: 60px; max-width: 60px;">${absentMonth}</td>
-                            <td class="p-1 bg-gray-100 font-bold text-gray-700 text-center" style="position: sticky; right: 210px; z-index: 10; width: 70px; min-width: 70px; max-width: 70px;">${totalWorkMonth}</td>
-                            <td class="p-1 bg-blue-50 font-bold text-center" style="position: sticky; right: 100px; z-index: 10; width: 110px; min-width: 110px; max-width: 110px;"><span class="${pctMonth < 80 ? 'text-red-600' : 'text-blue-600'}">${pctMonth}%</span></td>
-                            <td class="p-1 bg-purple-100 font-bold text-center border-l-2 border-gray-400" style="position: sticky; right: 0px; z-index: 10; width: 100px; min-width: 100px; max-width: 100px;"><span class="${yearStats.pct < 80 ? 'text-red-600' : 'text-purple-700'}">${yearStats.pct}%</span></td>
-                        </tr>`;
-                    }).join('')}
-                </tbody>
-            </table>
-        </div>
-        <div class="mt-4 p-4 bg-red-50 rounded border border-red-200 text-xs text-red-800 leading-relaxed shadow-sm flex-1 overflow-y-auto custom-scrollbar no-print">
-            <strong class="text-sm block mb-2"><i class="fa-solid fa-calendar-xmark"></i> หมายเหตุวันหยุดนักขัตฤกษ์และวันสำคัญ:</strong> 
-            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
-                ${holidayDetails}
-            </div>
-        </div>
-    `;
-}
+                        </tbody>
+                    </table>
+                </div>
+                <div class="mt-4 p-4 bg-red-50 rounded border border-red-200 text-xs text-red-800 leading-relaxed shadow-sm flex-1 overflow-y-auto custom-scrollbar no-print">
+                    <strong class="text-sm block mb-2"><i class="fa-solid fa-calendar-xmark"></i> หมายเหตุวันหยุดนักขัตฤกษ์และวันสำคัญ:</strong> 
+                    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
+                        ${holidayDetails}
+                    </div>
+                </div>
+            `;
+        }
 
-        
-
-
-
-
-
-
-
-
-
-
-        
-
-        
-
-
-                      function htmlGrading() {
+        function htmlGrading() {
             const c = getCourse(); const students = getStudents();
             const isAdmin = window.currentUserRole === 'admin';
             const sys = window.state.sysConfig || {};
@@ -906,17 +892,13 @@ function htmlAttendance() {
             `;
         }
 
-
-
-
-
         function htmlEvaluations() {
             const students = getStudents();
             const isAdmin = window.currentUserRole === 'admin';
             const sys = window.state.sysConfig || {};
             const canEdit = isAdmin || sys.editEvaluations !== false;
-            
             const evTitle = ['รักชาติฯ', 'ซื่อสัตย์', 'วินัย', 'ใฝ่เรียน', 'อยู่อย่างพอเพียง', 'มุ่งมั่น', 'รักความฯ', 'จิตสาธารณะ'];
+
             return `
                 <div class="flex flex-col sm:flex-row justify-between sm:items-center mb-4 gap-2">
                     <h2 class="text-base sm:text-lg font-bold text-gray-800">ประเมินคุณลักษณะฯ และ อ่านคิดวิเคราะห์เขียน</h2>
@@ -972,8 +954,7 @@ function htmlAttendance() {
             `;
         }
 
-
-               function htmlActivities() {
+        function htmlActivities() {
             const students = getStudents();
             const acts = window.state.extraActivities || [];
             const isAdmin = window.currentUserRole === 'admin';
@@ -1021,8 +1002,7 @@ function htmlAttendance() {
             `;
         }
 
-
-                          function htmlPrintSummary() {
+        function htmlPrintSummary() {
             const cls = window.state.selectedClass;
             const isAdmin = window.currentUserRole === 'admin';
             const sys = window.state.sysConfig || {};
@@ -1211,10 +1191,6 @@ function htmlAttendance() {
             `;
         }
 
-
-
-
-
         function htmlPromotion() {
             return `
                 <div class="text-center p-6 sm:p-10 bg-white rounded-lg shadow-sm border border-gray-200 max-w-2xl mx-auto mt-8">
@@ -1235,7 +1211,6 @@ function htmlAttendance() {
             `;
         }
 
-        // ----------------- EVENT HANDLERS -----------------
         window.handleLogin = function() {
             const u = document.getElementById('username').value;
             const p = document.getElementById('password').value;
@@ -1249,11 +1224,10 @@ function htmlAttendance() {
             window.state.activeTab = 'settings'; 
             renderApp();
 
-            // 🎵 สั่งให้เพลงเล่นอัตโนมัติหลังกดล็อกอิน (ความดัง 15%)
             const audio = document.getElementById('bgMusic');
             if (audio && audio.paused) {
-                document.getElementById('musicVolume').value = 0.10; // ตั้งค่าหลอดเสียงเป็น 15%
-                window.toggleMusic(); // เรียกฟังก์ชันเปิดเพลง
+                document.getElementById('musicVolume').value = 0.10;
+                window.toggleMusic();
             }
         };
 
@@ -1269,13 +1243,9 @@ function htmlAttendance() {
 
         window.setTab = function(t) { window.state.activeTab = t; renderApp(); };
 
-
-
         window.changeClass = function() { 
             const newClass = document.getElementById('classSelector').value; 
-            // แสดงสถานะกำลังโหลดข้อมูล
             document.getElementById('contentArea').innerHTML = '<div class="p-10 text-center text-blue-600 font-bold"><i class="fa-solid fa-spinner fa-spin text-3xl mb-3"></i><br>กำลังสลับฐานข้อมูลไปที่ชั้น ' + newClass + '...</div>';
-            // โหลดข้อมูลของชั้นที่เลือกจากฐานข้อมูล
             loadDataFromCloud(newClass);
         };
 
@@ -1299,7 +1269,6 @@ function htmlAttendance() {
             if(v) { c.indicators = c.indicators || []; c.indicators.push(v); renderApp(); }
         };
 
-        
         window.delIndicator = function(idx) { getCourse().indicators.splice(idx, 1); renderApp(); };
 
         window.addCourse = function() {
@@ -1316,15 +1285,7 @@ function htmlAttendance() {
             renderApp();
         };
 
-
-
-
-        
-
-        
-
-
-                window.addStudent = function() {
+        window.addStudent = function() {
             const no = document.getElementById('new_s_no').value; 
             const code = document.getElementById('new_s_code').value.trim(); 
             const nid = document.getElementById('new_s_nid').value.trim(); 
@@ -1347,16 +1308,9 @@ function htmlAttendance() {
             const s = window.state.students[window.state.selectedClass].find(x => x.id === id);
             if(s) { 
                 s[field] = field === 'no' ? Number(val) : val.trim(); 
-                saveDataToCloud(); // บังคับเซฟทันทีเมื่อแก้เสร็จ
+                saveDataToCloud();
             }
         };
-        
-        window.delStudent = function(id) {
-            window.state.students[window.state.selectedClass] = window.state.students[window.state.selectedClass].filter(s => s.id !== id); renderApp();
-        };
-
-
-
         
         window.delStudent = function(id) {
             window.state.students[window.state.selectedClass] = window.state.students[window.state.selectedClass].filter(s => s.id !== id); renderApp();
@@ -1368,16 +1322,19 @@ function htmlAttendance() {
             window.state.scores[window.state.selectedCourseId][sid][field] = (field.startsWith('ind_')) ? val : (Number(val)||0);
             renderApp();
         };
+
         window.toggleR = function(sid) {
             const s = window.state.students[window.state.selectedClass].find(x => x.id === sid);
             if(s) { s.statusR = !s.statusR; renderApp(); }
         };
+
         window.handleAtt = function(sid, dateId, val) {
             if(!window.state.attendance[window.state.selectedCourseId]) window.state.attendance[window.state.selectedCourseId] = {};
             if(!window.state.attendance[window.state.selectedCourseId][sid]) window.state.attendance[window.state.selectedCourseId][sid] = {};
             window.state.attendance[window.state.selectedCourseId][sid][dateId] = val;
             renderApp();
         };
+
         window.handleEval = function(sid, field, val) {
             if(!window.state.evaluations[sid]) window.state.evaluations[sid] = {};
             window.state.evaluations[sid][field] = Number(val);
@@ -1405,14 +1362,13 @@ function htmlAttendance() {
             renderApp();
         };
 
-               window.savePrintConfig = function(key, val) { 
+        window.savePrintConfig = function(key, val) { 
             const cls = window.state.selectedClass;
             if(!window.state.printConfigs) window.state.printConfigs = {};
             if(!window.state.printConfigs[cls]) window.state.printConfigs[cls] = {};
             window.state.printConfigs[cls][key] = val; 
             renderApp(); 
         };
-
 
         window.promoteStudents = function() {
             const confirmText = prompt("พิมพ์คำว่า 'CONFIRM' เพื่อยืนยันการเลื่อนชั้นและล้างข้อมูลทั้งหมด");
@@ -1435,41 +1391,28 @@ function htmlAttendance() {
             }
         };
 
-
-
-                window.exportToExcel = function() {
+        window.exportToExcel = function() {
             const cls = window.state.selectedClass;
             const students = getStudents();
-            
             if(students.length === 0) {
                 alert("ไม่มีข้อมูลนักเรียนในชั้นนี้");
                 return;
             }
-
-            // 1. กำหนดหัวคอลัมน์ของไฟล์ Excel
             const headers = [
                 "เลขที่", "ชั้น", "เลขประจำตัว", "เลข ปชช.", "ชื่อ-สกุล", 
                 "หมู่เลือด", "วันเดือนปีเกิด", "อายุ", "ชื่อบิดา", "ชื่อมารดา", 
                 "ชื่อผู้ปกครอง", "ความสัมพันธ์", "อาชีพ", "ที่อยู่", "เบอร์โทรศัพท์", "นักเรียนที่ใกล้เคียง"
             ];
-            
-            // 2. ป้องกันตัวหนังสือภาษาไทยต่างด้าวด้วย \uFEFF
             let csvContent = "\uFEFF" + headers.join(",") + "\n";
-            
-            // 3. ดึงข้อมูลนักเรียนแต่ละคนมาใส่แถว
             students.forEach(s => {
                 const row = [
                     s.no || "", cls, s.code || "", s.nid || "", s.name || "",
                     s.bloodType || "", s.dob || "", s.age || "", s.fatherName || "", s.motherName || "",
                     s.guardianName || "", s.relation || "", s.occupation || "", s.address || "", s.phone || "", s.closeFriend || ""
                 ];
-                
-                // ครอบข้อมูลด้วยเครื่องหมายคำพูด (") เพื่อป้องกันการตัดคำผิดพลาดหากในข้อมูลมีลูกน้ำ (,)
                 const formattedRow = row.map(field => '"' + String(field).replace(/"/g, '""') + '"').join(",");
                 csvContent += formattedRow + "\n";
             });
-            
-            // 4. สั่งสร้างไฟล์แล้วบังคับดาวน์โหลด
             const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
             const url = URL.createObjectURL(blob);
             const link = document.createElement("a");
@@ -1480,19 +1423,13 @@ function htmlAttendance() {
             document.body.removeChild(link);
         };
 
-
-
-
-        
-                        window.exportAllToExcel = function() {
+        window.exportAllToExcel = function() {
             if(typeof XLSX === 'undefined') { alert('กำลังเชื่อมต่อระบบสร้าง Excel โปรดรอสักครู่...'); return; }
-            
             const wb = XLSX.utils.book_new();
             const cls = window.state.selectedClass;
             const students = getStudents();
             const c = getCourse();
 
-            // แผ่นที่ 1: ข้อมูลนักเรียน
             const studentRows = [["เลขที่", "ชั้น", "เลขประจำตัว", "เลข ปชช.", "ชื่อ-สกุล", "หมู่เลือด", "วันเดือนปีเกิด", "อายุ", "ชื่อบิดา", "ชื่อมารดา", "ชื่อผู้ปกครอง", "ความสัมพันธ์", "อาชีพ", "ที่อยู่", "เบอร์โทรศัพท์", "นักเรียนที่ใกล้เคียง"]];
             students.forEach(s => {
                 studentRows.push([
@@ -1502,45 +1439,34 @@ function htmlAttendance() {
             });
             XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(studentRows), "ข้อมูลนักเรียน");
 
-                        // แผ่นที่ 2: คะแนนและตัวชี้วัดของ "ทุกรายวิชา" (แยกชีตละ 1 วิชา)
             const allCourses = window.state.courses[cls] || [];
-            
             allCourses.forEach(cObj => {
                 const indTotal = (cObj.indicators || []).length;
                 const maxIndScore = indTotal * 3;
                 const scoreHeaders = ["เลขที่", "ชื่อ-สกุล", "เก็บกลางภาค", "สอบกลางภาค", "เก็บปลายภาค", "สอบปลายภาค", "คะแนนรวม", "เกรด"];
-                
                 (cObj.indicators || []).forEach((ind, i) => scoreHeaders.push(ind));
                 if(indTotal > 0) { scoreHeaders.push("น้ำหนักรวมคะแนน"); scoreHeaders.push("สรุปชี้วัด(ผ/มผ)"); }
                 
                 const scoreRows = [scoreHeaders];
                 students.forEach(s => {
-                    // ดึงคะแนนของแต่ละวิชา
                     const sc = (window.state.scores[cObj.id]||{})[s.id]||{};
                     const stats = calcAtt(s.id); 
                     let total = (sc.mc||0) + (sc.me||0) + (sc.fc||0) + (stats.pct<80?0:(sc.fe||0));
                     const grade = getGradeStr(total, stats.pct, s.statusR).g;
-                    
-                    // คำนวณน้ำหนักตัวชี้วัด
                     let indSum = 0;
                     for(let i=0; i<indTotal; i++) {
                         const val = Number(sc['ind_'+i]);
                         if(!isNaN(val)) indSum += val;
                     }
-
                     const row = [s.no, s.name, sc.mc||0, sc.me||0, sc.fc||0, sc.fe||0, Math.round(total), grade];
                     (cObj.indicators || []).forEach((ind, i) => row.push(sc['ind_'+i] || '-'));
                     if(indTotal > 0) { row.push(`${indSum}/${maxIndScore}`); row.push(sc.ind_summary || '-'); }
                     scoreRows.push(row);
                 });
-                
-                // ตั้งชื่อ Sheet เป็นรหัสวิชา เช่น "ค16101" (กฎของ Excel ห้ามตั้งชื่อชีตยาวเกิน 31 ตัวอักษร)
                 let sheetName = (cObj.code || "วิชาไม่มีรหัส").substring(0, 30);
                 XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(scoreRows), sheetName);
             });
 
-
-            // แผ่นที่ 3: กิจกรรมพัฒนาผู้เรียน
             const acts = window.state.extraActivities || [];
             const actHeaders = ["เลขที่", "ชื่อ-สกุล", ...acts.map(a => a.name)];
             const actRows = [actHeaders];
@@ -1550,36 +1476,29 @@ function htmlAttendance() {
             });
             XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(actRows), "กิจกรรมพัฒนาผู้เรียน");
 
-            // แผ่นที่ 4: เวลาเรียน (ใส่วันที่แบบละเอียด)
             const attHeaders = ["เลขที่", "ชื่อ-สกุล"];
             yearDates.forEach(d => { 
                 attHeaders.push(`วัน${d.dayNameFull} ${d.date}${thaiMonthsFull[d.monthIdx]}`); 
             });
-            // อัปเดตหัวคอลัมน์ให้ตรงกับรูปแบบ 5 คอลัมน์
             attHeaders.push("มา (วัน)", "ขาด/ลา (วัน)", "รวมวันปกติ (วัน)", "ร้อยละตลอดปี (%)");
 
             const attRows = [attHeaders];
             students.forEach(s => {
                 const stats = calcAtt(s.id);
-                const absent = stats.t - stats.p; // คำนวณวันขาด/ลา
-                
+                const absent = stats.t - stats.p;
                 const row = [s.no, s.name];
-                
                 yearDates.forEach(d => {
                     const def = (d.isWeekend || d.isHoliday) ? 'หยุด' : 'มา';
                     const val = ((window.state.attendance[window.state.selectedCourseId]||{})[s.id]||{})[d.id] || def;
                     row.push(val);
                 });
-                
-                // ดันตัวเลข 4 ชุดเข้า Excel ตามลำดับ
                 row.push(stats.p, absent, stats.t, stats.pct + "%");
                 attRows.push(row);
             });
             XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(attRows), "เวลาเรียน");
-            // แผ่นที่ 5: หน้า ปพ.5 (SAR)
+
             const cfg = (window.state.printConfigs && window.state.printConfigs[cls]) ? window.state.printConfigs[cls] : {};
             const courses = window.state.courses[cls] || [];
-            
             let mCount = 0, fCount = 0;
             students.forEach(s => { if(s.name.includes('ด.ช.')) mCount++; else fCount++; });
             const totalStudents = mCount + fCount;
@@ -1614,57 +1533,40 @@ function htmlAttendance() {
             sarRows.push(["ข้อมูลจำนวนนักเรียน", "ชาย", mCount, "หญิง", fCount, "รวม", totalStudents]);
 
             const wsSar = XLSX.utils.aoa_to_sheet(sarRows);
-            
             wsSar['!merges'] = [
                 { s: {r: 1, c: 0}, e: {r: 1, c: 6} },
                 { s: {r: 7, c: 0}, e: {r: 7, c: 11} }
             ];
             XLSX.utils.book_append_sheet(wb, wsSar, "สรุปรายงาน ปพ.5");
-
             XLSX.writeFile(wb, `ระบบปพ5_ชั้น${cls.replace('.','')}.xlsx`);
         };
 
-
-
-                window.toggleSys = function(key, val) {
+        window.toggleSys = function(key, val) {
             if(!window.state.sysConfig) window.state.sysConfig = { editStudent: true, editMidterm: true, editFinal: true };
             window.state.sysConfig[key] = val;
             renderApp();
         };
 
-
-
-
-// ----------------- MUSIC PLAYER LOGIC -----------------
         window.toggleMusic = function() {
             const audio = document.getElementById('bgMusic');
             const btn = document.getElementById('musicToggleBtn');
             const controls = document.getElementById('musicControls');
             
             if (audio.paused) {
-                // อัปเดตระดับเสียงจากแถบสไลด์ก่อนเล่น
                 audio.volume = document.getElementById('musicVolume').value;
                 audio.play();
-                
-                // เปลี่ยนไอคอนเป็นปุ่ม Pause และเปลี่ยนสีปุ่ม
                 btn.innerHTML = '<i class="fa-solid fa-pause text-lg"></i>';
                 btn.classList.replace('bg-blue-50', 'bg-blue-600');
                 btn.classList.replace('text-blue-600', 'text-white');
                 btn.classList.replace('hover:bg-blue-100', 'hover:bg-blue-700');
-                
-                // ล็อกให้แถบเสียงเปิดค้างไว้เวลาเพลงเล่น
                 controls.classList.remove('w-0');
                 controls.classList.add('w-24');
             } else {
                 audio.pause();
-                
-                // เปลี่ยนไอคอนกลับเป็นรูปตัวโน้ต
                 btn.innerHTML = '<i class="fa-solid fa-music text-lg"></i>';
                 btn.classList.replace('bg-blue-600', 'bg-blue-50');
                 btn.classList.replace('text-white', 'text-blue-600');
                 btn.classList.replace('hover:bg-blue-700', 'hover:bg-blue-100');
-                
-                // ปล่อยให้แถบเสียงซ่อนอัตโนมัติ
                 controls.classList.remove('w-24');
                 controls.classList.add('w-0');
             }
@@ -1674,11 +1576,420 @@ function htmlAttendance() {
             const audio = document.getElementById('bgMusic');
             audio.volume = val;
         };
+    <\/script>
+</body>
+</html>
+  </template>
 
+  <!-- แม่แบบโค้ดระบบเกียรติบัตร (เดิมคือ index) -->
+  <template id="cert-template">
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ระบบจัดเก็บเกียรติบัตรออนไลน์</title>
+  <link rel="icon" type="image/jpeg" href="PP1.jpg">
+  <script src="https://cdn.tailwindcss.com"><\/script>
+  <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <style>
+    body { font-family: 'Sarabun', sans-serif; }
+  </style>
+</head>
+<body class="bg-slate-50 min-h-screen text-slate-800 flex flex-col">
+  <header class="bg-indigo-800 text-white py-6 shadow-md">
+    <div class="max-w-6xl mx-auto px-4 flex justify-between items-center">
+      <div class="flex items-center gap-4">
+        <img src="PP1.jpg" alt="โลโก้" class="w-14 h-14 object-cover rounded-full bg-white p-0.5 shadow-sm">
+        <div>
+          <h1 class="text-2xl font-bold tracking-wide">คลังเกียรติบัตรและวุฒิบัตรโรงเรียนบ้านนาหว้าน้อย</h1>
+          <p class="text-indigo-200 text-sm mt-1">ระบบจัดหมวดหมู่และค้นหาผลงานส่วนบุคคล</p>
+        </div>
+      </div>
+      <button onclick="toggleModal(true)" class="bg-amber-400 hover:bg-amber-500 text-slate-900 font-semibold px-4 py-2 rounded-lg shadow transition flex items-center gap-2">
+        <span>+ เพิ่มเกียรติบัตร</span>
+      </button>
+    </div>
+  </header>
 
+  <main class="max-w-6xl mx-auto px-4 py-8">
+    <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 mb-6 flex flex-col md:flex-row gap-4 justify-between items-center">
+      <div class="w-full md:w-1/2">
+        <input type="text" id="searchInput" oninput="filterCertificates()" placeholder="ค้นหาชื่อผู้ได้รับเกียรติบัตร..." 
+          class="w-full border border-slate-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-indigo-500 outline-none text-sm">
+      </div>
+      <div class="w-full md:w-1/4">
+        <select id="categoryFilter" onchange="filterCertificates()" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
+          <option value="">ทุกหมวดหมู่งาน</option>
+          <option value="การจัดการเรียนรู้">การจัดการเรียนรู้</option>
+          <option value="การพัฒนาตนเองและวิชาชีพ">การพัฒนาตนเองและวิชาชีพ</option>
+          <option value="ผลงานดีเด่น/รางวัล">ผลงานดีเด่น/รางวัล</option>
+          <option value="กิจกรรมอื่นๆ">กิจกรรมอื่นๆ</option>
+        </select>
+      </div>
+    </div>
 
+    <div id="certGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div class="col-span-full text-center py-12 text-slate-400">กำลังโหลดข้อมูล...</div>
+    </div>
+  </main>
 
-        
-    </script>
+  <footer class="bg-white border-t border-slate-200 mt-auto">
+    <div class="max-w-6xl mx-auto px-4 py-6 flex flex-col md:flex-row justify-between items-center gap-4">
+      <p class="text-sm text-slate-500">
+        &copy; 2026 ระบบคลังเกียรติบัตรและวุฒิบัตรโรงเรียนบ้านนาหว้าน้อย
+      </p>
+      <p class="text-sm text-slate-500">
+        พัฒนาโดย <span class="font-semibold text-indigo-600">ART-CHANCHAI</span>
+      </p>
+    </div>
+  </footer>
+
+  <div id="uploadModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm hidden flex items-center justify-center p-4 z-50">
+    <div class="bg-white rounded-2xl p-6 w-full max-w-lg shadow-xl relative">
+      <h2 class="text-xl font-bold text-slate-800 mb-4">เพิ่มเกียรติบัตรใหม่</h2>
+      <form id="uploadForm" onsubmit="handleFormSubmit(event)" class="space-y-4">
+        <div>
+          <label class="block text-sm font-medium text-slate-700 mb-1">ชื่อผู้ได้รับเกียรติบัตร</label>
+          <input type="text" id="m_holderName" required class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-slate-700 mb-1">ชื่อหลักสูตร / หัวข้อ</label>
+          <input type="text" id="m_title" required class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
+        </div>
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-medium text-slate-700 mb-1">หน่วยงานที่ออก</label>
+            <input type="text" id="m_issuer" required class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-slate-700 mb-1">หมวดหมู่งาน</label>
+            <select id="m_category" required class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
+              <option value="การจัดการเรียนรู้">การจัดการเรียนรู้</option>
+              <option value="การพัฒนาตนเองและวิชาชีพ">การพัฒนาตนเองและวิชาชีพ</option>
+              <option value="ผลงานดีเด่น/รางวัล">ผลงานดีเด่น/รางวัล</option>
+              <option value="กิจกรรมอื่นๆ">กิจกรรมอื่นๆ</option>
+            </select>
+          </div>
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-slate-700 mb-1">วันที่ในเกียรติบัตร</label>
+          <input type="date" id="m_eventDate" required class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-slate-700 mb-1">แนบไฟล์ (PDF หรือ รูปภาพ)</label>
+          <input type="file" id="m_file" accept=".pdf,image/*" required class="w-full border border-slate-300 rounded-lg px-3 py-1.5 text-sm file:mr-4 file:py-1 file:px-3 file:rounded file:border-0 file:text-xs file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100">
+        </div>
+
+        <div class="flex justify-end gap-3 pt-4 border-t border-slate-100">
+          <button type="button" onclick="toggleModal(false)" class="px-4 py-2 rounded-lg text-slate-600 hover:bg-slate-100 text-sm">ยกเลิก</button>
+          <button type="submit" id="submitBtn" class="bg-indigo-600 hover:bg-indigo-700 text-white font-medium px-5 py-2 rounded-lg text-sm transition">บันทึกข้อมูล</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div id="deleteModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm hidden flex items-center justify-center p-4 z-50">
+    <div class="bg-white rounded-2xl p-6 w-full max-w-sm shadow-xl relative text-center transform transition-all">
+      <div class="w-14 h-14 rounded-full bg-red-100 text-red-500 flex items-center justify-center mx-auto mb-4">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+        </svg>
+      </div>
+      <h2 class="text-xl font-bold text-slate-800 mb-2">ยืนยันการลบข้อมูล?</h2>
+      <p class="text-sm text-slate-500 mb-5">ข้อมูลที่ลบแล้วจะไม่สามารถกู้คืนได้<br>กรุณาใส่รหัสผ่านเพื่อยืนยัน</p>
+      
+      <input type="password" id="deletePassword" placeholder="รหัสยืนยัน" 
+        class="w-full border border-slate-300 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-red-500 outline-none text-center mb-6 tracking-widest text-slate-700">
+      
+      <div class="flex justify-center gap-3">
+        <button type="button" onclick="closeDeleteModal()" class="px-4 py-2.5 rounded-lg text-slate-600 bg-slate-100 hover:bg-slate-200 text-sm font-medium w-full transition">ยกเลิก</button>
+        <button type="button" onclick="confirmDelete()" id="confirmDeleteBtn" class="bg-red-500 hover:bg-red-600 text-white font-medium px-4 py-2.5 rounded-lg text-sm w-full transition shadow-sm">ลบข้อมูล</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="editModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm hidden flex items-center justify-center p-4 z-50">
+    <div class="bg-white rounded-2xl p-6 w-full max-w-lg shadow-xl relative">
+      <h2 class="text-xl font-bold text-slate-800 mb-4">แก้ไขข้อมูลเกียรติบัตร</h2>
+      <form id="editForm" onsubmit="handleEditSubmit(event)" class="space-y-4">
+        <div>
+          <label class="block text-sm font-medium text-slate-700 mb-1">ชื่อผู้ได้รับเกียรติบัตร</label>
+          <input type="text" id="e_holderName" required class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-amber-500 outline-none">
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-slate-700 mb-1">ชื่อหลักสูตร / หัวข้อ</label>
+          <input type="text" id="e_title" required class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-amber-500 outline-none">
+        </div>
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-medium text-slate-700 mb-1">หน่วยงานที่ออก</label>
+            <input type="text" id="e_issuer" required class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-amber-500 outline-none">
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-slate-700 mb-1">หมวดหมู่งาน</label>
+            <select id="e_category" required class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-amber-500 outline-none">
+              <option value="การจัดการเรียนรู้">การจัดการเรียนรู้</option>
+              <option value="การพัฒนาตนเองและวิชาชีพ">การพัฒนาตนเองและวิชาชีพ</option>
+              <option value="ผลงานดีเด่น/รางวัล">ผลงานดีเด่น/รางวัล</option>
+              <option value="กิจกรรมอื่นๆ">กิจกรรมอื่นๆ</option>
+            </select>
+          </div>
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-slate-700 mb-1">วันที่ในเกียรติบัตร</label>
+          <input type="date" id="e_eventDate" required class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-amber-500 outline-none">
+        </div>
+
+        <div class="flex justify-end gap-3 pt-4 border-t border-slate-100">
+          <button type="button" onclick="closeEditModal()" class="px-4 py-2 rounded-lg text-slate-600 hover:bg-slate-100 text-sm">ยกเลิก</button>
+          <button type="submit" id="editSubmitBtn" class="bg-amber-500 hover:bg-amber-600 text-white font-medium px-5 py-2 rounded-lg text-sm transition">บันทึกการแก้ไข</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    const API_URL = "https://script.google.com/macros/s/AKfycbzTTol4eYp_K1mzV-0fG6Cg3ah0uF2Fb9kfvW5HZOdzq92dvC_s_CKH7wnZc_o2ygU-lQ/exec"; 
+    let certDataList = [];
+    let currentDeleteUrl = "";
+
+    function toggleModal(show) {
+      const modal = document.getElementById("uploadModal");
+      if (show) modal.classList.remove("hidden");
+      else modal.classList.add("hidden");
+    }
+
+    function openDeleteModal(fileUrl) {
+      currentDeleteUrl = fileUrl;
+      document.getElementById("deletePassword").value = ""; 
+      document.getElementById("deleteModal").classList.remove("hidden");
+    }
+
+    function closeDeleteModal() {
+      currentDeleteUrl = "";
+      document.getElementById("deleteModal").classList.add("hidden");
+    }
+
+    async function fetchCertificates() {
+      try {
+        const res = await fetch(API_URL);
+        const json = await res.json();
+        if (json.status === "success") {
+          certDataList = json.data.sort((a, b) => {
+            const dateA = new Date(a.eventDate);
+            const dateB = new Date(b.eventDate);
+            return dateB - dateA; 
+          });
+          renderCertificates(certDataList);
+        }
+      } catch (err) {
+        document.getElementById("certGrid").innerHTML = `<div class="col-span-full text-center text-red-500 py-8">ไม่สามารถโหลดข้อมูลได้ ตรวจสอบ URL หรือสิทธิ์การเข้าถึง</div>`;
+      }
+    }
+
+    function getDriveThumbnail(url) {
+      if (!url) return 'https://placehold.co/600x400?text=No+Image';
+      const match = url.match(/\/d\/([a-zA-Z0-9_-]+)/);
+      if (match && match[1]) {
+        const fileId = match[1];
+        return `https://drive.google.com/thumbnail?id=${fileId}&sz=w600`;
+      }
+      return 'https://placehold.co/600x400?text=No+Preview';
+    }
+
+    function renderCertificates(list) {
+      const grid = document.getElementById("certGrid");
+      if (list.length === 0) {
+        grid.innerHTML = `<div class="col-span-full text-center py-12 text-slate-400">ยังไม่มีรายการเกียรติบัตรที่บันทึกไว้ หรือไม่พบข้อมูลที่ค้นหา</div>`;
+        return;
+      }
+
+      grid.innerHTML = list.map(item => {
+        const thumbnailUrl = getDriveThumbnail(item.fileUrl);
+        return `
+        <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden hover:shadow-md transition flex flex-col justify-between group">
+          <div class="h-48 w-full bg-slate-100 relative overflow-hidden border-b border-slate-100 flex items-center justify-center">
+            <img src="${thumbnailUrl}" alt="${item.title}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+            <span class="absolute top-3 right-3 px-2.5 py-1 text-xs font-semibold text-indigo-700 bg-white/95 backdrop-blur-sm rounded-full shadow-sm">
+              ${item.category}
+            </span>
+          </div>
+          <div class="p-5 flex-1">
+            <h3 class="font-bold text-slate-800 text-base leading-snug line-clamp-2 mb-2" title="${item.title}">${item.title}</h3>
+            <p class="text-xs text-slate-700 mb-1"><span class="font-medium text-slate-500">ผู้ได้รับ:</span> ${item.holderName || '-'}</p>
+            <p class="text-xs text-slate-700 mb-1"><span class="font-medium text-slate-500">หน่วยงาน:</span> ${item.issuer}</p>
+            <p class="text-xs text-slate-700"><span class="font-medium text-slate-500">วันที่:</span> ${item.eventDate}</p>
+          </div>
+          <div class="bg-slate-50 px-5 py-3 border-t border-slate-100 flex justify-between items-center">
+            <div class="flex gap-3">
+              <button onclick="openEditModal('${item.fileUrl}')" class="text-xs font-medium text-amber-500 hover:text-amber-700 cursor-pointer">
+                แก้ไข
+              </button>
+              <button onclick="openDeleteModal('${item.fileUrl}')" class="text-xs font-medium text-red-500 hover:text-red-700 cursor-pointer">
+                ลบ
+              </button>
+            </div>
+            <a href="${item.fileUrl}" target="_blank" class="inline-flex items-center text-xs font-medium text-indigo-600 hover:text-indigo-800 underline">
+              เปิดดู ↗
+            </a>
+          </div>
+        </div>
+      `}).join('');
+    }
+
+    function filterCertificates() {
+      const query = document.getElementById("searchInput").value.toLowerCase();
+      const category = document.getElementById("categoryFilter").value;
+      const filtered = certDataList.filter(item => {
+        const holder = item.holderName ? item.holderName.toLowerCase() : "";
+        const matchesQuery = holder.includes(query);
+        const matchesCategory = category ? item.category === category : true;
+        return matchesQuery && matchesCategory;
+      });
+      renderCertificates(filtered);
+    }
+
+    async function handleFormSubmit(e) {
+      e.preventDefault();
+      const submitBtn = document.getElementById("submitBtn");
+      submitBtn.disabled = true;
+      submitBtn.innerText = "กำลังอัปโหลด...";
+
+      const fileInput = document.getElementById("m_file");
+      const file = fileInput.files[0];
+      const reader = new FileReader();
+
+      reader.onload = async function() {
+        const payload = {
+          action: "upload",
+          holderName: document.getElementById("m_holderName").value,
+          title: document.getElementById("m_title").value,
+          issuer: document.getElementById("m_issuer").value,
+          category: document.getElementById("m_category").value,
+          eventDate: document.getElementById("m_eventDate").value,
+          fileName: file.name,
+          fileData: reader.result
+        };
+
+        try {
+          const res = await fetch(API_URL, {
+            method: "POST",
+            body: JSON.stringify(payload)
+          });
+          const result = await res.json();
+          if (result.status === "success") {
+            toggleModal(false);
+            document.getElementById("uploadForm").reset();
+            fetchCertificates();
+          } else {
+            alert("เกิดข้อผิดพลาด: " + result.message);
+          }
+        } catch (err) {
+          alert("ไม่สามารถอัปโหลดได้ โปรดตรวจสอบการเชื่อมต่อ");
+        } finally {
+          submitBtn.disabled = false;
+          submitBtn.innerText = "บันทึกข้อมูล";
+        }
+      };
+      reader.readAsDataURL(file);
+    }
+
+    async function confirmDelete() {
+      const code = document.getElementById("deletePassword").value;
+      if (code !== "Nawanoi") {
+        alert("รหัสยืนยันไม่ถูกต้อง!");
+        return;
+      }
+      const btn = document.getElementById("confirmDeleteBtn");
+      btn.disabled = true;
+      btn.innerText = "กำลังลบ...";
+
+      try {
+        const payload = { action: "delete", fileUrl: currentDeleteUrl };
+        const res = await fetch(API_URL, {
+          method: "POST",
+          body: JSON.stringify(payload)
+        });
+        const result = await res.json();
+        if (result.status === "success") {
+          closeDeleteModal(); 
+          fetchCertificates(); 
+        } else {
+          alert("เกิดข้อผิดพลาด: " + result.message);
+        }
+      } catch (err) {
+        alert("ไม่สามารถลบข้อมูลได้ โปรดตรวจสอบการเชื่อมต่อ");
+      } finally {
+        btn.disabled = false;
+        btn.innerText = "ลบข้อมูล";
+      }
+    }
+
+    let currentEditUrl = "";
+    function openEditModal(fileUrl) {
+      const item = certDataList.find(c => c.fileUrl === fileUrl);
+      if (!item) return;
+      currentEditUrl = fileUrl;
+      document.getElementById("e_holderName").value = item.holderName;
+      document.getElementById("e_title").value = item.title;
+      document.getElementById("e_issuer").value = item.issuer;
+      document.getElementById("e_category").value = item.category;
+      
+      let dateVal = item.eventDate;
+      try {
+        const d = new Date(dateVal);
+        dateVal = d.toISOString().split('T')[0];
+      } catch(e) {}
+      document.getElementById("e_eventDate").value = dateVal;
+      document.getElementById("editModal").classList.remove("hidden");
+    }
+
+    function closeEditModal() {
+      currentEditUrl = "";
+      document.getElementById("editModal").classList.add("hidden");
+    }
+
+    async function handleEditSubmit(e) {
+      e.preventDefault();
+      const btn = document.getElementById("editSubmitBtn");
+      btn.disabled = true;
+      btn.innerText = "กำลังบันทึก...";
+
+      try {
+        const payload = {
+          action: "edit",
+          fileUrl: currentEditUrl,
+          holderName: document.getElementById("e_holderName").value,
+          title: document.getElementById("e_title").value,
+          issuer: document.getElementById("e_issuer").value,
+          category: document.getElementById("e_category").value,
+          eventDate: document.getElementById("e_eventDate").value
+        };
+        const res = await fetch(API_URL, {
+          method: "POST",
+          body: JSON.stringify(payload)
+        });
+        const result = await res.json();
+        if (result.status === "success") {
+          closeEditModal(); 
+          fetchCertificates();
+        } else {
+          alert("เกิดข้อผิดพลาด: " + result.message);
+        }
+      } catch (err) {
+        alert("ไม่สามารถแก้ไขข้อมูลได้ โปรดตรวจสอบการเชื่อมต่อ");
+      } finally {
+        btn.disabled = false;
+        btn.innerText = "บันทึกการแก้ไข";
+      }
+    }
+
+    fetchCertificates();
+  <\/script>
+</body>
+</html>
+  </template>
+
 </body>
 </html>
