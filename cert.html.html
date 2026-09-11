@@ -7,7 +7,6 @@
   <link rel="icon" type="image/jpeg" href="PP1.jpg">
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600&display=swap" rel="stylesheet">
-  <!-- เพิ่ม FontAwesome เพื่อใช้ไอคอนรีเฟรช -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
     body { font-family: 'Sarabun', sans-serif; }
@@ -30,13 +29,11 @@
 
       <!-- ปุ่มฟังก์ชันด้านบน -->
       <div class="flex items-center gap-2">
-        <!-- ปุ่มรีเฟรชข้อมูล -->
-        <button onclick="refreshData()" id="refreshBtn" title="โหลดข้อมูลล่าสุดจากเครื่องอื่น" class="bg-indigo-700 hover:bg-indigo-600 text-white px-3.5 py-2 rounded-lg shadow transition flex items-center gap-2 text-sm">
+        <button onclick="refreshData()" id="refreshBtn" title="โหลดข้อมูลล่าสุด" class="bg-indigo-700 hover:bg-indigo-600 text-white px-3.5 py-2 rounded-lg shadow transition flex items-center gap-2 text-sm">
           <i id="refreshIcon" class="fa-solid fa-arrows-rotate"></i>
-          <span class="hidden sm:inline">รีเฟรช</span>
+          <span class="hidden sm:inline">รีเฟรชข้อมูล</span>
         </button>
 
-        <!-- ปุ่มเพิ่มเกียรติบัตร -->
         <button onclick="toggleModal(true)" class="bg-amber-400 hover:bg-amber-500 text-slate-900 font-semibold px-4 py-2 rounded-lg shadow transition flex items-center gap-2 text-sm">
           <span>+ เพิ่มเกียรติบัตร</span>
         </button>
@@ -65,7 +62,10 @@
 
     <!-- Certificate Grid -->
     <div id="certGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-      <div class="col-span-full text-center py-12 text-slate-400">กำลังโหลดข้อมูล...</div>
+      <div class="col-span-full text-center py-12 text-slate-400">
+        <i class="fa-solid fa-spinner fa-spin text-2xl text-indigo-600 mb-2"></i>
+        <p>กำลังเชื่อมต่อฐานข้อมูล...</p>
+      </div>
     </div>
   </main>
 
@@ -128,11 +128,9 @@
 
   <!-- Modal สำหรับยืนยันการลบ -->
   <div id="deleteModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm hidden flex items-center justify-center p-4 z-50">
-    <div class="bg-white rounded-2xl p-6 w-full max-w-sm shadow-xl relative text-center transform transition-all">
+    <div class="bg-white rounded-2xl p-6 w-full max-w-sm shadow-xl relative text-center">
       <div class="w-14 h-14 rounded-full bg-red-100 text-red-500 flex items-center justify-center mx-auto mb-4">
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-        </svg>
+        <i class="fa-solid fa-trash text-xl"></i>
       </div>
       <h2 class="text-xl font-bold text-slate-800 mb-2">ยืนยันการลบข้อมูล?</h2>
       <p class="text-sm text-slate-500 mb-5">ข้อมูลที่ลบแล้วจะไม่สามารถกู้คืนได้<br>กรุณาใส่รหัสผ่านเพื่อยืนยัน</p>
@@ -201,7 +199,7 @@
 
     function openDeleteModal(fileUrl) {
       currentDeleteUrl = fileUrl;[cite: 2]
-      document.getElementById("deletePassword").value = "";  [cite: 2]
+      document.getElementById("deletePassword").value = "";[cite: 2]
       document.getElementById("deleteModal").classList.remove("hidden");[cite: 2]
     }
 
@@ -210,7 +208,7 @@
       document.getElementById("deleteModal").classList.add("hidden");[cite: 2]
     }
 
-    // ฟังก์ชันกดรีเฟรชเอง (Manual Refresh)
+    // ฟังก์ชันกดรีเฟรชข้อมูล
     async function refreshData() {
       const icon = document.getElementById("refreshIcon");
       if (icon) icon.classList.add("fa-spin");
@@ -218,44 +216,44 @@
       if (icon) icon.classList.remove("fa-spin");
     }
 
-   async function fetchCertificates() {
-  const grid = document.getElementById("certGrid");
-  try {
-    // ป้องกัน Cache ด้วยการต่อ Timestamp ท้าย URL
-    const res = await fetch(API_URL + "?nocache=" + Date.now());
-    
-    if (!res.ok) {
-      throw new Error(`HTTP Error: ${res.status}`);
+    async function fetchCertificates() {
+      const grid = document.getElementById("certGrid");
+      try {
+        // ใช้ fetch ปกติไม่ใส่ query แปลกปลอมเพื่อไม่ให้โดน redirect ผิดพลาด
+        const res = await fetch(API_URL);
+        const json = await res.json();[cite: 2]
+        
+        let list = [];
+        if (json && json.status === "success" && Array.isArray(json.data)) {[cite: 2]
+          list = json.data;[cite: 2]
+        } else if (Array.isArray(json)) {
+          list = json;
+        }
+
+        if (list.length > 0) {
+          certDataList = list.sort((a, b) => {[cite: 2]
+            const dateA = new Date(a.eventDate);[cite: 2]
+            const dateB = new Date(b.eventDate);[cite: 2]
+            return dateB - dateA;[cite: 2]
+          });
+          filterCertificates();
+        } else {
+          certDataList = [];
+          grid.innerHTML = `<div class="col-span-full text-center py-12 text-slate-400">ยังไม่มีรายการเกียรติบัตรในระบบ</div>`;
+        }
+      } catch (err) {
+        console.error("Fetch certificates failed:", err);
+        grid.innerHTML = `
+          <div class="col-span-full text-center py-10 bg-white rounded-xl border border-red-100 p-6">
+            <p class="text-red-500 font-bold mb-1"><i class="fa-solid fa-triangle-exclamation mr-1"></i> โหลดข้อมูลไม่สำเร็จ</p>
+            <p class="text-xs text-slate-500 mb-4">อาจเกิดจากสัญญาณอินเทอร์เน็ตหรือระบบฐานข้อมูลกำลังอัปเดต</p>
+            <button onclick="refreshData()" class="px-4 py-1.5 bg-indigo-600 text-white text-xs rounded-lg hover:bg-indigo-700 shadow-sm transition">
+              <i class="fa-solid fa-rotate-right mr-1"></i> กดลองใหม่อีกครั้ง
+            </button>
+          </div>
+        `;
+      }
     }
-    
-    const json = await res.json();
-    
-    // ตรวจสอบทั้งกรณีมี status หรือส่ง data กลับมาตรงๆ
-    const dataList = json.data || (Array.isArray(json) ? json : []);
-    
-    if (dataList.length > 0) {
-      certDataList = dataList.sort((a, b) => {
-        const dateA = new Date(a.eventDate);
-        const dateB = new Date(b.eventDate);
-        return dateB - dateA;
-      });
-      renderCertificates(certDataList);
-    } else {
-      grid.innerHTML = `<div class="col-span-full text-center py-12 text-slate-400">ยังไม่มีรายการเกียรติบัตรในระบบ</div>`;
-    }
-  } catch (err) {
-    console.error("Fetch certificates failed:", err);
-    grid.innerHTML = `
-      <div class="col-span-full text-center py-10">
-        <p class="text-red-500 font-bold mb-2">ไม่สามารถเชื่อมต่อฐานข้อมูลได้</p>
-        <p class="text-xs text-slate-500 mb-4">กรุณาตรวจสอบสิทธิ์ Who has access = Anyone ใน Google Apps Script</p>
-        <button onclick="refreshData()" class="px-4 py-1.5 bg-indigo-600 text-white text-xs rounded-lg hover:bg-indigo-700">
-          ลองใหม่อีกครั้ง
-        </button>
-      </div>
-    `;
-  }
-}
 
     function getDriveThumbnail(url) {
       if (!url) return 'https://placehold.co/600x400?text=No+Image';[cite: 2]
@@ -269,9 +267,9 @@
 
     function renderCertificates(list) {
       const grid = document.getElementById("certGrid");[cite: 2]
-      if (list.length === 0) {[cite: 2]
-        grid.innerHTML = `<div class="col-span-full text-center py-12 text-slate-400">ยังไม่มีรายการเกียรติบัตรที่บันทึกไว้ หรือไม่พบข้อมูลที่ค้นหา</div>`;[cite: 2]
-        return;[cite: 2]
+      if (!list || list.length === 0) {
+        grid.innerHTML = `<div class="col-span-full text-center py-12 text-slate-400">ไม่พบข้อมูลเกียรติบัตรที่ค้นหา</div>`;
+        return;
       }
 
       grid.innerHTML = list.map(item => {[cite: 2]
@@ -309,7 +307,7 @@
     }
 
     function filterCertificates() {
-      const query = document.getElementById("searchInput").value.toLowerCase();[cite: 2]
+      const query = (document.getElementById("searchInput").value || "").toLowerCase();[cite: 2]
       const category = document.getElementById("categoryFilter").value;[cite: 2]
 
       const filtered = certDataList.filter(item => {[cite: 2]
@@ -389,8 +387,8 @@
         const result = await res.json();[cite: 2]
         
         if (result.status === "success") {[cite: 2]
-          closeDeleteModal(); [cite: 2]
-          fetchCertificates(); [cite: 2]
+          closeDeleteModal();[cite: 2]
+          fetchCertificates();[cite: 2]
         } else {
           alert("เกิดข้อผิดพลาด: " + result.message);[cite: 2]
         }
@@ -453,7 +451,7 @@
         const result = await res.json();[cite: 2]
         
         if (result.status === "success") {[cite: 2]
-          closeEditModal();  [cite: 2]
+          closeEditModal();[cite: 2]
           fetchCertificates();[cite: 2]
         } else {
           alert("เกิดข้อผิดพลาด: " + result.message);[cite: 2]
@@ -466,13 +464,8 @@
       }
     }
 
-    // โหลดครั้งแรกตอนเปิดหน้าเว็บ
+    // เริ่มดึงข้อมูลเมื่อโหลดหน้าเว็บ
     fetchCertificates();[cite: 2]
-
-    // ตั้งเวลาดึงข้อมูลใหม่ทุกๆ 30 วินาทีอัตโนมัติ (เผื่อเครื่องอื่นเพิ่มข้อมูลเข้ามา)
-    setInterval(() => {
-      fetchCertificates();
-    }, 30000);
   </script>
 </body>
 </html>
