@@ -186,26 +186,26 @@
     </div>
   </div>
 
-  <script>
-    const API_URL = "https://script.google.com/macros/s/AKfycbzTTol4eYp_K1mzV-0fG6Cg3ah0uF2Fb9kfvW5HZOdzq92dvC_s_CKH7wnZc_o2ygU-lQ/exec";[cite: 2]
-    let certDataList = [];[cite: 2]
-    let currentDeleteUrl = "";[cite: 2]
+    <script>
+    const API_URL = "https://script.google.com/macros/s/AKfycbzTTol4eYp_K1mzV-0fG6Cg3ah0uF2Fb9kfvW5HZOdzq92dvC_s_CKH7wnZc_o2ygU-lQ/exec";
+    let certDataList = [];
+    let currentDeleteUrl = "";
 
     function toggleModal(show) {
-      const modal = document.getElementById("uploadModal");[cite: 2]
-      if (show) modal.classList.remove("hidden");[cite: 2]
-      else modal.classList.add("hidden");[cite: 2]
+      const modal = document.getElementById("uploadModal");
+      if (show) modal.classList.remove("hidden");
+      else modal.classList.add("hidden");
     }
 
     function openDeleteModal(fileUrl) {
-      currentDeleteUrl = fileUrl;[cite: 2]
-      document.getElementById("deletePassword").value = "";[cite: 2]
-      document.getElementById("deleteModal").classList.remove("hidden");[cite: 2]
+      currentDeleteUrl = fileUrl;
+      document.getElementById("deletePassword").value = "";
+      document.getElementById("deleteModal").classList.remove("hidden");
     }
 
     function closeDeleteModal() {
-      currentDeleteUrl = "";[cite: 2]
-      document.getElementById("deleteModal").classList.add("hidden");[cite: 2]
+      currentDeleteUrl = "";
+      document.getElementById("deleteModal").classList.add("hidden");
     }
 
     // ฟังก์ชันแปลงรูปแบบวันที่ให้อ่านง่าย
@@ -266,27 +266,26 @@
   }
 }
 
-
     function getDriveThumbnail(url) {
-      if (!url) return 'https://placehold.co/600x400?text=No+Image';[cite: 2]
-      const match = url.match(/\/d\/([a-zA-Z0-9_-]+)/);[cite: 2]
-      if (match && match[1]) {[cite: 2]
-        const fileId = match[1];[cite: 2]
-        return `https://drive.google.com/thumbnail?id=${fileId}&sz=w600`;[cite: 2]
+      if (!url) return 'https://placehold.co/600x400?text=No+Image';
+      const match = url.match(/\/d\/([a-zA-Z0-9_-]+)/);
+      if (match && match[1]) {
+        const fileId = match[1];
+        return `https://drive.google.com/thumbnail?id=${fileId}&sz=w600`;
       }
-      return 'https://placehold.co/600x400?text=No+Preview';[cite: 2]
+      return 'https://placehold.co/600x400?text=No+Preview';
     }
 
     // เรนเดอร์การ์ดแสดงผล
     function renderCertificates(list) {
-      const grid = document.getElementById("certGrid");[cite: 2]
+      const grid = document.getElementById("certGrid");
       if (!list || list.length === 0) {
         grid.innerHTML = `<div class="col-span-full text-center py-12 text-slate-400">ไม่พบข้อมูลเกียรติบัตรที่ค้นหา</div>`;
         return;
       }
 
-      grid.innerHTML = list.map(item => {[cite: 2]
-        const thumbnailUrl = getDriveThumbnail(item.fileUrl);[cite: 2]
+      grid.innerHTML = list.map(item => {
+        const thumbnailUrl = getDriveThumbnail(item.fileUrl);
         const formattedDate = formatDisplayDate(item.eventDate);
 
         return `
@@ -317,170 +316,171 @@
             </a>
           </div>
         </div>
-      `}).join('');[cite: 2]
+      `}).join('');
     }
 
     function filterCertificates() {
       const query = (document.getElementById("searchInput").value || "").toLowerCase().trim();
-      const category = document.getElementById("categoryFilter").value;[cite: 2]
+      const category = document.getElementById("categoryFilter").value;
 
-      const filtered = certDataList.filter(item => {[cite: 2]
-        const holder = item.holderName ? item.holderName.toLowerCase() : "";[cite: 2]
+      const filtered = certDataList.filter(item => {
+        const holder = item.holderName ? item.holderName.toLowerCase() : "";
         const title = item.title ? item.title.toLowerCase() : "";
         const matchesQuery = holder.includes(query) || title.includes(query);
-        const matchesCategory = category ? item.category === category : true;[cite: 2]
+        const matchesCategory = category ? item.category === category : true;
         
-        return matchesQuery && matchesCategory;[cite: 2]
+        return matchesQuery && matchesCategory;
       });
 
-      renderCertificates(filtered);[cite: 2]
+      renderCertificates(filtered);
     }
 
     async function handleFormSubmit(e) {
-      e.preventDefault();[cite: 2]
-      const submitBtn = document.getElementById("submitBtn");[cite: 2]
-      submitBtn.disabled = true;[cite: 2]
-      submitBtn.innerText = "กำลังอัปโหลด...";[cite: 2]
+      e.preventDefault();
+      const submitBtn = document.getElementById("submitBtn");
+      submitBtn.disabled = true;
+      submitBtn.innerText = "กำลังอัปโหลด...";
 
-      const fileInput = document.getElementById("m_file");[cite: 2]
-      const file = fileInput.files[0];[cite: 2]
-      const reader = new FileReader();[cite: 2]
+      const fileInput = document.getElementById("m_file");
+      const file = fileInput.files[0];
+      const reader = new FileReader();
 
-      reader.onload = async function() {[cite: 2]
-        const payload = {[cite: 2]
-          action: "upload",[cite: 2]
-          holderName: document.getElementById("m_holderName").value,[cite: 2]
-          title: document.getElementById("m_title").value,[cite: 2]
-          issuer: document.getElementById("m_issuer").value,[cite: 2]
-          category: document.getElementById("m_category").value,[cite: 2]
-          eventDate: document.getElementById("m_eventDate").value,[cite: 2]
-          fileName: file.name,[cite: 2]
-          fileData: reader.result[cite: 2]
-        };[cite: 2]
+      reader.onload = async function() {
+        const payload = {
+          action: "upload",
+          holderName: document.getElementById("m_holderName").value,
+          title: document.getElementById("m_title").value,
+          issuer: document.getElementById("m_issuer").value,
+          category: document.getElementById("m_category").value,
+          eventDate: document.getElementById("m_eventDate").value,
+          fileName: file.name,
+          fileData: reader.result
+        };
 
-        try {[cite: 2]
-          const res = await fetch(API_URL, {[cite: 2]
-            method: "POST",[cite: 2]
-            body: JSON.stringify(payload)[cite: 2]
-          });[cite: 2]
-          const result = await res.json();[cite: 2]
-          if (result.status === "success") {[cite: 2]
-            toggleModal(false);[cite: 2]
-            document.getElementById("uploadForm").reset();[cite: 2]
-            fetchCertificates();[cite: 2]
+        try {
+          const res = await fetch(API_URL, {
+            method: "POST",
+            body: JSON.stringify(payload)
+          });
+          const result = await res.json();
+          if (result.status === "success") {
+            toggleModal(false);
+            document.getElementById("uploadForm").reset();
+            fetchCertificates();
           } else {
-            alert("เกิดข้อผิดพลาด: " + result.message);[cite: 2]
+            alert("เกิดข้อผิดพลาด: " + result.message);
           }
-        } catch (err) {[cite: 2]
-          alert("ไม่สามารถอัปโหลดได้ โปรดตรวจสอบการเชื่อมต่อ");[cite: 2]
+        } catch (err) {
+          alert("ไม่สามารถอัปโหลดได้ โปรดตรวจสอบการเชื่อมต่อ");
         } finally {
-          submitBtn.disabled = false;[cite: 2]
-          submitBtn.innerText = "บันทึกข้อมูล";[cite: 2]
+          submitBtn.disabled = false;
+          submitBtn.innerText = "บันทึกข้อมูล";
         }
-      };[cite: 2]
+      };
 
-      reader.readAsDataURL(file);[cite: 2]
+      reader.readAsDataURL(file);
     }
 
     async function confirmDelete() {
-      const code = document.getElementById("deletePassword").value;[cite: 2]
-      if (code !== "Nawanoi") {[cite: 2]
-        alert("รหัสยืนยันไม่ถูกต้อง!");[cite: 2]
-        return;[cite: 2]
+      const code = document.getElementById("deletePassword").value;
+      if (code !== "Nawanoi") {
+        alert("รหัสยืนยันไม่ถูกต้อง!");
+        return;
       }
 
-      const btn = document.getElementById("confirmDeleteBtn");[cite: 2]
-      btn.disabled = true;[cite: 2]
-      btn.innerText = "กำลังลบ...";[cite: 2]
+      const btn = document.getElementById("confirmDeleteBtn");
+      btn.disabled = true;
+      btn.innerText = "กำลังลบ...";
 
-      try {[cite: 2]
-        const payload = { action: "delete", fileUrl: currentDeleteUrl };[cite: 2]
-        const res = await fetch(API_URL, {[cite: 2]
-          method: "POST",[cite: 2]
-          body: JSON.stringify(payload)[cite: 2]
-        });[cite: 2]
-        const result = await res.json();[cite: 2]
+      try {
+        const payload = { action: "delete", fileUrl: currentDeleteUrl };
+        const res = await fetch(API_URL, {
+          method: "POST",
+          body: JSON.stringify(payload)
+        });
+        const result = await res.json();
         
-        if (result.status === "success") {[cite: 2]
-          closeDeleteModal();[cite: 2]
-          fetchCertificates();[cite: 2]
+        if (result.status === "success") {
+          closeDeleteModal();
+          fetchCertificates();
         } else {
-          alert("เกิดข้อผิดพลาด: " + result.message);[cite: 2]
+          alert("เกิดข้อผิดพลาด: " + result.message);
         }
-      } catch (err) {[cite: 2]
-        alert("ไม่สามารถลบข้อมูลได้ โปรดตรวจสอบการเชื่อมต่อ");[cite: 2]
+      } catch (err) {
+        alert("ไม่สามารถลบข้อมูลได้ โปรดตรวจสอบการเชื่อมต่อ");
       } finally {
-        btn.disabled = false;[cite: 2]
-        btn.innerText = "ลบข้อมูล";[cite: 2]
+        btn.disabled = false;
+        btn.innerText = "ลบข้อมูล";
       }
     }
 
-    let currentEditUrl = "";[cite: 2]
+    let currentEditUrl = "";
 
     function openEditModal(fileUrl) {
-      const item = certDataList.find(c => c.fileUrl === fileUrl);[cite: 2]
-      if (!item) return;[cite: 2]
+      const item = certDataList.find(c => c.fileUrl === fileUrl);
+      if (!item) return;
 
-      currentEditUrl = fileUrl;[cite: 2]
-      document.getElementById("e_holderName").value = item.holderName;[cite: 2]
-      document.getElementById("e_title").value = item.title;[cite: 2]
-      document.getElementById("e_issuer").value = item.issuer;[cite: 2]
-      document.getElementById("e_category").value = item.category;[cite: 2]
+      currentEditUrl = fileUrl;
+      document.getElementById("e_holderName").value = item.holderName;
+      document.getElementById("e_title").value = item.title;
+      document.getElementById("e_issuer").value = item.issuer;
+      document.getElementById("e_category").value = item.category;
       
-      let dateVal = item.eventDate;[cite: 2]
-      try {[cite: 2]
-        const d = new Date(dateVal);[cite: 2]
-        dateVal = d.toISOString().split('T')[0];[cite: 2]
-      } catch(e) {}[cite: 2]
-      document.getElementById("e_eventDate").value = dateVal;[cite: 2]
+      let dateVal = item.eventDate;
+      try {
+        const d = new Date(dateVal);
+        dateVal = d.toISOString().split('T')[0];
+      } catch(e) {}
+      document.getElementById("e_eventDate").value = dateVal;
 
-      document.getElementById("editModal").classList.remove("hidden");[cite: 2]
+      document.getElementById("editModal").classList.remove("hidden");
     }
 
     function closeEditModal() {
-      currentEditUrl = "";[cite: 2]
-      document.getElementById("editModal").classList.add("hidden");[cite: 2]
+      currentEditUrl = "";
+      document.getElementById("editModal").classList.add("hidden");
     }
 
     async function handleEditSubmit(e) {
-      e.preventDefault();[cite: 2]
-      const btn = document.getElementById("editSubmitBtn");[cite: 2]
-      btn.disabled = true;[cite: 2]
-      btn.innerText = "กำลังบันทึก...";[cite: 2]
+      e.preventDefault();
+      const btn = document.getElementById("editSubmitBtn");
+      btn.disabled = true;
+      btn.innerText = "กำลังบันทึก...";
 
-      try {[cite: 2]
-        const payload = {[cite: 2]
-          action: "edit",[cite: 2]
-          fileUrl: currentEditUrl,[cite: 2]
-          holderName: document.getElementById("e_holderName").value,[cite: 2]
-          title: document.getElementById("e_title").value,[cite: 2]
-          issuer: document.getElementById("e_issuer").value,[cite: 2]
-          category: document.getElementById("e_category").value,[cite: 2]
-          eventDate: document.getElementById("e_eventDate").value[cite: 2]
-        };[cite: 2]
+      try {
+        const payload = {
+          action: "edit",
+          fileUrl: currentEditUrl,
+          holderName: document.getElementById("e_holderName").value,
+          title: document.getElementById("e_title").value,
+          issuer: document.getElementById("e_issuer").value,
+          category: document.getElementById("e_category").value,
+          eventDate: document.getElementById("e_eventDate").value
+        };
         
-        const res = await fetch(API_URL, {[cite: 2]
-          method: "POST",[cite: 2]
-          body: JSON.stringify(payload)[cite: 2]
-        });[cite: 2]
-        const result = await res.json();[cite: 2]
+        const res = await fetch(API_URL, {
+          method: "POST",
+          body: JSON.stringify(payload)
+        });
+        const result = await res.json();
         
-        if (result.status === "success") {[cite: 2]
-          closeEditModal();[cite: 2]
-          fetchCertificates();[cite: 2]
+        if (result.status === "success") {
+          closeEditModal();
+          fetchCertificates();
         } else {
-          alert("เกิดข้อผิดพลาด: " + result.message);[cite: 2]
+          alert("เกิดข้อผิดพลาด: " + result.message);
         }
-      } catch (err) {[cite: 2]
-        alert("ไม่สามารถแก้ไขข้อมูลได้ โปรดตรวจสอบการเชื่อมต่อ");[cite: 2]
+      } catch (err) {
+        alert("ไม่สามารถแก้ไขข้อมูลได้ โปรดตรวจสอบการเชื่อมต่อ");
       } finally {
-        btn.disabled = false;[cite: 2]
-        btn.innerText = "บันทึกการแก้ไข";[cite: 2]
+        btn.disabled = false;
+        btn.innerText = "บันทึกการแก้ไข";
       }
     }
 
     // เริ่มดึงข้อมูลทันทีเมื่อเปิดหน้า
-    fetchCertificates();[cite: 2]
+    fetchCertificates();
+
   </script>
 </body>
 </html>
