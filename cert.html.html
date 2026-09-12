@@ -266,15 +266,28 @@
   }
 }
 
-    function getDriveThumbnail(url) {
-      if (!url) return 'https://placehold.co/600x400?text=No+Image';
-      const match = url.match(/\/d\/([a-zA-Z0-9_-]+)/);
-      if (match && match[1]) {
-        const fileId = match[1];
-        return `https://drive.google.com/thumbnail?id=${fileId}&sz=w600`;
-      }
-      return 'https://placehold.co/600x400?text=No+Preview';
-    }
+  function getDriveThumbnail(url) {
+  if (!url) return 'https://placehold.co/600x400?text=No+Image';[span_0](start_span)[span_0](end_span)
+  
+  // ดึง File ID จากทุกลักษณะของ Google Drive URL
+  var fileId = "";
+  var match1 = url.match(/\/d\/([a-zA-Z0-9_-]+)/);
+  var match2 = url.match(/id=([a-zA-Z0-9_-]+)/);
+  
+  if (match1 && match1[1]) {
+    fileId = match1[1];
+  } else if (match2 && match2[1]) {
+    fileId = match2[1];
+  }
+
+  if (fileId) {
+    // ใช้ lh3.googleusercontent.com หรือ thumbnail API ที่เสถียรสำหรับแสดงผลรูปภาพ
+    return `https://drive.google.com/thumbnail?id=${fileId}&sz=w600`;[span_1](start_span)[span_1](end_span)
+  }
+  
+  return 'https://placehold.co/600x400?text=No+Preview';[span_2](start_span)[span_2](end_span)
+}
+
 
     // เรนเดอร์การ์ดแสดงผล
     function renderCertificates(list) {
