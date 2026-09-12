@@ -224,43 +224,48 @@
     }
 
     // ฟังก์ชันกดรีเฟรช
-    async function refreshData() {
-      const icon = document.getElementById("refreshIcon");
-      if (icon) icon.classList.add("fa-spin");
-      await fetchCertificates();
-      if (icon) icon.classList.remove("fa-spin");
+   async function fetchCertificates() {
+  const grid = document.getElementById("certGrid");
+  try {
+    // กำหนด redirect: "follow" เพื่อให้ Safari ตามลิงก์ของ Apps Script จนจบ
+    const res = await fetch(API_URL, {
+      method: "GET",
+      redirect: "follow"
+    });
+    
+    const textData = await res.text();
+    const json = JSON.parse(textData);
+    
+    let list = [];
+    if (json && json.status === "success" && Array.isArray(json.data)) {
+      list = json.data;
+    } else if (Array.isArray(json)) {
+      list = json;
     }
 
-    // ดึงข้อมูลจาก Apps Script
-    async function fetchCertificates() {
-      const grid = document.getElementById("certGrid");
-      try {
-        const res = await fetch(API_URL);
-        const json = await res.json();[cite: 2]
-        
-        if (json && json.status === "success" && Array.isArray(json.data)) {[cite: 2]
-          certDataList = json.data.sort((a, b) => {[cite: 2]
-            const dateA = new Date(a.eventDate);[cite: 2]
-            const dateB = new Date(b.eventDate);[cite: 2]
-            return dateB - dateA;[cite: 2]
-          });
-          renderCertificates(certDataList);
-        } else {
-          grid.innerHTML = `<div class="col-span-full text-center py-12 text-slate-400">ยังไม่มีรายการเกียรติบัตรในระบบ</div>`;
-        }
-      } catch (err) {
-        console.error("Fetch certificates failed:", err);
-        grid.innerHTML = `
-          <div class="col-span-full text-center py-10 bg-white rounded-xl border border-red-100 p-6">
-            <p class="text-red-500 font-bold mb-1"><i class="fa-solid fa-triangle-exclamation mr-1"></i> โหลดข้อมูลไม่สำเร็จ</p>
-            <p class="text-xs text-slate-500 mb-4">กรุณาตรวจสอบการเชื่อมต่ออินเทอร์เน็ต</p>
-            <button onclick="refreshData()" class="px-4 py-1.5 bg-indigo-600 text-white text-xs rounded-lg hover:bg-indigo-700 shadow-sm transition">
-              <i class="fa-solid fa-rotate-right mr-1"></i> ลองใหม่อีกครั้ง
-            </button>
-          </div>
-        `;
-      }
+    if (list.length > 0) {
+      certDataList = list.sort((a, b) => {
+        return new Date(b.eventDate) - new Date(a.eventDate);
+      });
+      renderCertificates(certDataList);
+    } else {
+      certDataList = [];
+      grid.innerHTML = `<div class="col-span-full text-center py-12 text-slate-400">ยังไม่มีรายการเกียรติบัตรในระบบ</div>`;
     }
+  } catch (err) {
+    console.error("Fetch certificates failed:", err);
+    grid.innerHTML = `
+      <div class="col-span-full text-center py-10 bg-white rounded-xl border border-red-100 p-6">
+        <p class="text-red-500 font-bold mb-1"><i class="fa-solid fa-triangle-exclamation mr-1"></i> โหลดข้อมูลไม่สำเร็จ</p>
+        <p class="text-xs text-slate-500 mb-4">กรุณาตรวจสอบการตั้งค่า MIME Type ใน Google Apps Script</p>
+        <button onclick="refreshData()" class="px-4 py-1.5 bg-indigo-600 text-white text-xs rounded-lg hover:bg-indigo-700 shadow-sm transition">
+          <i class="fa-solid fa-rotate-right mr-1"></i> กดลองใหม่อีกครั้ง
+        </button>
+      </div>
+    `;
+  }
+}
+
 
     function getDriveThumbnail(url) {
       if (!url) return 'https://placehold.co/600x400?text=No+Image';[cite: 2]
