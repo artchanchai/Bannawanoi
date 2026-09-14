@@ -1,0 +1,561 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ระบบธนาคารออมเงินนักเรียน</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    body { font-family: 'Prompt', sans-serif; }
+
+    /* Keyframe Animations */
+    @keyframes floatSlow {
+      0%, 100% { transform: translateY(0px) rotate(0deg); }
+      50% { transform: translateY(-10px) rotate(3deg); }
+    }
+    @keyframes pulseGlow {
+      0%, 100% { opacity: 0.35; transform: scale(1); }
+      50% { opacity: 0.65; transform: scale(1.06); }
+    }
+    @keyframes shimmer {
+      0% { transform: translateX(-150%); }
+      100% { transform: translateX(250%); }
+    }
+    @keyframes spinAnim {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    .animate-float {
+      animation: floatSlow 3.2s ease-in-out infinite;
+    }
+    .animate-glow-1 {
+      animation: pulseGlow 6s ease-in-out infinite;
+    }
+    .animate-glow-2 {
+      animation: pulseGlow 7s ease-in-out infinite 1.5s;
+    }
+
+    /* Glassmorphism Effect */
+    .glass-card {
+      background: rgba(255, 255, 255, 0.88);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.6);
+      box-shadow: 0 20px 40px -15px rgba(79, 70, 229, 0.15), 0 0 0 1px rgba(255, 255, 255, 0.5);
+    }
+
+    /* Shimmer Button */
+    .btn-shimmer {
+      position: relative;
+      overflow: hidden;
+    }
+    .btn-shimmer::after {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; width: 45%; height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.35), transparent);
+      transform: skewX(-25deg) translateX(-150%);
+    }
+    .btn-shimmer:hover::after {
+      animation: shimmer 1.2s ease-in-out infinite;
+    }
+
+    /* Loading Spinner */
+    .spinner {
+      border: 3px solid rgba(255,255,255,0.3);
+      border-radius: 50%;
+      border-top: 3px solid #ffffff;
+      width: 18px;
+      height: 18px;
+      animation: spinAnim 0.7s linear infinite;
+      display: inline-block;
+    }
+  </style>
+</head>
+<body class="bg-slate-100 min-h-screen text-slate-800 antialiased flex flex-col justify-between">
+
+  <!-- แถบด้านบน (Navbar) -->
+  <header class="bg-indigo-600/95 backdrop-blur-md text-white shadow-md sticky top-0 z-30">
+    <div class="max-w-4xl mx-auto px-4 py-3 flex justify-between items-center">
+      <div class="flex items-center space-x-2.5">
+        <span class="text-2xl drop-shadow">🏦</span>
+        <div>
+          <h1 class="font-bold text-base sm:text-lg leading-tight">ระบบธนาคารออมเงิน</h1>
+          <p class="text-[10px] text-indigo-200">เพื่อสร้างวินัยการออมสู่อนาคต</p>
+        </div>
+      </div>
+      <button id="logoutBtn" onclick="logout()" class="hidden text-xs font-medium bg-indigo-700 hover:bg-indigo-800 px-3 py-1.5 rounded-xl border border-indigo-500 shadow-sm transition">
+        🚪 ออกจากระบบ
+      </button>
+    </div>
+  </header>
+
+  <!-- เนื้อหาหลัก -->
+  <main class="max-w-4xl w-full mx-auto p-4 sm:p-6 flex-1">
+
+    <!-- 1. หน้าต่างเข้าสู่ระบบ (Enhanced Login) -->
+    <div id="viewLogin" class="relative max-w-md mx-auto my-6 sm:my-10">
+      
+      <!-- แสงนีออนพื้นหลังตกแต่ง (Background Glows) -->
+      <div class="absolute -top-8 -left-8 w-48 h-48 bg-indigo-400/30 rounded-full blur-3xl pointer-events-none animate-glow-1"></div>
+      <div class="absolute -bottom-8 -right-8 w-48 h-48 bg-emerald-400/25 rounded-full blur-3xl pointer-events-none animate-glow-2"></div>
+      <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-60 h-60 bg-purple-400/20 rounded-full blur-3xl pointer-events-none"></div>
+
+      <!-- กล่องฟอร์มแบบกระจกแก้ว -->
+      <div class="glass-card relative z-10 p-7 sm:p-9 rounded-3xl transition-all duration-300">
+        
+        <!-- Header & Animated Mascot -->
+        <div class="text-center mb-6">
+          <div class="inline-block p-3.5 bg-gradient-to-tr from-indigo-500 via-indigo-600 to-purple-600 rounded-2xl shadow-lg shadow-indigo-500/30 mb-3 animate-float">
+            <span id="mascotIcon" class="text-4xl block transition-transform duration-300">🐷</span>
+          </div>
+          
+          <h2 class="text-2xl sm:text-3xl font-extrabold tracking-tight bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-500 bg-clip-text text-transparent">
+            ระบบออมเงินนักเรียน
+          </h2>
+          <p class="text-xs sm:text-sm text-slate-500 mt-1 font-medium">
+            สะสมวันละนิด เพื่ออนาคตที่สดใส ✨
+          </p>
+        </div>
+        
+        <!-- แท็บสลับ นักเรียน / คุณครู -->
+        <div class="grid grid-cols-2 p-1 bg-slate-200/70 rounded-2xl mb-6 backdrop-blur-sm">
+          <button id="tabStudent" onclick="switchLoginRole('STUDENT')" 
+                  class="py-2.5 text-xs sm:text-sm font-bold rounded-xl bg-white shadow-sm text-indigo-600 transition-all duration-200 flex items-center justify-center gap-1.5">
+            <span>🎒</span> นักเรียน
+          </button>
+          <button id="tabAdmin" onclick="switchLoginRole('ADMIN')" 
+                  class="py-2.5 text-xs sm:text-sm font-semibold rounded-xl text-slate-600 hover:text-slate-900 transition-all duration-200 flex items-center justify-center gap-1.5">
+            <span>👩‍🏫</span> คุณครู
+          </button>
+        </div>
+
+        <!-- ฟอร์มกรอกข้อมูล -->
+        <div class="space-y-4">
+          <!-- รหัสนักเรียน -->
+          <div id="studentIdField" class="transition-all duration-300">
+            <label class="block text-xs font-bold text-slate-600 mb-1.5 ml-1">
+              เลขประจำตัวนักเรียน
+            </label>
+            <div class="relative">
+              <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-400 text-sm">🪪</span>
+              <input type="text" id="loginId" placeholder="เช่น 1001" 
+                     class="w-full pl-10 pr-4 py-3 bg-white/90 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm transition-all duration-200 shadow-sm placeholder:text-slate-400">
+            </div>
+          </div>
+
+          <!-- รหัส PIN -->
+          <div>
+            <label class="block text-xs font-bold text-slate-600 mb-1.5 ml-1" id="pinLabel">
+              รหัส PIN (4 หลัก)
+            </label>
+            <div class="relative">
+              <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-400 text-sm">🔑</span>
+              <input type="password" id="loginPin" placeholder="••••" maxlength="6"
+                     onfocus="document.getElementById('mascotIcon').innerText = '🙈'" 
+                     onblur="document.getElementById('mascotIcon').innerText = (currentRole === 'STUDENT' ? '🐷' : '👩‍🏫')"
+                     class="w-full pl-10 pr-4 py-3 bg-white/90 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm tracking-widest transition-all duration-200 shadow-sm placeholder:text-slate-400">
+            </div>
+          </div>
+
+          <!-- ปุ่มเข้าสู่ระบบ -->
+          <button onclick="handleLogin()" id="btnLogin" 
+                  class="btn-shimmer w-full mt-2 py-3.5 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-bold rounded-xl shadow-lg shadow-indigo-500/25 hover:shadow-indigo-500/40 active:scale-[0.99] transition-all duration-200 text-sm flex items-center justify-center gap-2">
+            <span>เข้าสู่ระบบ</span>
+            <span>🚀</span>
+          </button>
+        </div>
+
+        <div class="mt-6 pt-4 border-t border-slate-100 text-center">
+          <p class="text-[11px] text-slate-400">
+            💡 ลืมรหัสผ่าน PIN ให้แจ้งคุณครูประจำชั้นเพื่อตรวจสอบ
+          </p>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- 2. หน้าจอนักเรียน (Student View) -->
+    <div id="viewStudent" class="hidden space-y-5">
+      <!-- บัตรยอดเงินสะสม -->
+      <div class="bg-gradient-to-br from-indigo-600 via-indigo-700 to-purple-800 text-white p-6 rounded-3xl shadow-lg relative overflow-hidden">
+        <div class="absolute -right-8 -bottom-8 text-8xl opacity-10 pointer-events-none">💰</div>
+        <div class="flex justify-between items-start relative z-10">
+          <div>
+            <span class="text-xs bg-indigo-500/40 border border-indigo-400/40 px-2.5 py-1 rounded-full text-indigo-100">
+              สมุดเงินฝากดิจิทัล
+            </span>
+            <h3 id="stName" class="text-2xl font-bold mt-2">...</h3>
+            <p id="stClass" class="text-xs text-indigo-200 mt-0.5">...</p>
+          </div>
+          <span class="text-3xl">🐷</span>
+        </div>
+        <div class="mt-6 relative z-10">
+          <p class="text-xs text-indigo-200 font-medium">ยอดเงินคงเหลือสะสม</p>
+          <div class="flex items-baseline space-x-2 mt-1">
+            <span id="stBalance" class="text-4xl sm:text-5xl font-extrabold tracking-tight">0.00</span>
+            <span class="text-base font-normal text-indigo-100">บาท</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- ฟอร์มส่งยอดฝากเงิน -->
+      <div class="bg-white p-5 sm:p-6 rounded-2xl border border-slate-200 shadow-sm">
+        <h4 class="font-bold text-slate-800 mb-2 flex items-center gap-2">
+          <span>📥</span> ส่งยอดฝากเงิน
+        </h4>
+        <div class="flex flex-col sm:flex-row gap-3">
+          <input type="number" id="depositAmount" placeholder="ระบุจำนวนเงินที่ต้องการฝาก (บาท)" min="1" 
+                 class="flex-1 px-4 py-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-indigo-500 outline-none text-sm">
+          <button onclick="handleDepositRequest()" id="btnDeposit" 
+                  class="bg-emerald-600 hover:bg-emerald-700 text-white font-medium px-6 py-2.5 rounded-xl transition text-sm flex items-center justify-center gap-2 shadow-sm">
+            <span>ส่งยอดฝากเงิน</span>
+          </button>
+        </div>
+        <p class="text-xs text-amber-600 mt-2 font-medium">
+          ⚠️ เมื่อกดส่งยอดแล้ว ให้นำเงินสดมาส่งให้คุณครูเพื่อกดยืนยันยอดเงินจริง
+        </p>
+      </div>
+
+      <!-- ตารางประวัติของตนเอง -->
+      <div class="bg-white p-5 sm:p-6 rounded-2xl border border-slate-200 shadow-sm">
+        <h4 class="font-bold text-slate-800 mb-3">ประวัติการทำรายการของฉัน</h4>
+        <div class="overflow-x-auto">
+          <table class="w-full text-sm text-left">
+            <thead class="text-xs text-slate-500 bg-slate-50 border-b border-slate-100">
+              <tr>
+                <th class="py-2.5 px-3">วัน-เวลา</th>
+                <th class="py-2.5 px-3">ประเภท</th>
+                <th class="py-2.5 px-3 text-right">จำนวน (บาท)</th>
+                <th class="py-2.5 px-3 text-center">สถานะ</th>
+              </tr>
+            </thead>
+            <tbody id="studentTxList" class="divide-y divide-slate-100 text-slate-700"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- 3. หน้าจอคุณครู (Admin View) -->
+    <div id="viewAdmin" class="hidden space-y-6">
+      
+      <!-- รายการรอยืนยันเงินฝากสด -->
+      <div class="bg-white p-5 sm:p-6 rounded-2xl border border-slate-200 shadow-sm">
+        <div class="flex justify-between items-center mb-4">
+          <h4 class="font-bold text-slate-800 flex items-center gap-2">
+            <span>⏳</span> รายการรอยืนยันเงินฝาก (นับเงินสดแล้วกดยืนยัน)
+          </h4>
+          <button onclick="loadAdminData()" class="text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-1.5 rounded-lg transition">🔄 รีเฟรช</button>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="w-full text-sm text-left">
+            <thead class="text-xs text-slate-500 bg-slate-50 border-b border-slate-100">
+              <tr>
+                <th class="py-2.5 px-3">วัน-เวลา</th>
+                <th class="py-2.5 px-3">ชื่อ - รหัสนักเรียน</th>
+                <th class="py-2.5 px-3 text-right">จำนวนเงิน</th>
+                <th class="py-2.5 px-3 text-center">การดำเนินการ</th>
+              </tr>
+            </thead>
+            <tbody id="pendingTxList" class="divide-y divide-slate-100"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- สิทธิ์ถอนเงินให้นักเรียน (Admin Only) -->
+      <div class="bg-white p-5 sm:p-6 rounded-2xl border border-slate-200 shadow-sm">
+        <h4 class="font-bold text-slate-800 mb-3 flex items-center gap-2">
+          <span>📤</span> ทำรายการถอนเงินให้นักเรียน
+        </h4>
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <select id="withdrawStudentSelect" class="px-3 py-2.5 rounded-xl border border-slate-300 text-sm outline-none focus:ring-2 focus:ring-indigo-500">
+            <option value="">-- เลือกนักเรียน --</option>
+          </select>
+          <input type="number" id="withdrawAmount" placeholder="ระบุจำนวนเงินที่ต้องการถอน" min="1" class="px-4 py-2.5 rounded-xl border border-slate-300 text-sm outline-none">
+          <button onclick="handleWithdraw()" id="btnWithdraw" class="bg-rose-600 hover:bg-rose-700 text-white font-medium py-2.5 rounded-xl transition text-sm flex items-center justify-center gap-2 shadow-sm">
+            <span>ยืนยันการถอนเงิน</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- สรุปยอดเงินออมทั้งห้อง -->
+      <div class="bg-white p-5 sm:p-6 rounded-2xl border border-slate-200 shadow-sm">
+        <h4 class="font-bold text-slate-800 mb-3">สรุปยอดเงินออมรายบุคคล</h4>
+        <div class="overflow-x-auto">
+          <table class="w-full text-sm text-left">
+            <thead class="text-xs text-slate-500 bg-slate-50 border-b border-slate-100">
+              <tr>
+                <th class="py-2.5 px-3">รหัส</th>
+                <th class="py-2.5 px-3">ชื่อ - นามสกุล</th>
+                <th class="py-2.5 px-3">ชั้นเรียน</th>
+                <th class="py-2.5 px-3 text-right">ยอดคงเหลือ (บาท)</th>
+              </tr>
+            </thead>
+            <tbody id="adminStudentList" class="divide-y divide-slate-100 text-slate-700"></tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+
+  </main>
+
+  <!-- Footer -->
+  <footer class="text-center py-4 text-xs text-slate-400">
+    ระบบบันทึกการออมเงินนักเรียน &copy; 2026
+  </footer>
+
+  <script>
+    // 🔴 นำ Web App URL จาก Google Apps Script (Deploy) มาวางตรงนี้
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxmxWYuq1lvwHJkFY5YddcxscnCXhFU7WXhlUi_GOm1s-obmTDJAYt2Btg___e1mVsQ/exec";
+
+    let currentRole = 'STUDENT';
+    let currentUser = null;
+
+    // ฟังก์ชันเชื่อมต่อ Apps Script (ป้องกันปัญหา JSON parse error จาก CORS Redirect)
+    async function apiCall(payload) {
+      const response = await fetch(SCRIPT_URL, {
+        method: 'POST',
+        redirect: 'follow',
+        body: JSON.stringify(payload),
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' }
+      });
+      
+      const text = await response.text();
+      try {
+        return JSON.parse(text);
+      } catch (err) {
+        console.error("Raw response:", text);
+        throw new Error("เซิร์ฟเวอร์ไม่ได้ตอบกลับเป็น JSON (ตรวจสอบสิทธิ์ Web App: Anyone)");
+      }
+    }
+
+    function switchLoginRole(role) {
+      currentRole = role;
+      const tabSt = document.getElementById('tabStudent');
+      const tabAd = document.getElementById('tabAdmin');
+      const stIdField = document.getElementById('studentIdField');
+      const pinLabel = document.getElementById('pinLabel');
+      const mascot = document.getElementById('mascotIcon');
+
+      if (role === 'STUDENT') {
+        tabSt.className = "py-2.5 text-xs sm:text-sm font-bold rounded-xl bg-white shadow-sm text-indigo-600 transition-all duration-200 flex items-center justify-center gap-1.5";
+        tabAd.className = "py-2.5 text-xs sm:text-sm font-semibold rounded-xl text-slate-600 hover:text-slate-900 transition-all duration-200 flex items-center justify-center gap-1.5";
+        stIdField.style.display = "block";
+        pinLabel.innerText = "รหัส PIN นักเรียน (4 หลัก)";
+        mascot.innerText = "🐷";
+      } else {
+        tabAd.className = "py-2.5 text-xs sm:text-sm font-bold rounded-xl bg-white shadow-sm text-indigo-600 transition-all duration-200 flex items-center justify-center gap-1.5";
+        tabSt.className = "py-2.5 text-xs sm:text-sm font-semibold rounded-xl text-slate-600 hover:text-slate-900 transition-all duration-200 flex items-center justify-center gap-1.5";
+        stIdField.style.display = "none";
+        pinLabel.innerText = "รหัส PIN คุณครู (แอดมิน)";
+        mascot.innerText = "👩‍🏫";
+      }
+    }
+
+    async function handleLogin() {
+      const id = document.getElementById('loginId').value.trim();
+      const pin = document.getElementById('loginPin').value.trim();
+      const btn = document.getElementById('btnLogin');
+
+      if (currentRole === 'STUDENT' && !id) return alert('กรุณากรอกรหัสนักเรียน');
+      if (!pin) return alert('กรุณากรอกรหัส PIN');
+
+      btn.disabled = true;
+      btn.innerHTML = '<span class="spinner"></span> กำลังเข้าสู่ระบบ...';
+
+      try {
+        const res = await apiCall({ action: 'login', userId: id, pin: pin, role: currentRole });
+        if (res.success) {
+          document.getElementById('viewLogin').classList.add('hidden');
+          document.getElementById('logoutBtn').classList.remove('hidden');
+
+          if (res.role === 'STUDENT') {
+            currentUser = res.student;
+            renderStudentView();
+          } else {
+            document.getElementById('viewAdmin').classList.remove('hidden');
+            loadAdminData();
+          }
+        } else {
+          alert(res.message);
+        }
+      } catch (err) {
+        alert('เกิดข้อผิดพลาดในการเชื่อมต่อ: ' + err.message);
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<span>เข้าสู่ระบบ</span> <span>🚀</span>';
+      }
+    }
+
+    function renderStudentView() {
+      document.getElementById('viewStudent').classList.remove('hidden');
+      document.getElementById('stName').innerText = currentUser.name;
+      document.getElementById('stClass').innerText = "ชั้นเรียน: " + currentUser.classRoom;
+      document.getElementById('stBalance').innerText = Number(currentUser.balance).toLocaleString('th-TH', {minimumFractionDigits: 2});
+      loadStudentData();
+    }
+
+    async function loadStudentData() {
+      try {
+        const res = await apiCall({ action: 'getStudentDashboard', studentId: currentUser.id });
+        if (res.success) {
+          if (res.student) {
+            currentUser = res.student;
+            document.getElementById('stBalance').innerText = Number(currentUser.balance).toLocaleString('th-TH', {minimumFractionDigits: 2});
+          }
+          const tbody = document.getElementById('studentTxList');
+          tbody.innerHTML = '';
+          if (!res.history || res.history.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="4" class="py-4 text-center text-slate-400">ยังไม่มีประวัติการทำรายการ</td></tr>';
+            return;
+          }
+          res.history.forEach(tx => {
+            const isDeposit = tx.type === 'DEPOSIT';
+            const isApproved = tx.status === 'APPROVED';
+            tbody.innerHTML += `
+              <tr>
+                <td class="py-2.5 px-3 text-xs text-slate-500">${tx.date}</td>
+                <td class="py-2.5 px-3">
+                  <span class="px-2 py-0.5 text-xs rounded-md font-medium ${isDeposit ? 'bg-emerald-50 text-emerald-700' : 'bg-rose-50 text-rose-700'}">
+                    ${isDeposit ? 'ฝาก' : 'ถอน'}
+                  </span>
+                </td>
+                <td class="py-2.5 px-3 text-right font-medium ${isDeposit ? 'text-emerald-600' : 'text-rose-600'}">
+                  ${isDeposit ? '+' : '-'}${Number(tx.amount).toLocaleString()}
+                </td>
+                <td class="py-2.5 px-3 text-center">
+                  <span class="text-xs px-2.5 py-0.5 rounded-full ${isApproved ? 'bg-slate-100 text-slate-600' : 'bg-amber-100 text-amber-700 font-medium'}">
+                    ${isApproved ? 'สำเร็จ' : 'รอยืนยันเงิน'}
+                  </span>
+                </td>
+              </tr>
+            `;
+          });
+        }
+      } catch (e) {
+        console.error(e);
+      }
+    }
+
+    async function handleDepositRequest() {
+      const amount = document.getElementById('depositAmount').value;
+      const btn = document.getElementById('btnDeposit');
+      if (!amount || Number(amount) <= 0) return alert('กรุณาระบุจำนวนเงินที่ถูกต้อง');
+
+      btn.disabled = true;
+      btn.innerHTML = '<span class="spinner"></span> กำลังส่ง...';
+
+      try {
+        const res = await apiCall({
+          action: 'requestDeposit',
+          studentId: currentUser.id,
+          studentName: currentUser.name,
+          amount: amount
+        });
+        alert(res.message);
+        document.getElementById('depositAmount').value = '';
+        loadStudentData();
+      } catch (err) {
+        alert('เกิดข้อผิดพลาด: ' + err.message);
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<span>ส่งยอดฝากเงิน</span>';
+      }
+    }
+
+    async function loadAdminData() {
+      try {
+        const res = await apiCall({ action: 'getAdminDashboard' });
+        if (!res.success) return;
+
+        // รายการรอตรวจรับเงิน
+        const txTbody = document.getElementById('pendingTxList');
+        txTbody.innerHTML = '';
+        if (!res.pendingTx || res.pendingTx.length === 0) {
+          txTbody.innerHTML = '<tr><td colspan="4" class="py-4 text-center text-slate-400">ไม่มีรายการค้างตรวจสอบ</td></tr>';
+        } else {
+          res.pendingTx.forEach(tx => {
+            txTbody.innerHTML += `
+              <tr>
+                <td class="py-2.5 px-3 text-xs text-slate-500">${tx.date}</td>
+                <td class="py-2.5 px-3 font-medium">${tx.studentName} (${tx.studentId})</td>
+                <td class="py-2.5 px-3 text-right text-emerald-600 font-bold">${Number(tx.amount).toLocaleString()} บาท</td>
+                <td class="py-2.5 px-3 text-center">
+                  <button onclick="handleApprove('${tx.txId}')" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs px-3 py-1.5 rounded-xl shadow-sm transition">
+                    รับเงินแล้ว
+                  </button>
+                </td>
+              </tr>
+            `;
+          });
+        }
+
+        // สรุปยอดนักเรียน & Dropdown สำหรับถอนเงิน
+        const stTbody = document.getElementById('adminStudentList');
+        const select = document.getElementById('withdrawStudentSelect');
+        stTbody.innerHTML = '';
+        select.innerHTML = '<option value="">-- เลือกนักเรียน --</option>';
+
+        res.students.forEach(st => {
+          stTbody.innerHTML += `
+            <tr>
+              <td class="py-2.5 px-3 text-slate-500 text-xs">${st.id}</td>
+              <td class="py-2.5 px-3 font-medium">${st.name}</td>
+              <td class="py-2.5 px-3 text-xs text-slate-500">${st.classRoom}</td>
+              <td class="py-2.5 px-3 text-right font-bold text-indigo-600">${Number(st.balance).toLocaleString('th-TH', {minimumFractionDigits: 2})}</td>
+            </tr>
+          `;
+          select.innerHTML += `<option value="${st.id}">${st.name} (${st.classRoom}) - คงเหลือ: ${st.balance} บาท</option>`;
+        });
+      } catch (err) {
+        alert('โหลดข้อมูลแอดมินล้มเหลว: ' + err.message);
+      }
+    }
+
+    async function handleApprove(txId) {
+      if (!confirm('ยืนยันว่าได้รับเงินสดจากนักเรียนถูกต้องแล้ว?')) return;
+      try {
+        const res = await apiCall({ action: 'approveDeposit', txId: txId });
+        alert(res.message);
+        loadAdminData();
+      } catch (e) {
+        alert(e.message);
+      }
+    }
+
+    async function handleWithdraw() {
+      const studentId = document.getElementById('withdrawStudentSelect').value;
+      const amount = document.getElementById('withdrawAmount').value;
+      const btn = document.getElementById('btnWithdraw');
+
+      if (!studentId) return alert('กรุณาเลือกนักเรียน');
+      if (!amount || Number(amount) <= 0) return alert('กรุณาระบุจำนวนเงินที่ถูกต้อง');
+      if (!confirm(`ยืนยันการถอนเงินจำนวน ${amount} บาท ให้นักเรียนใช่หรือไม่?`)) return;
+
+      btn.disabled = true;
+      btn.innerHTML = '<span class="spinner"></span> กำลังทำรายการ...';
+
+      try {
+        const res = await apiCall({ action: 'adminWithdraw', studentId: studentId, amount: amount });
+        alert(res.message);
+        if (res.success) {
+          document.getElementById('withdrawAmount').value = '';
+          loadAdminData();
+        }
+      } catch (e) {
+        alert(e.message);
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<span>ยืนยันการถอนเงิน</span>';
+      }
+    }
+
+    function logout() {
+      location.reload();
+    }
+  </script>
+</body>
+</html>
