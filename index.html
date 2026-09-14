@@ -45,6 +45,12 @@
         <i class="fa-solid fa-award"></i>
         <span>ระบบเกียรติบัตร</span>
       </button>
+
+  <button onclick="switchApp('sys3')" id="btn-sys3" class="px-3 py-1.5 rounded-lg text-xs sm:text-sm font-semibold transition text-slate-300 hover:text-white hover:bg-slate-800 flex items-center gap-1.5">
+  <i class="fa-solid fa-folder-open"></i>
+  <span>ระบบใหม่</span>
+</button>
+      
     </nav>
   </header>
 
@@ -88,6 +94,22 @@
             </span>
           </div>
 
+
+        <div onclick="switchApp('sys3')" class="portal-card bg-white rounded-2xl p-6 sm:p-8 shadow-sm hover:shadow-xl border border-slate-200/80 cursor-pointer flex flex-col items-center text-center group">
+  <div class="w-20 h-20 bg-purple-50 text-purple-600 rounded-2xl flex items-center justify-center text-4xl mb-5 group-hover:bg-purple-600 group-hover:text-white transition-colors duration-300 shadow-sm">
+    <i class="fa-solid fa-folder-open"></i>
+  </div>
+  <h3 class="text-lg sm:text-xl font-bold text-slate-800 mb-2 group-hover:text-purple-600 transition-colors">ระบบใหม่</h3>
+  <p class="text-xs sm:text-sm text-slate-500 mb-6 leading-relaxed">คำอธิบายระบบงาน</p>
+  <span class="mt-auto inline-flex items-center text-xs sm:text-sm font-bold text-purple-600 group-hover:translate-x-1 transition-transform">
+    เข้าสู่ระบบงาน <i class="fa-solid fa-arrow-right ml-2"></i>
+  </span>
+</div>
+
+
+
+
+          
         </div>
       </div>
 
@@ -99,38 +121,48 @@
     <!-- Iframes โหลดจากไฟล์แยก -->
     <iframe id="iframe-pp5" src="pp5.html" class="absolute inset-0 w-full h-full border-0 hidden"></iframe>
     <iframe id="iframe-cert" src="cert.html" class="absolute inset-0 w-full h-full border-0 hidden"></iframe>
+    <iframe id="iframe-sys3" src="balance.html" class="absolute inset-0 w-full h-full border-0 hidden"></iframe>
 
   </main>
 
   <script>
-    function switchApp(app) {
-      const hubView = document.getElementById('view-hub');
-      const pp5Frame = document.getElementById('iframe-pp5');
-      const certFrame = document.getElementById('iframe-cert');
+   function switchApp(app) {
+  const hubView = document.getElementById('view-hub');
+  const pp5Frame = document.getElementById('iframe-pp5');
+  const certFrame = document.getElementById('iframe-cert');
+  const sys3Frame = document.getElementById('iframe-sys3'); // เพิ่มตัวนี้
 
-      const btnHub = document.getElementById('btn-hub');
-      const btnPp5 = document.getElementById('btn-pp5');
-      const btnCert = document.getElementById('btn-cert');
+  const btnHub = document.getElementById('btn-hub');
+  const btnPp5 = document.getElementById('btn-pp5');
+  const btnCert = document.getElementById('btn-cert');
+  const btnSys3 = document.getElementById('btn-sys3'); // เพิ่มตัวนี้
 
-      hubView.classList.add('hidden');
-      pp5Frame.classList.add('hidden');
-      certFrame.classList.add('hidden');
+  // ซ่อนทุกอันก่อน
+  hubView.classList.add('hidden');
+  pp5Frame.classList.add('hidden');
+  certFrame.classList.add('hidden');
+  sys3Frame.classList.add('hidden'); // เพิ่มตัวนี้
 
-      [btnHub, btnPp5, btnCert].forEach(b => {
-        b.className = "px-3 py-1.5 rounded-lg text-xs sm:text-sm font-semibold transition text-slate-300 hover:text-white hover:bg-slate-800 flex items-center gap-1.5";
-      });
+  // รีเซ็ตสีปุ่ม
+  [btnHub, btnPp5, btnCert, btnSys3].forEach(b => {
+    if(b) b.className = "px-3 py-1.5 rounded-lg text-xs sm:text-sm font-semibold transition text-slate-300 hover:text-white hover:bg-slate-800 flex items-center gap-1.5";
+  });
 
-      if (app === 'pp5') {
-        pp5Frame.classList.remove('hidden');
-        btnPp5.className = "px-3 py-1.5 rounded-lg text-xs sm:text-sm font-semibold transition bg-blue-600 text-white flex items-center gap-1.5";
-      } else if (app === 'cert') {
-        certFrame.classList.remove('hidden');
-        btnCert.className = "px-3 py-1.5 rounded-lg text-xs sm:text-sm font-semibold transition bg-amber-500 text-slate-900 flex items-center gap-1.5";
-      } else {
-        hubView.classList.remove('hidden');
-        btnHub.className = "px-3 py-1.5 rounded-lg text-xs sm:text-sm font-semibold transition bg-blue-600 text-white flex items-center gap-1.5";
-      }
-    }
+  // เปิดเฉพาะหน้าที่เลือก
+  if (app === 'pp5') {
+    pp5Frame.classList.remove('hidden');
+    btnPp5.className = "px-3 py-1.5 rounded-lg text-xs sm:text-sm font-semibold transition bg-blue-600 text-white flex items-center gap-1.5";
+  } else if (app === 'cert') {
+    certFrame.classList.remove('hidden');
+    btnCert.className = "px-3 py-1.5 rounded-lg text-xs sm:text-sm font-semibold transition bg-amber-500 text-slate-900 flex items-center gap-1.5";
+  } else if (app === 'sys3') { // เพิ่มเงื่อนไขนี้
+    sys3Frame.classList.remove('hidden');
+    btnSys3.className = "px-3 py-1.5 rounded-lg text-xs sm:text-sm font-semibold transition bg-purple-600 text-white flex items-center gap-1.5";
+  } else {
+    hubView.classList.remove('hidden');
+    btnHub.className = "px-3 py-1.5 rounded-lg text-xs sm:text-sm font-semibold transition bg-blue-600 text-white flex items-center gap-1.5";
+  }
+}
   </script>
 </body>
 </html>
