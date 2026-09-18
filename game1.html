@@ -1,0 +1,731 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ภารกิจถอดรหัสล่าปริศนา - Scavenger Quest</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;600;700&family=Chakra+Petch:wght@500;700&display=swap" rel="stylesheet">
+  <style>
+    body { font-family: 'Prompt', sans-serif; }
+    .font-code { font-family: 'Chakra Petch', monospace; }
+
+    /* แอนิเมชันตัวการ์ตูนโผล่แอบมองจากด้านหลังกรอบ */
+    @keyframes mascot-peek {
+      0%, 100% { transform: translateY(0) rotate(0deg); }
+      50% { transform: translateY(-8px) rotate(1.5deg); }
+    }
+    .animate-mascot-peek {
+      animation: mascot-peek 3.5s ease-in-out infinite;
+    }
+
+    @media print {
+      body { background: white !important; color: black !important; }
+      .no-print { display: none !important; }
+      .print-only { display: block !important; }
+      .page-break { page-break-before: always; }
+    }
+  </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen">
+
+  <!-- ================= หน้าปกเกม / ตัวเลือกรายวิชา (Cover Screen) ================= -->
+  <div id="cover-screen" class="no-print min-h-screen flex flex-col items-center justify-center p-6 relative overflow-hidden">
+    <!-- แสงเอฟเฟกต์พื้นหลัง -->
+    <div class="absolute -top-40 -left-40 w-96 h-96 bg-indigo-600/20 rounded-full blur-3xl pointer-events-none"></div>
+    <div class="absolute -bottom-40 -right-40 w-96 h-96 bg-purple-600/20 rounded-full blur-3xl pointer-events-none"></div>
+
+    <div class="max-w-2xl w-full bg-slate-900/90 backdrop-blur border border-slate-800 rounded-3xl p-8 sm:p-10 shadow-2xl text-center relative z-10">
+      <div class="inline-block p-4 rounded-3xl bg-gradient-to-tr from-indigo-500/20 to-purple-500/20 border border-indigo-500/30 mb-4">
+        <span class="text-5xl sm:text-6xl">🧭</span>
+      </div>
+      
+      <span class="text-xs sm:text-sm font-bold tracking-widest text-indigo-400 uppercase">Classroom Scavenger Quest</span>
+      <h1 class="text-3xl sm:text-5xl font-extrabold text-white mt-2 mb-3 tracking-tight">ปฏิบัติการล่ารหัสลับ</h1>
+      <p class="text-slate-400 text-sm sm:text-base mb-8 leading-relaxed">
+        สืบค้นความรู้ ถอดรหัสคำถาม และออกตามหาการ์ดลับในห้องเรียน<br>
+        <span class="text-amber-300 font-medium">✨ สลับคำใบ้อัตโนมัติ ตอบไวยิ่งได้แต้มโบนัสสูง!</span> (ผิดได้ไม่เกิน 3 ครั้ง)
+      </p>
+
+      <!-- ระบบเลือกรายวิชา -->
+      <div class="bg-slate-950/80 border border-slate-800 rounded-2xl p-5 mb-8 text-left">
+        <div class="flex items-center justify-between mb-2">
+          <label for="subject-select" class="block text-xs font-semibold text-slate-400 uppercase tracking-wider">
+            📚 เลือกรหัสภารกิจ / รายวิชา
+          </label>
+          <span id="api-sync-badge" class="text-[11px] px-2.5 py-0.5 rounded-full bg-slate-800 text-slate-400 border border-slate-700 flex items-center gap-1.5">
+            <span class="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span> ค้นหาแท็บวิชา...
+          </span>
+        </div>
+        
+        <select 
+          id="subject-select" 
+          onchange="onSubjectChange()"
+          class="w-full px-4 py-3.5 bg-slate-900 border border-slate-700 rounded-xl text-white focus:outline-none focus:border-indigo-500 text-sm font-medium transition cursor-pointer"
+        >
+          <option value="Questions">กำลังดึงข้อมูลรายวิชาจากชีต...</option>
+        </select>
+        <p id="subject-desc" class="text-xs text-slate-500 mt-2">
+          * เพลงจะเปลี่ยนท่อนเข้มข้นเมื่อผ่านไปแล้วเกินครึ่งทางของคำใบ้ทั้งหมด
+        </p>
+      </div>
+
+      <!-- ปุ่มเริ่มเกม -->
+      <button 
+        onclick="startGameFromCover()" 
+        class="w-full py-4 sm:py-5 bg-gradient-to-r from-indigo-600 via-indigo-500 to-purple-600 hover:opacity-95 active:scale-[0.99] text-white font-bold rounded-2xl shadow-xl shadow-indigo-600/30 transition text-lg tracking-wide flex items-center justify-center gap-2"
+      >
+        <span>🚀 เริ่มปฏิบัติการภารกิจ</span>
+      </button>
+
+      <!-- เมนูพิมพ์เอกสาร -->
+      <div class="mt-8 pt-6 border-t border-slate-800/80 flex items-center justify-center">
+        <button onclick="window.print()" class="text-xs sm:text-sm text-slate-400 hover:text-slate-200 flex items-center gap-1.5 transition">
+          🖨️ พิมพ์ใบภารกิจ & การ์ดรหัสลับ
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= หน้าจอระบบเกมขนาดใหญ่ (Play Screen - Wide View) ================= -->
+  <div id="play-screen" class="no-print min-h-screen hidden flex-col items-center justify-center p-4 sm:p-8 relative">
+    
+    <!-- แถบควบคุมด้านบน -->
+    <div class="w-full max-w-4xl flex items-center justify-between mb-4 z-20">
+      <div class="flex items-center gap-2 sm:gap-3">
+        <button 
+          id="btn-music-toggle"
+          onclick="toggleMusicManual()" 
+          class="flex items-center gap-1.5 px-4 py-2 bg-slate-900 border border-slate-700 hover:border-indigo-500 rounded-xl text-xs sm:text-sm text-slate-300 transition"
+        >
+          <span id="music-icon">🔊</span> <span id="music-text">พักเพลง</span>
+        </button>
+        <button 
+          onclick="returnToCover()" 
+          class="flex items-center gap-1.5 px-4 py-2 bg-slate-900 border border-slate-700 hover:border-slate-500 rounded-xl text-xs sm:text-sm text-slate-400 hover:text-white transition"
+        >
+          🏠 สลับวิชา
+        </button>
+      </div>
+      <div>
+        <button 
+          onclick="window.print()" 
+          class="px-4 py-2 bg-slate-900 border border-slate-700 hover:border-indigo-500 rounded-xl text-xs sm:text-sm text-slate-300 transition"
+        >
+          🖨️ พิมพ์เอกสาร
+        </button>
+      </div>
+    </div>
+
+    <!-- โซนครอบกล่องเกมและภาพพื้นหลังด้านหลัง -->
+    <div class="relative w-full max-w-4xl flex justify-center">
+
+      <!-- 🐾 ตัวการ์ตูน/ภาพพื้นหลัง (เลเยอร์ด้านหลัง z-0) 🐾 -->
+      <div class="absolute -top-16 sm:-top-24 right-6 sm:right-14 z-0 pointer-events-none select-none">
+        <img 
+          id="mascot-img"
+          src="p1.png" 
+          onerror="this.src='https://api.iconify.design/fluent-emoji:cat-face.svg'"
+          alt="Mascot Background" 
+          class="w-24 h-24 sm:w-36 sm:h-36 object-contain animate-mascot-peek drop-shadow-[0_15px_15px_rgba(0,0,0,0.6)]"
+        >
+      </div>
+
+      <!-- กล่องภารกิจหลัก (เลเยอร์ด้านหน้า z-10 บังส่วนล่างของภาพไว้) -->
+      <div class="w-full bg-slate-900/95 backdrop-blur border border-slate-800 rounded-3xl p-6 sm:p-10 shadow-2xl relative z-10">
+        
+        <div class="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 rounded-t-3xl"></div>
+
+        <!-- ส่วนหัว Header: ด่าน, คะแนนสะสม, หัวใจ -->
+        <div class="flex flex-wrap items-center justify-between border-b border-slate-800 pb-5 mb-8 gap-4">
+          <div>
+            <span id="current-subject-label" class="text-xs font-bold tracking-widest text-indigo-400 uppercase">หมวดภารกิจ</span>
+            <h2 id="stage-badge" class="text-2xl sm:text-3xl font-extrabold text-white tracking-wide mt-0.5">ด่านที่ 1 / 10</h2>
+          </div>
+          
+          <!-- แถบแสดงคะแนนสะสม + หัวใจ -->
+          <div class="flex items-center gap-6">
+            <div class="text-right">
+              <span class="text-[11px] text-slate-400 font-semibold uppercase tracking-wider block">คะแนนสะสม</span>
+              <span id="total-score-badge" class="text-xl sm:text-2xl font-extrabold text-amber-400 font-code">0</span>
+              <span class="text-xs text-slate-400">PTS</span>
+            </div>
+
+            <div class="text-right border-l border-slate-800 pl-6">
+              <span class="text-[11px] text-slate-400 font-semibold uppercase tracking-wider block">โอกาสตอบผิด</span>
+              <div id="lives-container" class="flex gap-1.5 justify-end text-xl sm:text-2xl mt-0.5">
+                <span class="text-rose-500">❤️</span>
+                <span class="text-rose-500">❤️</span>
+                <span class="text-rose-500">❤️</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- กล่องเล่นเกม -->
+        <div id="game-active-container">
+          
+          <!-- กล่องคำถามเกร็ดความรู้ประจำด่าน -->
+          <div class="bg-slate-950/90 border border-slate-800/90 rounded-2xl p-6 sm:p-8 mb-8 shadow-inner">
+            <div class="flex flex-wrap items-center justify-between mb-3 gap-2">
+              <span class="px-3 py-1 text-xs font-bold uppercase rounded-lg bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">
+                💡 คำถามเกร็ดความรู้รอบตัว
+              </span>
+              <span class="text-xs sm:text-sm text-amber-400 font-semibold flex items-center gap-1">
+                📖 ดูเกร็ดความรู้<span class="font-bold underline text-base text-amber-300">คำใบ้ที่ <span id="ref-question-num">1</span></span>
+              </span>
+            </div>
+
+            <!-- ข้อความคำถามเกร็ดความรู้ตัวใหญ่ -->
+            <h3 id="trivia-question-text" class="text-lg sm:text-2xl font-bold text-slate-100 leading-relaxed my-4">
+              กำลังโหลดข้อมูลคำถาม...
+            </h3>
+
+            <!-- แถบอ้างอิง: เปลี่ยนเป็น ทำคำใบ้ที่ ... -->
+            <div class="mt-6 pt-4 border-t border-slate-800/80 flex flex-wrap items-center justify-between text-xs sm:text-sm text-slate-400 gap-2">
+              <span class="flex items-center gap-1.5">
+                ✏️ ทำ<span class="text-indigo-300 font-semibold">คำใบ้ที่</span> <span id="calc-ref-num" class="text-indigo-400 font-bold text-base">1</span> ในใบงาน 
+                <span class="text-slate-500">(เพื่อหาตัวเลขคำตอบ)</span>
+              </span>
+              <span class="text-slate-300 font-medium">
+                ➡️ เดินหาการ์ดตัวเลขนั้นในห้องเพื่อดูรหัสลับ
+              </span>
+            </div>
+          </div>
+
+          <!-- ฟอร์มกรอกรหัสผ่าน -->
+          <form id="quiz-form" class="space-y-6" onsubmit="return false;">
+            <div>
+              <div class="flex justify-between items-center mb-2">
+                <label for="answer-input" class="block text-xs sm:text-sm font-semibold text-slate-300 uppercase tracking-wider">
+                  ป้อนรหัสลับภาษาอังกฤษบนการ์ดคำตอบ
+                </label>
+                <span class="text-[11px] text-indigo-300/80">⚡ ตอบไวยิ่งได้แต้มโบนัสเยอะ</span>
+              </div>
+              <input 
+                type="text" 
+                id="answer-input" 
+                autocomplete="off"
+                placeholder="พิมพ์รหัสลับ (เช่น SPARK)..."
+                class="w-full px-6 py-4 sm:py-5 bg-slate-950 border-2 border-slate-700 hover:border-slate-600 rounded-2xl text-white placeholder-slate-600 focus:outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/20 uppercase font-code tracking-widest text-center text-2xl sm:text-3xl font-bold transition shadow-inner"
+              >
+            </div>
+
+            <div id="feedback-msg" class="text-sm sm:text-base text-center min-h-[28px] font-medium transition"></div>
+
+            <button 
+              type="submit" 
+              id="btn-submit"
+              class="w-full py-4 sm:py-5 bg-gradient-to-r from-indigo-600 via-indigo-500 to-purple-600 hover:opacity-95 active:scale-[0.99] text-white font-bold rounded-2xl shadow-xl shadow-indigo-600/30 transition duration-150 text-base sm:text-lg tracking-wide"
+            >
+              ส่งรหัสลับเพื่อผ่านด่าน
+            </button>
+          </form>
+        </div>
+
+        <!-- หน้าจอชนะ (Victory Screen) -->
+        <div id="victory-screen" class="hidden text-center py-8">
+          <div class="text-7xl mb-4 animate-bounce">🏆</div>
+          <h2 class="text-3xl sm:text-4xl font-extrabold text-white mb-2">ปฏิบัติการสำเร็จครบทุกด่าน!</h2>
+          <p class="text-slate-300 text-sm sm:text-base mb-6">คุณได้ไขรหัสลับและสืบค้นความรู้ครบทุกคำใบ้ ยอดเยี่ยมมาก</p>
+          
+          <div class="max-w-md mx-auto bg-slate-950/80 border border-slate-800 rounded-2xl p-6 mb-8 text-center">
+            <span class="text-xs text-slate-400 uppercase font-semibold tracking-wider">คะแนนรวมทั้งหมดของคุณ</span>
+            <div class="text-4xl sm:text-5xl font-black text-amber-400 font-code my-2" id="final-score-text">0</div>
+            <p id="rank-comment-text" class="text-xs sm:text-sm text-indigo-300 font-medium"></p>
+          </div>
+
+          <button 
+            onclick="restartGame()"
+            class="px-8 py-3.5 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-2xl text-base shadow-lg transition"
+          >
+            เล่นใหม่อีกครั้ง
+          </button>
+        </div>
+
+        <!-- หน้าจอแพ้ (Game Over) -->
+        <div id="gameover-screen" class="hidden text-center py-8">
+          <div class="text-7xl mb-4">⚠️</div>
+          <h2 class="text-3xl font-extrabold text-rose-400 mb-2">สัญญาณถูกตัด! (GAME OVER)</h2>
+          <p class="text-slate-400 text-sm sm:text-base mb-6">คุณตอบผิดครบ 3 ครั้งแล้ว โอกาสสืบค้นถูกระงับ</p>
+          <button 
+            onclick="restartGame()"
+            class="px-8 py-3.5 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 font-bold rounded-2xl text-base shadow transition"
+          >
+            เริ่มภารกิจใหม่
+          </button>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ================= โซนเอกสารสั่งพิมพ์ (Print Only) ================= -->
+  <div class="hidden print-only p-8 text-black bg-white">
+    
+    <!-- แผ่นที่ 1: ใบภารกิจสำหรับแจกนักเรียน (เปลี่ยนเป็น คำใบ้ที่ ...) -->
+    <div class="max-w-3xl mx-auto border-2 border-black p-6 rounded-xl mb-6">
+      <div class="text-center border-b-2 border-black pb-3 mb-4">
+        <h1 class="text-2xl font-bold">ใบภารกิจ: ล่ารหัสลับ & ถอดรหัสปริศนา (<span id="print-subject-title">วิชาคณิตศาสตร์</span>)</h1>
+        <p class="text-xs text-gray-700 mt-1">
+          <strong>คำชี้แจง:</strong> ให้นักเรียนทำโจทย์และศึกษาเกร็ดความรู้ตามหมายเลข <u>"คำใบ้"</u> ที่ระบบกำหนด เมื่อคำนวณได้คำตอบแล้ว ให้นำไปหาการ์ดที่ซ่อนไว้ในห้อง เพื่อนำ <u>"รหัสลับภาษาอังกฤษ"</u> ไปกรอกในระบบหน้าจอคอมพิวเตอร์ (โอกาสตอบผิด 3 ครั้ง!)
+        </p>
+      </div>
+      <div id="print-sheet-tasks" class="grid grid-cols-2 gap-3 text-sm"></div>
+    </div>
+
+    <div class="page-break"></div>
+
+    <!-- แผ่นที่ 2: ใบความรู้รอบตัว (Knowledge Sheet - ปรับแยกช่องตารางชัดเจน) -->
+    <div class="max-w-4xl mx-auto border-2 border-slate-800 p-6 rounded-xl mb-6">
+      <div class="text-center border-b-2 border-slate-800 pb-3 mb-5">
+        <h1 class="text-2xl font-bold">ใบเกร็ดความรู้รอบตัว: ข้อมูลเบาะแสและบุคคลสำคัญ</h1>
+        <p class="text-xs text-gray-700 mt-1">อ่านเกร็ดความรู้แยกตามกล่องคำใบ้ เพื่อนำไปตอบคำถามบนหน้าจอคอมพิวเตอร์และเชื่อมโยงกับรหัสลับ</p>
+      </div>
+      <!-- ช่องแสดงการ์ดความรู้ แยกเป็นบล็อกเด่นชัด -->
+      <div id="print-knowledge-tasks" class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs"></div>
+    </div>
+
+    <div class="page-break"></div>
+
+    <!-- แผ่นที่ 3: การ์ดคำตอบสำหรับติดซ่อนในห้อง -->
+    <div class="max-w-4xl mx-auto pt-2">
+      <div class="text-center font-bold text-lg mb-3 text-gray-900">
+        การ์ดรหัสลับ (สำหรับคุณครูตัดตามรอยประ นำไปติดซ่อนตามจุดต่างๆ ในห้องเรียน)
+      </div>
+      <div id="print-cards-container" class="grid grid-cols-2 gap-4"></div>
+    </div>
+
+  </div>
+
+  <!-- ================= สคริปต์การทำงานของระบบ ================= -->
+  <script>
+    // -------------------------------------------------------------
+    // 🎵 รายชื่อไฟล์เพลงในเครื่อง
+    // -------------------------------------------------------------
+    const AUDIO_FILES = {
+      bgmTrack1: "S01.mp3",       // เพลงช่วงครึ่งแรก
+      bgmTrack2: "S02.mp3",       // เพลงช่วงครึ่งหลัง
+      victory: "S01V.mp3",      // เพลงตอนชนะผ่านทุกด่าน
+      gameover: "S01O.mp3"     // เพลงตอนแพ้หัวใจหมด
+    };
+
+    // 🔗 URL Google Apps Script ของคุณครู
+    const DEFAULT_SHEETS_URL = "https://script.google.com/macros/s/AKfycbx95D3PJhndZU9T_JQIEGRLk0zbaG_nIjB6IwxtdiDFOTCACSKpI6MMtoSzT09T7zo/exec";
+
+    // ข้อมูลสำรองกรณีออฟไลน์
+    const BUILTIN_MATH_DATA = [
+      { id: 1, triviaQuestion: "ใครคือผู้ค้นพบการเหนี่ยวนำแม่เหล็กไฟฟ้า ซึ่งนำมาสู่การสร้างมอเตอร์และเครื่องกำเนิดไฟฟ้า?", calcQuestion: "(125 × 8) - 450", answer: "550", code: "SPARK", knowledge: "ไมเคิล ฟาราเดย์ (Michael Faraday): ผู้ค้นพบการเหนี่ยวนำแม่เหล็กไฟฟ้า ทำให้ผลิตกระแสไฟฟ้าใช้งานได้จนถึงปัจจุบัน" },
+      { id: 2, triviaQuestion: "ตัวอักษรกรีก Δ (เดลตา) ในทางคณิตศาสตร์และวิทยาศาสตร์นิยมใช้แทนความหมายของสิ่งใด?", calcQuestion: "ทอน 36/48 ให้เป็นเศษส่วนอย่างต่ำ", answer: "3/4", code: "DELTA", knowledge: "สัญลักษณ์ เดลตา (Delta - Δ): มักใช้แทน 'ความเปลี่ยนแปลง' หรือผลต่างระหว่างสองค่า" },
+      { id: 3, triviaQuestion: "ปรากฏการณ์ในอวกาศที่ดาวฤกษ์เกิดการระเบิดสว่างวาบขึ้นมากะทันหัน เรียกว่าอะไร?", calcQuestion: "อัตราเร็ว 60 กม./ชม. เดินทาง 2.5 ชม. ได้ระยะทางกี่ กม.", answer: "150", code: "NOVA", knowledge: "ดาวโนวา (Nova): การระเบิดของดาวฤกษ์ที่สว่างจ้าขึ้นมาหลายเท่าตัวก่อนค่อยๆ หรี่ลง" },
+      { id: 4, triviaQuestion: "ตารางตัวเลขในแนวแถวและหลักที่สร้างขึ้นเพื่อช่วยแก้ระบบสมการเชิงเส้นหลายตัวแปร มีชื่อเรียกว่าอะไร?", calcQuestion: "ค.ร.น. ของ 6, 8 และ 12 คือจำนวนใด", answer: "24", code: "MATRIX", knowledge: "เมทริกซ์ (Matrix): กลุ่มจำนวนจัดเรียงเป็นแถวและหลัก ใช้มากในคอมพิวเตอร์และกราฟิก 3D" },
+      { id: 5, triviaQuestion: "ดวงจันทร์เพียงดวงเดียวในระบบสุริยะที่มีชั้นบรรยากาศหนาแน่น เป็นบริวารของดาวเคราะห์ดวงใด?", calcQuestion: "สี่เหลี่ยมผืนผ้า กว้าง 15 ม. ยาว 20 ม. มีพื้นที่กี่ ตร.ม.", answer: "300", code: "TITAN", knowledge: "ดวงจันทร์ไททัน (Titan): บริวารที่ใหญ่ที่สุดของดาวเสาร์ มีชั้นบรรยากาศหนาแน่นและทะเลสาบมีเทนเหลว" },
+      { id: 6, triviaQuestion: "ศาสตร์ที่ศึกษาเกี่ยวกับการควบคุมและการสื่อสารระหว่างสิ่งมีชีวิตกับเครื่องจักร คิดค้นโดย นอร์เบิร์ต วีเนอร์ คือศาสตร์ใด?", calcQuestion: "เสื้อราคา 500 บาท ลดราคา 20% ต้องจ่ายเงินกี่บาท", answer: "400", code: "CYBER", knowledge: "ไซเบอร์เนติกส์ (Cybernetics): รากฐานของระบบควบคุมอัตโนมัติ วิทยาการหุ่นยนต์ และ AI" },
+      { id: 7, triviaQuestion: "นักฟิสิกส์ท่านใดที่เป็นผู้อธิบายกฎแรงโน้มถ่วงสากลที่ทำให้ดาวเคราะห์โคจรรอบดวงอาทิตย์อย่างสมดุล?", calcQuestion: "ผลรวมของขนาดมุมภายในของรูปสามเหลี่ยมเท่ากับกี่องศา", answer: "180", code: "ORBIT", knowledge: "เซอร์ ไอแซก นิวตัน (Isaac Newton): ค้นพบกฎแรงโน้มถ่วงสากลและกฎการเคลื่อนที่อันโด่งดัง" },
+      { id: 8, triviaQuestion: "ดาวนิวตรอนที่หมุนรอบตัวเองอย่างรวดเร็วและแผ่รังสีคลื่นวิทยุออกมาเป็นจังหวะสม่ำเสมอ เรียกว่าอะไร?", calcQuestion: "หาผลคูณของ 0.25 × 16 มีค่าเท่ากับเท่าใด", answer: "4", code: "PULSE", knowledge: "พัลซาร์ (Pulsar): ค้นพบโดย โจเซลิน เบลล์ เป็นดาวนิวตรอนที่หมุนและส่งคลื่นวิทยุเป็นจังหวะคล้ายประภาคาร" },
+      { id: 9, triviaQuestion: "อุปกรณ์ตรวจจับและวัดระยะห่างของวัตถุโดยอาศัยการสะท้อนกลับของคลื่นวิทยุ เรียกว่าอะไร?", calcQuestion: "ห.ร.ม. ของ 18 และ 27 คือจำนวนใด", answer: "9", code: "RADAR", knowledge: "เรดาร์ (Radar): เทคโนโลยีตรวจจับวัตถุระยะไกลที่พัฒนาขึ้นอย่างมากในสงครามโลกครั้งที่ 2" },
+      { id: 10, triviaQuestion: "นักคณิตศาสตร์ชาวเปอร์เซียผู้ได้รับการยกย่องให้เป็น 'บิดาแห่งวิชาพีชคณิต' มีชื่อว่าอะไร?", calcQuestion: "ถ้า 3x + 5 = 20 ค่าของ x มีค่าเท่ากับเท่าใด", answer: "5", code: "VICTORY", knowledge: "อัล-ควาริซมีย์ (Al-Khwarizmi): ผู้คิดค้นระบบการจัดรูปสมการเชิงเส้น และรากศัพท์ของคำว่า Algebra" }
+    ];
+
+    let rawQuestionsData = [];
+    let shuffledQuestionsData = [];
+    let currentStageIndex = 0;
+    let remainingLives = 3;
+
+    function shuffleQuestions(array) {
+      const copy = JSON.parse(JSON.stringify(array));
+      for (let i = copy.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [copy[i], copy[j]] = [copy[j], copy[i]];
+      }
+      return copy;
+    }
+
+    let totalScore = 0;
+    let stageStartTime = null;
+
+    function calculateStageScore(elapsedSeconds) {
+      const BASE_SCORE = 1000;
+      const MIN_SCORE = 200;
+      if (elapsedSeconds <= 30) {
+        return BASE_SCORE;
+      } else {
+        const deducted = Math.floor((elapsedSeconds - 30) * 4);
+        return Math.max(MIN_SCORE, BASE_SCORE - deducted);
+      }
+    }
+
+    function updateScoreDisplay() {
+      document.getElementById('total-score-badge').textContent = totalScore.toLocaleString();
+    }
+
+    // ================= ระบบเล่นไฟล์เสียงในเครื่อง =================
+    let currentAudio = null;
+    let currentTrackType = "";
+    let isMusicEnabled = true;
+
+    function stopAllMusic() {
+      if (currentAudio) {
+        currentAudio.pause();
+        currentAudio.currentTime = 0;
+        currentAudio = null;
+      }
+      currentTrackType = "";
+    }
+
+    function playLocalAudio(fileSrc, isLoop = false, trackType = "") {
+      if (!isMusicEnabled) return;
+      if (currentTrackType === trackType && currentAudio && !currentAudio.paused) return;
+
+      stopAllMusic();
+
+      const audio = new Audio(fileSrc);
+      audio.loop = isLoop;
+      audio.volume = 0.75;
+      audio.play().catch(err => {
+        console.warn(`ไม่สามารถเล่นไฟล์เสียง "${fileSrc}" ได้:`, err.message);
+      });
+
+      currentAudio = audio;
+      currentTrackType = trackType;
+    }
+
+    function toggleMusicManual() {
+      isMusicEnabled = !isMusicEnabled;
+      const icon = document.getElementById('music-icon');
+      const text = document.getElementById('music-text');
+
+      if (isMusicEnabled) {
+        icon.textContent = '🔊';
+        text.textContent = 'พักเพลง';
+        checkAndPlayBgmForCurrentStage();
+      } else {
+        icon.textContent = '🔇';
+        text.textContent = 'เล่นเพลง';
+        stopAllMusic();
+      }
+    }
+
+    function checkAndPlayBgmForCurrentStage() {
+      if (!isMusicEnabled) return;
+
+      const totalStages = shuffledQuestionsData.length || 10;
+      const halfwayStageIndex = Math.ceil(totalStages / 2);
+
+      if (currentStageIndex < halfwayStageIndex) {
+        playLocalAudio(AUDIO_FILES.bgmTrack1, true, "track1");
+      } else {
+        playLocalAudio(AUDIO_FILES.bgmTrack2, true, "track2");
+      }
+    }
+
+    let sfxAudioCtx = null;
+    function playSfx(type) {
+      try {
+        if (!sfxAudioCtx) sfxAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        if (sfxAudioCtx.state === 'suspended') sfxAudioCtx.resume();
+
+        const osc = sfxAudioCtx.createOscillator();
+        const gain = sfxAudioCtx.createGain();
+        osc.connect(gain);
+        gain.connect(sfxAudioCtx.destination);
+
+        if (type === 'correct') {
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(587.33, sfxAudioCtx.currentTime);
+          osc.frequency.setValueAtTime(880, sfxAudioCtx.currentTime + 0.1);
+          gain.gain.setValueAtTime(0.2, sfxAudioCtx.currentTime);
+          gain.gain.exponentialRampToValueAtTime(0.001, sfxAudioCtx.currentTime + 0.3);
+          osc.start();
+          osc.stop(sfxAudioCtx.currentTime + 0.3);
+        } else {
+          osc.type = 'sawtooth';
+          osc.frequency.setValueAtTime(150, sfxAudioCtx.currentTime);
+          osc.frequency.setValueAtTime(110, sfxAudioCtx.currentTime + 0.12);
+          gain.gain.setValueAtTime(0.2, sfxAudioCtx.currentTime);
+          gain.gain.exponentialRampToValueAtTime(0.001, sfxAudioCtx.currentTime + 0.3);
+          osc.start();
+          osc.stop(sfxAudioCtx.currentTime + 0.3);
+        }
+      } catch (e) {}
+    }
+
+    // ================= ระบบค้นหารายชื่อแท็บทั้งหมด =================
+    async function discoverSheetsAndLoad() {
+      const badge = document.getElementById('api-sync-badge');
+      const select = document.getElementById('subject-select');
+
+      badge.innerHTML = '<span class="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span> ค้นหาแท็บวิชา...';
+      badge.className = 'text-[11px] px-2.5 py-0.5 rounded-full bg-slate-800 text-amber-300 border border-amber-500/30 flex items-center gap-1.5';
+
+      try {
+        const discoverUrl = `${DEFAULT_SHEETS_URL}?action=getSheets`;
+        const res = await fetch(discoverUrl);
+        const data = await res.json();
+
+        if (data && Array.isArray(data.sheets) && data.sheets.length > 0) {
+          select.innerHTML = '';
+          data.sheets.forEach(tabName => {
+            const opt = document.createElement('option');
+            opt.value = tabName;
+            opt.textContent = `วิชา: ${tabName}`;
+            select.appendChild(opt);
+          });
+
+          badge.innerHTML = `✅ ตรวจพบ ${data.sheets.length} วิชาในชีต`;
+          badge.className = 'text-[11px] px-2.5 py-0.5 rounded-full bg-emerald-950 text-emerald-300 border border-emerald-700/50 flex items-center gap-1.5';
+        }
+      } catch (err) {
+        console.warn("ไม่สามารถดึงรายชื่อแท็บได้ ใช้แท็บค่าเริ่มต้น:", err.message);
+      }
+
+      await syncDataForSelectedSubject();
+    }
+
+    async function syncDataForSelectedSubject() {
+      const select = document.getElementById('subject-select');
+      const sheetTabName = select.value || "Questions";
+      const targetUrl = `${DEFAULT_SHEETS_URL}?sheet=${encodeURIComponent(sheetTabName)}`;
+      const badge = document.getElementById('api-sync-badge');
+
+      try {
+        const response = await fetch(targetUrl);
+        const json = await response.json();
+
+        if (Array.isArray(json) && json.length > 0) {
+          rawQuestionsData = json;
+          localStorage.setItem(`math_hunt_${sheetTabName}`, JSON.stringify(json));
+          badge.innerHTML = `✅ [${sheetTabName}] (${json.length} คำใบ้)`;
+          badge.className = 'text-[11px] px-2.5 py-0.5 rounded-full bg-emerald-950 text-emerald-300 border border-emerald-700/50 flex items-center gap-1.5';
+        } else {
+          throw new Error("ไม่มีข้อมูล");
+        }
+      } catch (err) {
+        const cached = localStorage.getItem(`math_hunt_${sheetTabName}`);
+        rawQuestionsData = cached ? JSON.parse(cached) : BUILTIN_MATH_DATA;
+        badge.innerHTML = `⚠️ โหมดสำรอง: ${sheetTabName}`;
+        badge.className = 'text-[11px] px-2.5 py-0.5 rounded-full bg-amber-950 text-amber-300 border border-amber-700/50 flex items-center gap-1.5';
+      }
+
+      document.getElementById('current-subject-label').textContent = `วิชา: ${sheetTabName}`;
+      document.getElementById('print-subject-title').textContent = `วิชา: ${sheetTabName}`;
+      buildPrintableLayout();
+    }
+
+    function onSubjectChange() {
+      syncDataForSelectedSubject();
+    }
+
+    // ================= ควบคุมหน้าจอและการเล่น =================
+    function startGameFromCover() {
+      if (!rawQuestionsData || rawQuestionsData.length === 0) {
+        rawQuestionsData = BUILTIN_MATH_DATA;
+      }
+      buildPrintableLayout();
+
+      document.getElementById('cover-screen').classList.add('hidden');
+      document.getElementById('play-screen').classList.remove('hidden');
+      document.getElementById('play-screen').classList.add('flex');
+
+      restartGame();
+    }
+
+    function returnToCover() {
+      stopAllMusic();
+      document.getElementById('play-screen').classList.add('hidden');
+      document.getElementById('play-screen').classList.remove('flex');
+      document.getElementById('cover-screen').classList.remove('hidden');
+    }
+
+    function updateLivesDisplay() {
+      let hearts = '';
+      for (let i = 0; i < 3; i++) {
+        hearts += i < remainingLives 
+          ? '<span class="text-rose-500 scale-100 transition-transform">❤️</span>' 
+          : '<span class="text-slate-700 opacity-40">🖤</span>';
+      }
+      document.getElementById('lives-container').innerHTML = hearts;
+    }
+
+    function renderCurrentStage() {
+      if (currentStageIndex >= shuffledQuestionsData.length) {
+        // ชนะเกม
+        document.getElementById('game-active-container').classList.add('hidden');
+        document.getElementById('victory-screen').classList.remove('hidden');
+        document.getElementById('gameover-screen').classList.add('hidden');
+        
+        document.getElementById('final-score-text').textContent = totalScore.toLocaleString();
+        const comment = document.getElementById('rank-comment-text');
+        if (totalScore >= 8500) {
+          comment.textContent = "🌟 ระดับ: ปรมาจารย์นักสืบถอดรหัส (Master Cipher) ไหวพริบยอดเยี่ยมและรวดเร็วมาก!";
+        } else if (totalScore >= 6000) {
+          comment.textContent = "🎖️ ระดับ: ผู้เชี่ยวชาญการถอดรหัส (Expert Agent) ผลงานดีเยี่ยม!";
+        } else {
+          comment.textContent = "👍 ระดับ: นักถอดรหัสยอดฝีมือ (Skilled Agent) ผ่านภารกิจสำเร็จลุล่วง!";
+        }
+
+        playLocalAudio(AUDIO_FILES.victory, false, "victory");
+        return;
+      }
+
+      checkAndPlayBgmForCurrentStage();
+
+      const stage = shuffledQuestionsData[currentStageIndex];
+      const stageNum = currentStageIndex + 1;
+      const originalNum = stage.id; // เลขคำใบ้เดิม
+
+      document.getElementById('stage-badge').textContent = `ด่านที่ ${stageNum} / ${shuffledQuestionsData.length}`;
+      document.getElementById('ref-question-num').textContent = originalNum;
+      document.getElementById('calc-ref-num').textContent = originalNum;
+      document.getElementById('trivia-question-text').textContent = stage.triviaQuestion || `คำถามคำใบ้ที่ ${originalNum}`;
+
+      const answerInput = document.getElementById('answer-input');
+      answerInput.value = '';
+      document.getElementById('feedback-msg').className = 'text-sm sm:text-base text-center min-h-[28px] font-medium transition hidden';
+      answerInput.focus();
+
+      stageStartTime = Date.now();
+    }
+
+    function checkAnswer() {
+      const answerInput = document.getElementById('answer-input');
+      const rawInput = answerInput.value.trim().toUpperCase().replace(/\s+/g, '');
+
+      if (!rawInput) {
+        showFeedback("กรุณากรอกรหัสลับภาษาอังกฤษก่อนกดยืนยัน", "text-amber-400");
+        return;
+      }
+
+      const stage = shuffledQuestionsData[currentStageIndex];
+      const correctCode = String(stage.code || '').trim().toUpperCase();
+
+      if (rawInput === correctCode) {
+        const elapsedSec = (Date.now() - stageStartTime) / 1000;
+        const earned = calculateStageScore(elapsedSec);
+        totalScore += earned;
+        updateScoreDisplay();
+
+        playSfx('correct');
+        showFeedback(`🎉 ปลดล็อกสำเร็จ! (+${earned} คะแนน) กำลังเข้าสู่ด่านถัดไป...`, "text-emerald-400 font-bold");
+        setTimeout(() => {
+          currentStageIndex++;
+          renderCurrentStage();
+        }, 1100);
+      } else {
+        remainingLives--;
+        updateLivesDisplay();
+        totalScore = Math.max(0, totalScore - 50);
+        updateScoreDisplay();
+
+        playSfx('wrong');
+
+        if (remainingLives <= 0) {
+          document.getElementById('game-active-container').classList.add('hidden');
+          document.getElementById('gameover-screen').classList.remove('hidden');
+          playLocalAudio(AUDIO_FILES.gameover, false, "gameover");
+        } else {
+          showFeedback(`❌ รหัสลับไม่ถูกต้อง! (-50 แต้ม / เหลือโอกาสอีก ${remainingLives} ครั้ง)`, "text-rose-400 font-semibold");
+          answerInput.select();
+        }
+      }
+    }
+
+    function showFeedback(text, colorClass) {
+      const msg = document.getElementById('feedback-msg');
+      msg.textContent = text;
+      msg.className = `text-sm sm:text-base text-center min-h-[28px] font-medium transition ${colorClass}`;
+    }
+
+    function restartGame() {
+      currentStageIndex = 0;
+      remainingLives = 3;
+      totalScore = 0;
+      updateScoreDisplay();
+      updateLivesDisplay();
+
+      shuffledQuestionsData = shuffleQuestions(rawQuestionsData);
+
+      document.getElementById('game-active-container').classList.remove('hidden');
+      document.getElementById('victory-screen').classList.add('hidden');
+      document.getElementById('gameover-screen').classList.add('hidden');
+
+      renderCurrentStage();
+    }
+
+    document.getElementById('quiz-form').addEventListener('submit', (e) => {
+      e.preventDefault();
+      checkAnswer();
+    });
+
+    // ================= เรนเดอร์เอกสารสำหรับสั่งพิมพ์ =================
+    function buildPrintableLayout() {
+      const tasksDiv = document.getElementById('print-sheet-tasks');
+      const knowledgeDiv = document.getElementById('print-knowledge-tasks');
+      const cardsDiv = document.getElementById('print-cards-container');
+
+      tasksDiv.innerHTML = '';
+      knowledgeDiv.innerHTML = '';
+      cardsDiv.innerHTML = '';
+
+      const dataset = rawQuestionsData && rawQuestionsData.length > 0 ? rawQuestionsData : BUILTIN_MATH_DATA;
+
+      dataset.forEach((item, idx) => {
+        const num = item.id || (idx + 1);
+
+        // 1. ช่องโจทย์ในใบภารกิจ (เปลี่ยนเป็น "คำใบ้ที่ ...")
+        tasksDiv.innerHTML += `
+          <div class="p-3 border-2 border-gray-400 rounded-xl bg-white shadow-sm flex flex-col justify-between min-h-[110px]">
+            <div>
+              <div class="font-bold text-indigo-900 border-b border-gray-200 pb-1 flex justify-between items-center">
+                <span>📍 คำใบ้ที่ ${num}</span>
+                <span class="text-[10px] text-gray-500 font-normal">รหัสสืบค้น #${num}</span>
+              </div>
+              <div class="text-gray-800 my-2 font-medium">${item.calcQuestion}</div>
+            </div>
+            <div class="text-gray-500 text-xs border-t border-dashed border-gray-300 pt-1 flex justify-between">
+              <span>ผลลัพธ์:</span>
+              <span class="border-b border-gray-400 w-28 inline-block"></span>
+            </div>
+          </div>
+        `;
+
+        // 2. ใบเกร็ดความรู้รอบตัว (แยกกล่องการ์ดชัดเจน เป็นสัดส่วน สวยงาม)
+        knowledgeDiv.innerHTML += `
+          <div class="border-2 border-slate-700 rounded-xl p-3.5 bg-slate-50 flex flex-col justify-between shadow-sm">
+            <div>
+              <div class="flex items-center justify-between border-b border-slate-300 pb-1.5 mb-2">
+                <span class="font-bold text-indigo-950 text-xs sm:text-sm bg-indigo-100 px-2 py-0.5 rounded border border-indigo-200">
+                  💡 คำใบ้ที่ ${num}
+                </span>
+                <span class="font-mono font-bold text-indigo-700 bg-white border border-indigo-200 px-2 py-0.5 rounded text-[11px]">
+                  CODE: ${item.code}
+                </span>
+              </div>
+              <p class="text-gray-800 text-xs leading-relaxed">
+                ${item.knowledge}
+              </p>
+            </div>
+            <div class="mt-2 pt-1 border-t border-dashed border-slate-200 text-[10px] text-slate-500 text-right">
+              สอดคล้องกับคำใบ้ที่ ${num} ในใบงาน
+            </div>
+          </div>
+        `;
+
+        // 3. การ์ดคำตอบสำหรับติดซ่อนในห้อง (เปลี่ยนเป็น "รหัสลับคำใบ้ที่ ...")
+        cardsDiv.innerHTML += `
+          <div class="border-2 border-dashed border-gray-600 p-4 rounded-xl text-center bg-gray-50">
+            <div class="text-[11px] text-gray-500 font-medium">ผลลัพธ์คำตอบ</div>
+            <div class="text-4xl font-extrabold text-blue-700 my-1">${item.answer}</div>
+            <div class="text-2xl font-mono font-bold tracking-widest bg-white border border-gray-300 py-1.5 mt-1 rounded-lg">
+              ${item.code}
+            </div>
+          </div>
+        `;
+      });
+    }
+
+    discoverSheetsAndLoad();
+  </script>
+</body>
+</html>

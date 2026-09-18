@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ศูนย์รวมเกมการเรียนรู้</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    body { font-family: 'Sarabun', sans-serif; }
+    .game-card { transition: all 0.25s ease; }
+    .game-card:hover { transform: translateY(-5px); }
+  </style>
+</head>
+<body class="bg-slate-100 min-h-screen flex flex-col">
+
+  <!-- มุมมองที่ 1: หน้ารายการเลือกเกม (Game Lobby) -->
+  <div id="gameLobby" class="flex-1 max-w-6xl mx-auto w-full p-4 sm:p-6">
+    <div class="flex flex-col sm:flex-row justify-between sm:items-center gap-2 mb-6 border-b pb-4">
+      <div>
+        <h1 class="text-xl sm:text-2xl font-bold text-slate-800 flex items-center gap-2">
+          <i class="fa-solid fa-gamepad text-indigo-600"></i> ศูนย์รวมเกมการเรียนรู้
+        </h1>
+        <p class="text-xs sm:text-sm text-slate-500 mt-1">เลือกเกมที่ต้องการเล่นเพื่อเริ่มกิจกรรม</p>
+      </div>
+      <span class="text-xs bg-indigo-50 text-indigo-700 px-3 py-1.5 rounded-full border border-indigo-200 font-semibold w-fit">
+        Active Learning & Gamification
+      </span>
+    </div>
+
+    <!-- กริดแสดงการ์ดเกม (เพิ่มเกมใหม่ๆ ตรงนี้ได้เรื่อยๆ) -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+
+      <!-- เกมที่ 1 -->
+      <div onclick="launchGame('game1.html', 'เกมสมรภูมิเศษส่วน')" class="game-card bg-white rounded-2xl p-5 shadow-sm hover:shadow-md border border-slate-200 cursor-pointer flex flex-col justify-between group">
+        <div>
+          <div class="h-36 bg-gradient-to-tr from-amber-400 to-orange-500 rounded-xl flex items-center justify-center text-white text-5xl mb-4 shadow-inner">
+            <i class="fa-solid fa-calculator"></i>
+          </div>
+          <span class="text-[11px] font-bold bg-amber-50 text-amber-700 px-2.5 py-1 rounded-md">คณิตศาสตร์</span>
+          <h3 class="text-base sm:text-lg font-bold text-slate-800 mt-2 group-hover:text-indigo-600 transition-colors">เกมสมรภูมิเศษส่วน</h3>
+          <p class="text-xs text-slate-500 mt-1 leading-relaxed">เกมฝึกทักษะการคำนวณและบวก ลบ คูณ หารเศษส่วน ชั้นประถมศึกษาปีที่ 6</p>
+        </div>
+        <button class="mt-4 w-full py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-semibold shadow transition flex items-center justify-center gap-1.5">
+          <i class="fa-solid fa-play"></i> เริ่มเล่นเกม
+        </button>
+      </div>
+
+      <!-- เกมที่ 2 (ตัวอย่างเพิ่มเกมถัดไป) -->
+      <div onclick="launchGame('game2.html', 'เกมนวัตกรรมแยกขยะ')" class="game-card bg-white rounded-2xl p-5 shadow-sm hover:shadow-md border border-slate-200 cursor-pointer flex flex-col justify-between group">
+        <div>
+          <div class="h-36 bg-gradient-to-tr from-emerald-400 to-teal-600 rounded-xl flex items-center justify-center text-white text-5xl mb-4 shadow-inner">
+            <i class="fa-solid fa-recycle"></i>
+          </div>
+          <span class="text-[11px] font-bold bg-emerald-50 text-emerald-700 px-2.5 py-1 rounded-md">วิทยาศาสตร์และสิ่งแวดล้อม</span>
+          <h3 class="text-base sm:text-lg font-bold text-slate-800 mt-2 group-hover:text-indigo-600 transition-colors">เกมนวัตกรรมแยกขยะ</h3>
+          <p class="text-xs text-slate-500 mt-1 leading-relaxed">เรียนรู้ประเภทขยะและการคัดแยกขยะที่ถูกต้องเพื่อสิ่งแวดล้อม</p>
+        </div>
+        <button class="mt-4 w-full py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-semibold shadow transition flex items-center justify-center gap-1.5">
+          <i class="fa-solid fa-play"></i> เริ่มเล่นเกม
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- มุมมองที่ 2: หน้าจอเล่นเกม (Game Player) -->
+  <div id="gamePlayer" class="fixed inset-0 bg-slate-900 z-50 hidden flex-col">
+    <!-- แถบควบคุมด้านบนของตัวเกม -->
+    <div class="bg-slate-800 text-white px-4 py-2.5 flex items-center justify-between border-b border-slate-700">
+      <div class="flex items-center gap-3">
+        <button onclick="exitGame()" class="px-3 py-1 bg-red-600 hover:bg-red-700 text-white text-xs rounded-lg font-medium transition flex items-center gap-1.5">
+          <i class="fa-solid fa-arrow-left"></i> ออกจากเกม
+        </button>
+        <span id="currentGameTitle" class="text-sm font-bold text-slate-200"></span>
+      </div>
+      <button onclick="toggleFullScreen()" class="text-slate-300 hover:text-white text-sm" title="เต็มจอ">
+        <i class="fa-solid fa-expand"></i>
+      </button>
+    </div>
+
+    <!-- หน้าต่างรันตัวเกม -->
+    <iframe id="gameFrame" class="flex-1 w-full h-full border-0 bg-white" allow="camera; microphone; fullscreen; accelerometer; gyroscope"></iframe>
+  </div>
+
+  <script>
+    // เปิดเกมเข้าสู่โหมดเล่นเกม
+    function launchGame(fileUrl, title) {
+      document.getElementById('currentGameTitle').innerText = title;
+      document.getElementById('gameFrame').src = fileUrl;
+      document.getElementById('gamePlayer').classList.remove('hidden');
+      document.getElementById('gamePlayer').classList.add('flex');
+    }
+
+    // ออกจากเกมกลับมาหน้าเลือกเกม
+    function exitGame() {
+      document.getElementById('gameFrame').src = 'about:blank'; // ล้างข้อมูลเกม
+      document.getElementById('gamePlayer').classList.add('hidden');
+      document.getElementById('gamePlayer').classList.remove('flex');
+    }
+
+    // สลับโหมดเต็มจอ
+    function toggleFullScreen() {
+      const elem = document.getElementById('gamePlayer');
+      if (!document.fullscreenElement) {
+        elem.requestFullscreen().catch(err => alert(`Error: ${err.message}`));
+      } else {
+        document.exitFullscreen();
+      }
+    }
+  </script>
+</body>
+</html>
