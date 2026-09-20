@@ -3,20 +3,34 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ระบบธนาคารออมเงินนักเรียน</title>
+  <title>ระบบธนาคารออมเงินนักเรียน 3D Pet Simulator</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
   <style>
     body { font-family: 'Prompt', sans-serif; }
 
-    /* Keyframe Animations */
-    @keyframes floatSlow {
-      0%, 100% { transform: translateY(0px) rotate(0deg); }
-      50% { transform: translateY(-10px) rotate(3deg); }
+    /* 3D Keyframe Animations */
+    @keyframes float3D {
+      0%, 100% { transform: translateY(0px) rotate(0deg) scale(1); }
+      50% { transform: translateY(-14px) rotate(2.5deg) scale(1.02); }
     }
-    @keyframes pulseGlow {
-      0%, 100% { opacity: 0.35; transform: scale(1); }
-      50% { opacity: 0.65; transform: scale(1.06); }
+    @keyframes shadow3D {
+      0%, 100% { transform: scale(1); opacity: 0.32; }
+      50% { transform: scale(0.75); opacity: 0.12; }
+    }
+    @keyframes petHappy {
+      0%, 100% { transform: translateY(0) scale(1) rotate(0deg); }
+      25% { transform: translateY(-32px) scale(1.15, 0.88) rotate(-5deg); }
+      50% { transform: translateY(-10px) scale(0.92, 1.08) rotate(5deg); }
+      75% { transform: translateY(-26px) scale(1.1, 0.9) rotate(-3deg); }
+    }
+    @keyframes petHungry {
+      0%, 100% { transform: translateY(0) rotate(0deg); }
+      50% { transform: translateY(5px) rotate(-2deg) scale(0.98); }
+    }
+    @keyframes bubbleFloat {
+      0%, 100% { transform: translateY(0px); }
+      50% { transform: translateY(-5px); }
     }
     @keyframes shimmer {
       0% { transform: translateX(-150%); }
@@ -27,26 +41,54 @@
       100% { transform: rotate(360deg); }
     }
 
-    .animate-float {
-      animation: floatSlow 3.2s ease-in-out infinite;
+    .pet-idle {
+      animation: float3D 3.2s ease-in-out infinite;
+      cursor: pointer;
     }
-    .animate-glow-1 {
-      animation: pulseGlow 6s ease-in-out infinite;
+    .pet-happy-jump {
+      animation: petHappy 0.9s cubic-bezier(0.36, 0.07, 0.19, 0.97) infinite;
+      cursor: pointer;
     }
-    .animate-glow-2 {
-      animation: pulseGlow 7s ease-in-out infinite 1.5s;
+    .pet-hungry-mood {
+      animation: petHungry 2.6s ease-in-out infinite;
+      cursor: pointer;
+      filter: grayscale(12%) brightness(96%);
+    }
+    .animate-shadow-3d {
+      animation: shadow3D 3.2s ease-in-out infinite;
     }
 
-    /* Glassmorphism Effect */
-    .glass-card {
-      background: rgba(255, 255, 255, 0.88);
+    /* กล่องคำพูด 3D ลอยเหนือหัว */
+    .speech-bubble-3d {
+      position: relative;
+      background: #ffffff;
+      border-radius: 20px;
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.12), 0 0 0 2px rgba(99, 102, 241, 0.25);
+      animation: bubbleFloat 2.4s ease-in-out infinite;
+    }
+    .speech-bubble-3d::after {
+      content: '';
+      position: absolute;
+      bottom: -10px;
+      left: 50%;
+      transform: translateX(-50%);
+      border-width: 10px 10px 0;
+      border-style: solid;
+      border-color: #ffffff transparent;
+    }
+
+    /* Claymorphism 3D Card */
+    .clay-card {
+      background: rgba(255, 255, 255, 0.93);
       backdrop-filter: blur(16px);
-      -webkit-backdrop-filter: blur(16px);
-      border: 1px solid rgba(255, 255, 255, 0.6);
-      box-shadow: 0 20px 40px -15px rgba(79, 70, 229, 0.15), 0 0 0 1px rgba(255, 255, 255, 0.5);
+      border-radius: 28px;
+      box-shadow: 
+        10px 10px 25px rgba(160, 175, 205, 0.25),
+        -6px -6px 20px rgba(255, 255, 255, 0.9),
+        inset 2px 2px 4px rgba(255, 255, 255, 0.7);
+      border: 1px solid rgba(255, 255, 255, 0.85);
     }
 
-    /* Shimmer Button */
     .btn-shimmer {
       position: relative;
       overflow: hidden;
@@ -62,7 +104,6 @@
       animation: shimmer 1.2s ease-in-out infinite;
     }
 
-    /* Loading Spinner */
     .spinner {
       border: 3px solid rgba(255,255,255,0.3);
       border-radius: 50%;
@@ -74,137 +115,112 @@
     }
   </style>
 </head>
-<body class="bg-slate-100 min-h-screen text-slate-800 antialiased flex flex-col justify-between">
+<body class="bg-slate-100 min-h-screen text-slate-800 antialiased flex flex-col justify-between relative overflow-x-hidden">
 
-  <!-- แถบด้านบน (Navbar) -->
-  <header class="bg-indigo-600/95 backdrop-blur-md text-white shadow-md sticky top-0 z-30">
+  <!-- ส่วนแถบด้านบน (Navbar) -->
+  <header class="bg-indigo-600/95 backdrop-blur-md text-white shadow-md sticky top-0 z-40 border-b border-indigo-400/20">
     <div class="max-w-4xl mx-auto px-4 py-3 flex justify-between items-center">
       <div class="flex items-center space-x-2.5">
         <span class="text-2xl drop-shadow">🏦</span>
         <div>
-          <h1 class="font-bold text-base sm:text-lg leading-tight">ระบบธนาคารออมเงิน</h1>
-          <p class="text-[10px] text-indigo-200">เพื่อสร้างวินัยการออมสู่อนาคต</p>
+          <h1 class="font-bold text-base sm:text-lg leading-tight">ระบบธนาคารออมเงิน 3D</h1>
+          <p class="text-[10px] text-indigo-200 font-light">เลี้ยงคู่หูสัตว์เลี้ยง ออมเงินสู่อนาคต</p>
         </div>
       </div>
-      <button id="logoutBtn" onclick="logout()" class="hidden text-xs font-medium bg-indigo-700 hover:bg-indigo-800 px-3 py-1.5 rounded-xl border border-indigo-500 shadow-sm transition">
+      <button id="logoutBtn" onclick="logout()" class="hidden text-xs font-semibold bg-indigo-700 hover:bg-indigo-800 px-3 py-1.5 rounded-xl border border-indigo-400/40 shadow-sm transition">
         🚪 ออกจากระบบ
       </button>
     </div>
   </header>
 
   <!-- เนื้อหาหลัก -->
-  <main class="max-w-4xl w-full mx-auto p-4 sm:p-6 flex-1">
+  <main class="max-w-4xl w-full mx-auto p-4 sm:p-6 flex-1 z-10">
 
-    <!-- 1. หน้าต่างเข้าสู่ระบบ (Enhanced Login) -->
     <!-- 1. หน้าต่างเข้าสู่ระบบ (Enhanced Login) -->
     <div id="viewLogin" class="relative max-w-md mx-auto my-6 sm:my-10">
       
-      <!-- 🎥 วิดีโอพื้นหลังเฉพาะหน้า Login -->
+      <!-- วิดีโอพื้นหลังเฉพาะหน้า Login -->
       <div class="fixed inset-0 -z-10 overflow-hidden pointer-events-none">
         <video autoplay muted loop playsinline class="w-full h-full object-cover">
-          <source src="B1.mp4" type="video/mp4">
+          <source src="https://assets.mixkit.co/videos/preview/mixkit-floating-white-clouds-and-blue-sky-32860-large.mp4" type="video/mp4">
         </video>
-        <!-- ม่านสีโปร่งแสงทับวิดีโอเพื่อความอ่านง่าย -->
-        <!--  <div class="absolute inset-0 bg-slate-900/40 backdrop-blur-[2px]"></div>  -->
+        <div class="absolute inset-0 bg-slate-900/45 backdrop-blur-[2px]"></div>
       </div>
 
-      <!-- แสงนีออนพื้นหลังตกแต่ง (Background Glows) -->
-      <div class="absolute -top-8 -left-8 w-48 h-48 bg-indigo-400/30 rounded-full blur-3xl pointer-events-none animate-glow-1"></div>
-      ...
-      
-      <!-- แสงนีออนพื้นหลังตกแต่ง (Background Glows) -->
-      <div class="absolute -top-8 -left-8 w-48 h-48 bg-indigo-400/30 rounded-full blur-3xl pointer-events-none animate-glow-1"></div>
-      <div class="absolute -bottom-8 -right-8 w-48 h-48 bg-emerald-400/25 rounded-full blur-3xl pointer-events-none animate-glow-2"></div>
-      <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-60 h-60 bg-purple-400/20 rounded-full blur-3xl pointer-events-none"></div>
-
-      <!-- กล่องฟอร์มแบบกระจกแก้ว -->
-      <div class="glass-card relative z-10 p-7 sm:p-9 rounded-3xl transition-all duration-300">
-        
-        <!-- Header & Animated Mascot -->
+      <div class="clay-card relative z-10 p-7 sm:p-9 transition-all duration-300">
         <div class="text-center mb-6">
-          <div class="inline-block p-3.5 bg-gradient-to-tr from-indigo-500 via-indigo-600 to-purple-600 rounded-2xl shadow-lg shadow-indigo-500/30 mb-3 animate-float">
-            <span id="mascotIcon" class="text-4xl block transition-transform duration-300">🐷</span>
+          <div class="inline-block p-3.5 bg-gradient-to-tr from-indigo-500 via-indigo-600 to-purple-600 rounded-3xl shadow-lg shadow-indigo-500/30 mb-3 animate-bounce">
+            <span id="mascotIcon" class="text-4xl block">🐷</span>
           </div>
-          
           <h2 class="text-2xl sm:text-3xl font-extrabold tracking-tight bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-500 bg-clip-text text-transparent">
             ระบบออมเงินนักเรียน
           </h2>
           <p class="text-xs sm:text-sm text-slate-500 mt-1 font-medium">
-            สะสมวันละนิด เพื่ออนาคตที่สดใส ✨
+            สะสมเงินออม อัปเกรดคู่หู 3D สุดน่ารัก ✨
           </p>
         </div>
         
         <!-- แท็บสลับ นักเรียน / คุณครู -->
         <div class="grid grid-cols-2 p-1 bg-slate-200/70 rounded-2xl mb-6 backdrop-blur-sm">
           <button id="tabStudent" onclick="switchLoginRole('STUDENT')" 
-                  class="py-2.5 text-xs sm:text-sm font-bold rounded-xl bg-white shadow-sm text-indigo-600 transition-all duration-200 flex items-center justify-center gap-1.5">
+                  class="py-2.5 text-xs sm:text-sm font-bold rounded-xl bg-white shadow-sm text-indigo-600 transition-all flex items-center justify-center gap-1.5">
             <span>🎒</span> นักเรียน
           </button>
           <button id="tabAdmin" onclick="switchLoginRole('ADMIN')" 
-                  class="py-2.5 text-xs sm:text-sm font-semibold rounded-xl text-slate-600 hover:text-slate-900 transition-all duration-200 flex items-center justify-center gap-1.5">
+                  class="py-2.5 text-xs sm:text-sm font-semibold rounded-xl text-slate-600 hover:text-slate-900 transition-all flex items-center justify-center gap-1.5">
             <span>👩‍🏫</span> คุณครู
           </button>
         </div>
 
-        <!-- ฟอร์มกรอกข้อมูล -->
+        <!-- ฟอร์มเข้าสู่ระบบ -->
         <div class="space-y-4">
-          <!-- รหัสนักเรียน -->
-          <div id="studentIdField" class="transition-all duration-300">
-            <label class="block text-xs font-bold text-slate-600 mb-1.5 ml-1">
-              เลขประจำตัวนักเรียน
-            </label>
+          <div id="studentIdField">
+            <label class="block text-xs font-bold text-slate-600 mb-1.5 ml-1">เลขประจำตัวนักเรียน</label>
             <div class="relative">
               <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-400 text-sm">🪪</span>
               <input type="text" id="loginId" placeholder="เช่น 1001" 
-                     class="w-full pl-10 pr-4 py-3 bg-white/90 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm transition-all duration-200 shadow-sm placeholder:text-slate-400">
+                     class="w-full pl-10 pr-4 py-3 bg-white/90 border border-slate-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm shadow-sm placeholder:text-slate-400">
             </div>
           </div>
 
-          <!-- รหัส PIN -->
           <div>
-            <label class="block text-xs font-bold text-slate-600 mb-1.5 ml-1" id="pinLabel">
-              รหัส PIN (4 หลัก)
-            </label>
+            <label class="block text-xs font-bold text-slate-600 mb-1.5 ml-1" id="pinLabel">รหัส PIN (4 หลัก)</label>
             <div class="relative">
               <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-400 text-sm">🔑</span>
               <input type="password" id="loginPin" placeholder="••••" maxlength="6"
                      onfocus="document.getElementById('mascotIcon').innerText = '🙈'" 
                      onblur="document.getElementById('mascotIcon').innerText = (currentRole === 'STUDENT' ? '🐷' : '👩‍🏫')"
-                     class="w-full pl-10 pr-4 py-3 bg-white/90 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm tracking-widest transition-all duration-200 shadow-sm placeholder:text-slate-400">
+                     class="w-full pl-10 pr-4 py-3 bg-white/90 border border-slate-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm tracking-widest shadow-sm placeholder:text-slate-400">
             </div>
           </div>
 
-          <!-- ปุ่มเข้าสู่ระบบ -->
           <button onclick="handleLogin()" id="btnLogin" 
-                  class="btn-shimmer w-full mt-2 py-3.5 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-bold rounded-xl shadow-lg shadow-indigo-500/25 hover:shadow-indigo-500/40 active:scale-[0.99] transition-all duration-200 text-sm flex items-center justify-center gap-2">
-            <span>เข้าสู่ระบบ</span>
-            <span>🚀</span>
+                  class="btn-shimmer w-full mt-2 py-3.5 bg-gradient-to-r from-indigo-600 via-indigo-700 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-bold rounded-2xl shadow-lg shadow-indigo-500/25 active:scale-[0.99] transition-all text-sm flex items-center justify-center gap-2">
+            <span>เข้าสู่ระบบ</span> <span>🚀</span>
           </button>
         </div>
 
         <div class="mt-6 pt-4 border-t border-slate-100 text-center">
-          <p class="text-[11px] text-slate-400">
-            💡 ลืมรหัสผ่าน PIN ให้แจ้งคุณครูประจำชั้นเพื่อตรวจสอบ
-          </p>
+          <p class="text-[11px] text-slate-400">💡 ลืมรหัสผ่าน PIN ให้แจ้งคุณครูประจำชั้นเพื่อตรวจสอบ</p>
         </div>
-
       </div>
     </div>
 
-    <!-- 2. หน้าจอนักเรียน (Student View) -->
+    <!-- 2. หน้านักเรียน (Student View) -->
     <div id="viewStudent" class="hidden space-y-5">
-      <!-- บัตรยอดเงินสะสม -->
-      <div class="bg-gradient-to-br from-indigo-600 via-indigo-700 to-purple-800 text-white p-6 rounded-3xl shadow-lg relative overflow-hidden">
+      
+      <!-- การ์ดยอดเงินคงเหลือ -->
+      <div class="bg-gradient-to-br from-indigo-600 via-indigo-700 to-purple-800 text-white p-6 rounded-3xl shadow-xl relative overflow-hidden border border-indigo-400/30">
         <div class="absolute -right-8 -bottom-8 text-8xl opacity-10 pointer-events-none">💰</div>
         <div class="flex justify-between items-start relative z-10">
           <div>
-            <span class="text-xs bg-indigo-500/40 border border-indigo-400/40 px-2.5 py-1 rounded-full text-indigo-100">
+            <span class="text-[11px] bg-indigo-500/40 border border-indigo-400/40 px-3 py-1 rounded-full text-indigo-100 font-medium">
               สมุดเงินฝากดิจิทัล
             </span>
-            <h3 id="stName" class="text-2xl font-bold mt-2">...</h3>
+            <h3 id="stName" class="text-2xl font-bold mt-2.5">...</h3>
             <p id="stClass" class="text-xs text-indigo-200 mt-0.5">...</p>
           </div>
-          <span class="text-3xl">🐷</span>
+          <span class="text-4xl filter drop-shadow-md">✨</span>
         </div>
         <div class="mt-6 relative z-10">
           <p class="text-xs text-indigo-200 font-medium">ยอดเงินคงเหลือสะสม</p>
@@ -215,34 +231,83 @@
         </div>
       </div>
 
+      <!-- 🌟 เวทีสัตว์เลี้ยง 3D ขนาดใหญ่ เต็มตา พร้อมปฏิกิริยาโต้ตอบ -->
+      <div class="relative w-full rounded-3xl p-6 overflow-hidden bg-gradient-to-b from-indigo-100/90 via-purple-50/50 to-white border-2 border-indigo-200/70 shadow-xl min-h-[380px] flex flex-col items-center justify-between">
+        
+        <!-- แถบหัวเรื่อง & สถานะการกินเหรียญ -->
+        <div class="w-full flex justify-between items-center z-10">
+          <div class="flex items-center gap-2">
+            <span id="petMoodIcon" class="text-2xl">🍽️</span>
+            <div>
+              <h4 id="petStageTitle" class="font-extrabold text-slate-800 text-base leading-tight">น้องหมูทอง</h4>
+              <span id="petDietStatus" class="text-[11px] font-semibold text-rose-500">ท้องว่าง: ยังไม่ได้กินเหรียญวันนี้</span>
+            </div>
+          </div>
+          <span id="petBadgeTag" class="text-xs bg-indigo-600 text-white font-bold px-3 py-1 rounded-full shadow-sm">
+            ร่าง 1: เบบี้
+          </span>
+        </div>
+
+        <!-- กล่องคำพูด 3D ลอยเหนือหัว -->
+        <div class="z-20 my-2 max-w-[290px] sm:max-w-sm text-center">
+          <div class="speech-bubble-3d px-4 py-2.5">
+            <p id="petSpeechHead" class="text-xs sm:text-sm font-bold text-slate-700">
+              "วันนี้กระปุกยังว่าง... หิวจังเลย รอเงินฝากมาเลี้ยงดูอยู่น้า 🥺"
+            </p>
+          </div>
+        </div>
+
+        <!-- ตัวละครสัตว์เลี้ยง 3D ขนาดใหญ่ (แตะจิ้มเล่นได้) -->
+        <div class="relative flex flex-col items-center justify-center my-3 cursor-pointer select-none" onclick="petInteractClick()">
+          <div id="petMainAvatar" class="text-8xl sm:text-9xl filter drop-shadow-2xl transition-all duration-300 pet-idle">
+            🐷
+          </div>
+          <div id="petMainShadow" class="w-28 sm:w-36 h-4 bg-indigo-950/20 rounded-full blur-[4px] mt-2 animate-shadow-3d"></div>
+        </div>
+
+        <!-- แถบเกจพลังความอุดมสมบูรณ์ -->
+        <div class="w-full max-w-md z-10">
+          <div class="flex justify-between text-xs font-semibold text-slate-600 mb-1">
+            <span>⚡ พลังความอุดมสมบูรณ์</span>
+            <span id="petBarLabel" class="text-indigo-600 font-bold">0 / 100 บาท</span>
+          </div>
+          <div class="w-full bg-slate-200/80 rounded-full h-3.5 p-0.5 border border-slate-300 shadow-inner">
+            <div id="petBarFill" class="bg-gradient-to-r from-amber-400 via-emerald-400 to-teal-400 h-full rounded-full transition-all duration-700 shadow-sm" style="width: 10%;"></div>
+          </div>
+          <p class="text-center text-[11px] text-slate-400 mt-2">💡 แตะที่ตัวน้องเพื่อเล่นด้วยกันได้นะ!</p>
+        </div>
+
+      </div>
+
       <!-- ฟอร์มส่งยอดฝากเงิน -->
-      <div class="bg-white p-5 sm:p-6 rounded-2xl border border-slate-200 shadow-sm">
+      <div class="clay-card p-5 sm:p-6">
         <h4 class="font-bold text-slate-800 mb-2 flex items-center gap-2">
           <span>📥</span> ส่งยอดฝากเงิน
         </h4>
         <div class="flex flex-col sm:flex-row gap-3">
           <input type="number" id="depositAmount" placeholder="ระบุจำนวนเงินที่ต้องการฝาก (บาท)" min="1" 
-                 class="flex-1 px-4 py-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-indigo-500 outline-none text-sm">
+                 class="flex-1 px-4 py-2.5 rounded-2xl border border-slate-300 focus:ring-2 focus:ring-indigo-500 outline-none text-sm bg-white/80">
           <button onclick="handleDepositRequest()" id="btnDeposit" 
-                  class="bg-emerald-600 hover:bg-emerald-700 text-white font-medium px-6 py-2.5 rounded-xl transition text-sm flex items-center justify-center gap-2 shadow-sm">
+                  class="bg-emerald-600 hover:bg-emerald-700 text-white font-medium px-6 py-2.5 rounded-2xl transition text-sm flex items-center justify-center gap-2 shadow-md">
             <span>ส่งยอดฝากเงิน</span>
           </button>
         </div>
-        <p class="text-xs text-amber-600 mt-2 font-medium">
-          ⚠️ เมื่อกดส่งยอดแล้ว ให้นำเงินสดมาส่งให้คุณครูเพื่อกดยืนยันยอดเงินจริง
+        <p class="text-xs text-amber-600 mt-2.5 font-medium flex items-center gap-1">
+          <span>⚠️</span> เมื่อกดส่งยอดแล้ว ให้นำเงินสดมาส่งให้คุณครูเพื่อกดยืนยันยอดเงินจริง
         </p>
       </div>
 
-      <!-- ตารางประวัติของตนเอง -->
-      <div class="bg-white p-5 sm:p-6 rounded-2xl border border-slate-200 shadow-sm">
+      <!-- ตารางประวัติของตนเอง (พร้อมคอลัมน์ LOG ยอดคงเหลือ) -->
+      <div class="clay-card p-5 sm:p-6">
         <h4 class="font-bold text-slate-800 mb-3">ประวัติการทำรายการของฉัน</h4>
         <div class="overflow-x-auto">
           <table class="w-full text-sm text-left">
-            <thead class="text-xs text-slate-500 bg-slate-50 border-b border-slate-100">
+            <thead class="text-xs text-slate-500 bg-slate-50/70 border-b border-slate-200">
               <tr>
                 <th class="py-2.5 px-3">วัน-เวลา</th>
                 <th class="py-2.5 px-3">ประเภท</th>
                 <th class="py-2.5 px-3 text-right">จำนวน (บาท)</th>
+                <th class="py-2.5 px-3 text-right">ยอดคงเหลือ (บาท)</th>
                 <th class="py-2.5 px-3 text-center">สถานะ</th>
               </tr>
             </thead>
@@ -250,22 +315,21 @@
           </table>
         </div>
       </div>
+
     </div>
 
     <!-- 3. หน้าจอคุณครู (Admin View) -->
     <div id="viewAdmin" class="hidden space-y-6">
-      
-      <!-- รายการรอยืนยันเงินฝากสด -->
-      <div class="bg-white p-5 sm:p-6 rounded-2xl border border-slate-200 shadow-sm">
+      <div class="clay-card p-5 sm:p-6">
         <div class="flex justify-between items-center mb-4">
           <h4 class="font-bold text-slate-800 flex items-center gap-2">
             <span>⏳</span> รายการรอยืนยันเงินฝาก (นับเงินสดแล้วกดยืนยัน)
           </h4>
-          <button onclick="loadAdminData()" class="text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-1.5 rounded-lg transition">🔄 รีเฟรช</button>
+          <button onclick="loadAdminData()" class="text-xs bg-slate-200/80 hover:bg-slate-300 text-slate-700 px-3 py-1.5 rounded-xl transition font-medium">🔄 รีเฟรช</button>
         </div>
         <div class="overflow-x-auto">
           <table class="w-full text-sm text-left">
-            <thead class="text-xs text-slate-500 bg-slate-50 border-b border-slate-100">
+            <thead class="text-xs text-slate-500 bg-slate-50/70 border-b border-slate-200">
               <tr>
                 <th class="py-2.5 px-3">วัน-เวลา</th>
                 <th class="py-2.5 px-3">ชื่อ - รหัสนักเรียน</th>
@@ -278,32 +342,31 @@
         </div>
       </div>
 
-      <!-- สิทธิ์ถอนเงินให้นักเรียน (Admin Only) -->
-      <div class="bg-white p-5 sm:p-6 rounded-2xl border border-slate-200 shadow-sm">
+      <div class="clay-card p-5 sm:p-6">
         <h4 class="font-bold text-slate-800 mb-3 flex items-center gap-2">
           <span>📤</span> ทำรายการถอนเงินให้นักเรียน
         </h4>
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
-          <select id="withdrawStudentSelect" class="px-3 py-2.5 rounded-xl border border-slate-300 text-sm outline-none focus:ring-2 focus:ring-indigo-500">
+          <select id="withdrawStudentSelect" class="px-3 py-2.5 rounded-2xl border border-slate-300 text-sm outline-none focus:ring-2 focus:ring-indigo-500 bg-white/90">
             <option value="">-- เลือกนักเรียน --</option>
           </select>
-          <input type="number" id="withdrawAmount" placeholder="ระบุจำนวนเงินที่ต้องการถอน" min="1" class="px-4 py-2.5 rounded-xl border border-slate-300 text-sm outline-none">
-          <button onclick="handleWithdraw()" id="btnWithdraw" class="bg-rose-600 hover:bg-rose-700 text-white font-medium py-2.5 rounded-xl transition text-sm flex items-center justify-center gap-2 shadow-sm">
+          <input type="number" id="withdrawAmount" placeholder="ระบุจำนวนเงินที่ต้องการถอน" min="1" class="px-4 py-2.5 rounded-2xl border border-slate-300 text-sm outline-none bg-white/90">
+          <button onclick="handleWithdraw()" id="btnWithdraw" class="bg-rose-600 hover:bg-rose-700 text-white font-medium py-2.5 rounded-2xl transition text-sm flex items-center justify-center gap-2 shadow-md">
             <span>ยืนยันการถอนเงิน</span>
           </button>
         </div>
       </div>
 
-      <!-- สรุปยอดเงินออมทั้งห้อง -->
-      <div class="bg-white p-5 sm:p-6 rounded-2xl border border-slate-200 shadow-sm">
-        <h4 class="font-bold text-slate-800 mb-3">สรุปยอดเงินออมรายบุคคล</h4>
+      <div class="clay-card p-5 sm:p-6">
+        <h4 class="font-bold text-slate-800 mb-3">สรุปยอดเงินออมและสัตว์เลี้ยง</h4>
         <div class="overflow-x-auto">
           <table class="w-full text-sm text-left">
-            <thead class="text-xs text-slate-500 bg-slate-50 border-b border-slate-100">
+            <thead class="text-xs text-slate-500 bg-slate-50/70 border-b border-slate-200">
               <tr>
                 <th class="py-2.5 px-3">รหัส</th>
                 <th class="py-2.5 px-3">ชื่อ - นามสกุล</th>
                 <th class="py-2.5 px-3">ชั้นเรียน</th>
+                <th class="py-2.5 px-3 text-center">คู่หู</th>
                 <th class="py-2.5 px-3 text-right">ยอดคงเหลือ (บาท)</th>
               </tr>
             </thead>
@@ -311,38 +374,87 @@
           </table>
         </div>
       </div>
-
     </div>
 
   </main>
 
-  <!-- Footer -->
-  <footer class="text-center py-4 text-xs text-slate-400">
+  <footer class="text-center py-4 text-xs text-slate-400 font-medium z-10">
     ระบบบันทึกการออมเงินนักเรียน &copy; 2026
   </footer>
 
   <script>
-    // 🔴 นำ Web App URL จาก Google Apps Script (Deploy) มาวางตรงนี้
+    // 🔴 วาง URL Web App จาก Google Apps Script ตรงนี้
     const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxmxWYuq1lvwHJkFY5YddcxscnCXhFU7WXhlUi_GOm1s-obmTDJAYt2Btg___e1mVsQ/exec";
 
     let currentRole = 'STUDENT';
     let currentUser = null;
 
-    // ฟังก์ชันเชื่อมต่อ Apps Script (ป้องกันปัญหา JSON parse error จาก CORS Redirect)
-    async function apiCall(payload) {
-      const response = await fetch(SCRIPT_URL, {
-        method: 'POST',
-        redirect: 'follow',
-        body: JSON.stringify(payload),
-        headers: { 'Content-Type': 'text/plain;charset=utf-8' }
-      });
-      
-      const text = await response.text();
+    // ฐานข้อมูลสัตว์เลี้ยง 4 สายพันธุ์ พร้อม 4 ขั้นวิวัฒนาการ
+    const PET_SPECIES = {
+      pig: {
+        name: "น้องหมูทอง",
+        stages: [
+          { icon: "🐷", title: "ลูกหมูน้อยตัวจิ๋ว", badge: "ร่าง 1: เบบี้" },
+          { icon: "🐖", title: "น้องหมูวัยซน", badge: "ร่าง 2: วัยรุ่น" },
+          { icon: "🐽", title: "เจ้าหมูพุงโต", badge: "ร่าง 3: พุงป่อง" },
+          { icon: "👑🐷", title: "ราชาหมูทองคำอ้วนพี", badge: "ร่าง 4: มหาเศรษฐี" }
+        ]
+      },
+      dino: {
+        name: "น้องไดโนเสาร์",
+        stages: [
+          { icon: "🐣", title: "เบบี้ทีเร็กซ์ฟักไข่", badge: "ร่าง 1: เบบี้" },
+          { icon: "🦖", title: "ไดโนเสาร์วัยวิ่งเล่น", badge: "ร่าง 2: วัยรุ่น" },
+          { icon: "🦕", title: "ไดโนเสาร์พุงแน่น", badge: "ร่าง 3: พุงป่อง" },
+          { icon: "👑🦖", title: "ราชันย์ไดโนเสาร์ทองคำ", badge: "ร่าง 4: มหาเศรษฐี" }
+        ]
+      },
+      cat: {
+        name: "น้องแมวนำโชค",
+        stages: [
+          { icon: "🐱", title: "ลูกแมวจิ๋วตัวนุ่ม", badge: "ร่าง 1: เบบี้" },
+          { icon: "🐈", title: "เหมียววัยคล่องแคล่ว", badge: "ร่าง 2: วัยรุ่น" },
+          { icon: "😸", title: "เหมียวส้มพุงย้วย", badge: "ร่าง 3: พุงป่อง" },
+          { icon: "👑🐱", title: "พญาเหมียวกวักทรัพย์", badge: "ร่าง 4: มหาเศรษฐี" }
+        ]
+      },
+      panda: {
+        name: "น้องหมีแพนด้า",
+        stages: [
+          { icon: "🐼", title: "ลูกหมีตัวกระจิ๋ว", badge: "ร่าง 1: เบบี้" },
+          { icon: "🐾", title: "แพนด้านักกลิ้ง", badge: "ร่าง 2: วัยรุ่น" },
+          { icon: "🐻‍❄️", title: "แพนด้าพุงกลมดิก", badge: "ร่าง 3: พุงป่อง" },
+          { icon: "👑🐼", title: "จอมยุทธ์แพนด้าเงินล้าน", badge: "ร่าง 4: มหาเศรษฐี" }
+        ]
+      }
+    };
+
+    // ฟังก์ชันเรียก API เชื่อมต่อ Apps Script พร้อมระบบ Auto-Retry
+    async function apiCall(payload, retries = 2) {
       try {
-        return JSON.parse(text);
+        const response = await fetch(SCRIPT_URL, {
+          method: 'POST',
+          redirect: 'follow',
+          body: JSON.stringify(payload),
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' }
+        });
+        
+        const text = await response.text();
+        try {
+          return JSON.parse(text);
+        } catch (parseErr) {
+          if (retries > 0) {
+            await new Promise(r => setTimeout(r, 1200));
+            return await apiCall(payload, retries - 1);
+          }
+          throw new Error("เซิร์ฟเวอร์ไม่ได้ตอบกลับเป็น JSON");
+        }
       } catch (err) {
-        console.error("Raw response:", text);
-        throw new Error("เซิร์ฟเวอร์ไม่ได้ตอบกลับเป็น JSON (ตรวจสอบสิทธิ์ Web App: Anyone)");
+        if (retries > 0) {
+          await new Promise(r => setTimeout(r, 1200));
+          return await apiCall(payload, retries - 1);
+        }
+        throw err;
       }
     }
 
@@ -355,14 +467,14 @@
       const mascot = document.getElementById('mascotIcon');
 
       if (role === 'STUDENT') {
-        tabSt.className = "py-2.5 text-xs sm:text-sm font-bold rounded-xl bg-white shadow-sm text-indigo-600 transition-all duration-200 flex items-center justify-center gap-1.5";
-        tabAd.className = "py-2.5 text-xs sm:text-sm font-semibold rounded-xl text-slate-600 hover:text-slate-900 transition-all duration-200 flex items-center justify-center gap-1.5";
+        tabSt.className = "py-2.5 text-xs sm:text-sm font-bold rounded-xl bg-white shadow-sm text-indigo-600 transition-all flex items-center justify-center gap-1.5";
+        tabAd.className = "py-2.5 text-xs sm:text-sm font-semibold rounded-xl text-slate-600 hover:text-slate-900 transition-all flex items-center justify-center gap-1.5";
         stIdField.style.display = "block";
         pinLabel.innerText = "รหัส PIN นักเรียน (4 หลัก)";
         mascot.innerText = "🐷";
       } else {
-        tabAd.className = "py-2.5 text-xs sm:text-sm font-bold rounded-xl bg-white shadow-sm text-indigo-600 transition-all duration-200 flex items-center justify-center gap-1.5";
-        tabSt.className = "py-2.5 text-xs sm:text-sm font-semibold rounded-xl text-slate-600 hover:text-slate-900 transition-all duration-200 flex items-center justify-center gap-1.5";
+        tabAd.className = "py-2.5 text-xs sm:text-sm font-bold rounded-xl bg-white shadow-sm text-indigo-600 transition-all flex items-center justify-center gap-1.5";
+        tabSt.className = "py-2.5 text-xs sm:text-sm font-semibold rounded-xl text-slate-600 hover:text-slate-900 transition-all flex items-center justify-center gap-1.5";
         stIdField.style.display = "none";
         pinLabel.innerText = "รหัส PIN คุณครู (แอดมิน)";
         mascot.innerText = "👩‍🏫";
@@ -409,7 +521,107 @@
       document.getElementById('stName').innerText = currentUser.name;
       document.getElementById('stClass').innerText = "ชั้นเรียน: " + currentUser.classRoom;
       document.getElementById('stBalance').innerText = Number(currentUser.balance).toLocaleString('th-TH', {minimumFractionDigits: 2});
+      
       loadStudentData();
+    }
+
+    // ฟังก์ชันคำนวณสถานะปฏิกิริยาสัตว์เลี้ยง 3D
+    function updatePetGameState(petType, balance, history) {
+      const b = Number(balance) || 0;
+      const pet = PET_SPECIES[petType] || PET_SPECIES['pig'];
+      
+      const today = new Date();
+      const dd = String(today.getDate()).padStart(2, '0');
+      const mm = String(today.getMonth() + 1).padStart(2, '0');
+      const yyyy = today.getFullYear();
+      const todayPattern = `${dd}/${mm}/${yyyy}`;
+
+      let depositedToday = false;
+      let pendingToday = false;
+
+      if (history && history.length > 0) {
+        history.forEach(tx => {
+          if (tx.date && tx.date.includes(todayPattern) && tx.type === 'DEPOSIT') {
+            if (tx.status === 'APPROVED') depositedToday = true;
+            if (tx.status === 'PENDING') pendingToday = true;
+          }
+        });
+      }
+
+      let stageIdx = 0;
+      let percent = 0;
+      let barText = "";
+
+      if (b <= 100) {
+        stageIdx = 0;
+        percent = Math.max(10, (b / 100) * 100);
+        barText = `${b} / 100 บาท (ร่างถัดไป 101 บาท)`;
+      } else if (b <= 500) {
+        stageIdx = 1;
+        percent = Math.min(100, ((b - 100) / 400) * 100);
+        barText = `${b} / 500 บาท (ร่างถัดไป 501 บาท)`;
+      } else if (b <= 1000) {
+        stageIdx = 2;
+        percent = Math.min(100, ((b - 500) / 500) * 100);
+        barText = `${b} / 1,000 บาท (ร่างถัดไป 1,001 บาท)`;
+      } else {
+        stageIdx = 3;
+        percent = 100;
+        barText = `${b.toLocaleString()} บาท (มหาเศรษฐีร่างสมบูรณ์! 🎉)`;
+      }
+
+      const currentStage = pet.stages[stageIdx];
+      const avatarEl = document.getElementById('petMainAvatar');
+      const speechEl = document.getElementById('petSpeechHead');
+      const statusEl = document.getElementById('petDietStatus');
+      const moodIcon = document.getElementById('petMoodIcon');
+
+      avatarEl.innerText = currentStage.icon;
+      document.getElementById('petStageTitle').innerText = `${pet.name} (${currentStage.title})`;
+      document.getElementById('petBadgeTag').innerText = currentStage.badge;
+      document.getElementById('petBarLabel').innerText = barText;
+      document.getElementById('petBarFill').style.width = `${percent}%`;
+
+      avatarEl.className = "text-8xl sm:text-9xl filter drop-shadow-2xl transition-all duration-300 ";
+
+      if (depositedToday) {
+        avatarEl.classList.add('pet-happy-jump');
+        moodIcon.innerText = "💖";
+        statusEl.innerText = "อิ่มแปล้: วันนี้ได้กินเหรียญแล้ว!";
+        statusEl.className = "text-[11px] font-bold text-emerald-600";
+        speechEl.innerText = "งั่มๆๆ อิ่มอร่อยมาก! ขอบคุณที่ตั้งใจออมเงินในวันนี้นะคร้าบ 🥰✨";
+      } else if (pendingToday) {
+        avatarEl.classList.add('pet-idle');
+        moodIcon.innerText = "✨";
+        statusEl.innerText = "รอกินเหรียญ: รอคุณครูตรวจนับเงิน";
+        statusEl.className = "text-[11px] font-bold text-amber-600";
+        speechEl.innerText = "ได้กลิ่นเหรียญมาแล้ว! รอคุณครูตรวจนับแป๊บเดียวนะ จะได้กินแล้ว 😋";
+      } else {
+        avatarEl.classList.add('pet-hungry-mood');
+        moodIcon.innerText = "🍽️";
+        statusEl.innerText = "ท้องว่าง: วันนี้ยังไม่ได้กินเหรียญ";
+        statusEl.className = "text-[11px] font-bold text-rose-500";
+        speechEl.innerText = "วันนี้กระปุกยังว่าง... หิวจังเลย รอเงินฝากมาเลี้ยงดูอยู่น้า 🥺";
+      }
+    }
+
+    // แตะตัวน้องแล้วสะดุ้งตอบสนอง
+    function petInteractClick() {
+      const avatarEl = document.getElementById('petMainAvatar');
+      const speechEl = document.getElementById('petSpeechHead');
+      
+      avatarEl.style.transform = "scale(1.25) translateY(-20px)";
+      setTimeout(() => {
+        avatarEl.style.transform = "";
+      }, 250);
+
+      const funQuotes = [
+        "จี้เอวเค้าทำไมเนี่ยยย ย้ากกก 😆",
+        "แตะตัวเค้าแบบนี้ อยากชวนไปหยอดกระปุกใช่ไหมล่า! 🪙",
+        "รักเจ้าของที่สุดเลย ขยันออมเงินด้วยกันน้า 💕",
+        "ดุ๊กดิ๊กๆ พุงกลมเพราะเหรียญที่เธอหยอดเลยนะ! ✨"
+      ];
+      speechEl.innerText = funQuotes[Math.floor(Math.random() * funQuotes.length)];
     }
 
     async function loadStudentData() {
@@ -420,25 +632,37 @@
             currentUser = res.student;
             document.getElementById('stBalance').innerText = Number(currentUser.balance).toLocaleString('th-TH', {minimumFractionDigits: 2});
           }
+          
+          updatePetGameState(currentUser.petType, currentUser.balance, res.history);
+
           const tbody = document.getElementById('studentTxList');
           tbody.innerHTML = '';
           if (!res.history || res.history.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="4" class="py-4 text-center text-slate-400">ยังไม่มีประวัติการทำรายการ</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="5" class="py-4 text-center text-slate-400">ยังไม่มีประวัติการทำรายการ</td></tr>';
             return;
           }
           res.history.forEach(tx => {
             const isDeposit = tx.type === 'DEPOSIT';
             const isApproved = tx.status === 'APPROVED';
+            
+            // แสดงยอดคงเหลือสะสม ณ วินาทีนั้น (Running Balance)
+            const balanceDisplay = (isApproved && tx.balanceAfter !== null)
+              ? Number(tx.balanceAfter).toLocaleString('th-TH', {minimumFractionDigits: 2})
+              : '-';
+
             tbody.innerHTML += `
               <tr>
                 <td class="py-2.5 px-3 text-xs text-slate-500">${tx.date}</td>
                 <td class="py-2.5 px-3">
-                  <span class="px-2 py-0.5 text-xs rounded-md font-medium ${isDeposit ? 'bg-emerald-50 text-emerald-700' : 'bg-rose-50 text-rose-700'}">
+                  <span class="px-2 py-0.5 text-xs rounded-md font-medium ${isDeposit ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700'}">
                     ${isDeposit ? 'ฝาก' : 'ถอน'}
                   </span>
                 </td>
                 <td class="py-2.5 px-3 text-right font-medium ${isDeposit ? 'text-emerald-600' : 'text-rose-600'}">
                   ${isDeposit ? '+' : '-'}${Number(tx.amount).toLocaleString()}
+                </td>
+                <td class="py-2.5 px-3 text-right font-bold text-slate-700">
+                  ${balanceDisplay}
                 </td>
                 <td class="py-2.5 px-3 text-center">
                   <span class="text-xs px-2.5 py-0.5 rounded-full ${isApproved ? 'bg-slate-100 text-slate-600' : 'bg-amber-100 text-amber-700 font-medium'}">
@@ -485,7 +709,6 @@
         const res = await apiCall({ action: 'getAdminDashboard' });
         if (!res.success) return;
 
-        // รายการรอตรวจรับเงิน
         const txTbody = document.getElementById('pendingTxList');
         txTbody.innerHTML = '';
         if (!res.pendingTx || res.pendingTx.length === 0) {
@@ -507,18 +730,23 @@
           });
         }
 
-        // สรุปยอดนักเรียน & Dropdown สำหรับถอนเงิน
         const stTbody = document.getElementById('adminStudentList');
         const select = document.getElementById('withdrawStudentSelect');
         stTbody.innerHTML = '';
         select.innerHTML = '<option value="">-- เลือกนักเรียน --</option>';
 
         res.students.forEach(st => {
+          const pet = PET_SPECIES[st.petType] || PET_SPECIES['pig'];
           stTbody.innerHTML += `
             <tr>
               <td class="py-2.5 px-3 text-slate-500 text-xs">${st.id}</td>
               <td class="py-2.5 px-3 font-medium">${st.name}</td>
               <td class="py-2.5 px-3 text-xs text-slate-500">${st.classRoom}</td>
+              <td class="py-2.5 px-3 text-center text-xs">
+                <span class="bg-indigo-50 text-indigo-700 px-2.5 py-0.5 rounded-md font-medium border border-indigo-100">
+                  ${pet.name}
+                </span>
+              </td>
               <td class="py-2.5 px-3 text-right font-bold text-indigo-600">${Number(st.balance).toLocaleString('th-TH', {minimumFractionDigits: 2})}</td>
             </tr>
           `;
