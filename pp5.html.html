@@ -137,7 +137,6 @@
                         <h1 class="text-base sm:text-lg font-bold text-gray-800 leading-tight">ระบบ ปพ.5 โรงเรียนบ้านนาหว้าน้อย ต.กกสะทอน อ.ด่านซ้าย จ.เลย</h1>
                         <div class="flex items-center gap-2 justify-center md:justify-start">
                             <p class="text-[10px] sm:text-xs font-medium text-blue-600" id="userRoleDisplay"></p>
-                            <!-- สถานะการซิงค์ข้อมูล -->
                             <span id="syncStatus" class="text-[10px] text-green-600 bg-green-50 px-2 py-0.5 rounded border border-green-200 font-medium flex items-center">
                                 <i class="fa-solid fa-cloud-check mr-1"></i> พร้อมใช้งาน
                             </span>
@@ -164,13 +163,11 @@
         <!-- Main Content Area -->
         <main class="flex-1 overflow-y-auto bg-gray-100">
             <div class="max-w-7xl mx-auto px-2 sm:px-4 py-4">
-                <!-- Tabs -->
                 <div class="bg-white rounded-t-lg shadow-sm border-b border-gray-200 flex overflow-x-auto custom-scrollbar" id="tabsContainer"></div>
-                <!-- Content Area -->
                 <div class="bg-white shadow-sm rounded-b-lg p-3 sm:p-6 min-h-[70vh] relative" id="contentArea"></div>
             </div>
 
-            <!-- วิดเจ็ตเครื่องเล่นเพลง (มุมขวาล่าง) -->
+            <!-- Music Player Widget -->
             <div class="fixed bottom-6 right-6 bg-white/90 backdrop-blur-sm p-2 rounded-full shadow-lg border border-gray-200 flex items-center space-x-2 z-[100] no-print hover:shadow-xl transition-all group">
                 <button id="musicToggleBtn" onclick="window.toggleMusic()" class="w-10 h-10 flex items-center justify-center bg-blue-50 text-blue-600 rounded-full hover:bg-blue-100 transition-colors shadow-sm" title="เล่น/หยุดเพลง">
                     <i class="fa-solid fa-music text-lg"></i>
@@ -188,9 +185,10 @@
         </main>
     </div>
 
-    <!-- Hidden Input for Logo & Excel Import -->
+    <!-- Hidden Input for File Uploads -->
     <input type="file" id="logoFileInput" accept="image/*" class="hidden" onchange="window.processLogoUpload(event)">
     <input type="file" id="excelStudentInput" accept=".xlsx, .xls, .csv" class="hidden" onchange="window.processStudentExcel(event)">
+    <input type="file" id="excelIndicatorInput" accept=".xlsx, .xls, .csv" class="hidden" onchange="window.processIndicatorExcel(event)">
 
     <script>
         // ----------------- STATE MANAGEMENT -----------------
@@ -303,7 +301,7 @@
             }, 1500); 
         }
 
-        // ----------------- CALENDAR LOGIC (DYNAMIC ACADEMIC YEAR) -----------------
+        // ----------------- CALENDAR LOGIC -----------------
         const thaiMonthsFull = ['มกราคม', 'กุมภาพันธ์', 'มีนาคม', 'เมษายน', 'พฤษภาคม', 'มิถุนายน', 'กรกฎาคม', 'สิงหาคม', 'กันยายน', 'ตุลาคม', 'พฤศจิกายน', 'ธันวาคม'];
         const daysShort = ['อา.', 'จ.', 'อ.', 'พ.', 'พฤ.', 'ศ.', 'ส.'];
         const daysFull = ['อาทิตย์', 'จันทร์', 'อังคาร', 'พุธ', 'พฤหัสบดี', 'ศุกร์', 'เสาร์'];
@@ -323,8 +321,8 @@
             const bYear = Number(window.state.academicYear) || 2569;
             const cYear = bYear - 543;
             
-            const startDate = new Date(cYear, 4, 1); // 1 พฤษภาคม
-            const endDate = new Date(cYear + 1, 2, 31); // 31 มีนาคม ปีถัดไป
+            const startDate = new Date(cYear, 4, 1);
+            const endDate = new Date(cYear + 1, 2, 31);
 
             while (startDate <= endDate) {
                 const y = startDate.getFullYear();
@@ -493,19 +491,26 @@
                         </div>
                         
                         <div class="mt-4">
-                            <label class="block text-xs text-gray-600 font-bold mb-2">ตัวชี้วัดของรายวิชา</label>
-                            <div class="flex flex-col sm:flex-row gap-2 mb-2">
-                                <input type="text" id="new_ind" placeholder="พิมพ์ข้อความตัวชี้วัด..." class="flex-1 p-2 text-sm border rounded ${!canEditInd?'bg-gray-100 cursor-not-allowed':''}" ${!canEditInd?'disabled':''}>
-                                <button onclick="window.addIndicator()" class="px-4 py-2 bg-purple-600 text-white rounded text-sm w-full sm:w-auto ${!canEditInd?'opacity-50 cursor-not-allowed':''}" ${!canEditInd?'disabled':''}><i class="fa-solid fa-plus"></i> เพิ่มตัวชี้วัด</button>
+                            <div class="flex justify-between items-center mb-2 flex-wrap gap-2">
+                                <label class="block text-xs text-gray-600 font-bold">ตัวชี้วัดของรายวิชา (วิชา: ${c.code || '-'} ${c.name || ''})</label>
+                                ${canEditInd ? `
+                                <button onclick="document.getElementById('excelIndicatorInput').click()" class="px-3 py-1 bg-purple-700 hover:bg-purple-800 text-white rounded text-xs font-bold shadow flex items-center transition">
+                                    <i class="fa-solid fa-file-import mr-1.5"></i> นำเข้าตัวชี้วัดจาก Excel
+                                </button>` : ''}
                             </div>
-                            <div class="flex flex-col gap-1 max-h-40 overflow-y-auto custom-scrollbar border p-2 bg-white rounded">
+                            <div class="flex flex-col sm:flex-row gap-2 mb-2">
+                                <input type="text" id="new_ind" placeholder="พิมพ์ข้อความตัวชี้วัดรายวิชา..." class="flex-1 p-2 text-sm border rounded ${!canEditInd?'bg-gray-100 cursor-not-allowed':''}" ${!canEditInd?'disabled':''}>
+                                <button onclick="window.addIndicator()" class="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded text-sm w-full sm:w-auto ${!canEditInd?'opacity-50 cursor-not-allowed':''}"><i class="fa-solid fa-plus"></i> เพิ่มตัวชี้วัด</button>
+                            </div>
+                            <div class="flex flex-col gap-1 max-h-48 overflow-y-auto custom-scrollbar border p-2 bg-white rounded">
                                 ${(c.indicators||[]).map((ind, i) => `
                                     <div class="flex justify-between items-start bg-gray-50 p-2 border rounded text-xs gap-2">
+                                        <span class="w-6 text-gray-500 font-bold">${i+1}.</span>
                                         <span class="flex-1 whitespace-pre-wrap leading-tight">${ind}</span> 
-                                        ${canEditInd ? `<button onclick="window.delIndicator(${i})" class="text-red-500 px-2 py-1 hover:bg-red-100 rounded flex-shrink-0"><i class="fa-solid fa-xmark"></i></button>` : ''}
+                                        ${canEditInd ? `<button onclick="window.delIndicator(${i})" class="text-red-500 px-2 py-1 hover:bg-red-100 rounded flex-shrink-0" title="ลบตัวชี้วัดนี้"><i class="fa-solid fa-xmark"></i></button>` : ''}
                                     </div>
                                 `).join('')}
-                                ${(c.indicators||[]).length===0?'<div class="text-gray-400 text-xs text-center py-2">ยังไม่มีตัวชี้วัด</div>':''}
+                                ${(c.indicators||[]).length===0?'<div class="text-gray-400 text-xs text-center py-3">ยังไม่มีตัวชี้วัดในรายวิชานี้ (สามารถพิมพ์เพิ่มหรือนำเข้าจากไฟล์ Excel ได้)</div>':''}
                             </div>
                         </div>
                     </div>
@@ -1128,6 +1133,25 @@
         };
 
         window.handleLogout = function() {
+            // สั่งหยุดเล่นเพลงและรีเซ็ตสถานะปุ่ม
+            const audio = document.getElementById('bgMusic');
+            if (audio) {
+                audio.pause();
+                audio.currentTime = 0;
+            }
+            const btn = document.getElementById('musicToggleBtn');
+            if (btn) {
+                btn.innerHTML = '<i class="fa-solid fa-music text-lg"></i>';
+                btn.classList.replace('bg-blue-600', 'bg-blue-50');
+                btn.classList.replace('text-white', 'text-blue-600');
+                btn.classList.replace('hover:bg-blue-700', 'hover:bg-blue-100');
+            }
+            const controls = document.getElementById('musicControls');
+            if (controls) {
+                controls.classList.remove('w-24');
+                controls.classList.add('w-0');
+            }
+
             window.currentUserRole = null;
             document.getElementById('appWrapper').classList.add('hidden');
             document.getElementById('appWrapper').classList.remove('flex');
@@ -1166,6 +1190,56 @@
         };
 
         window.delIndicator = function(idx) { getCourse().indicators.splice(idx, 1); renderApp(); };
+
+        // นำเข้าตัวชี้วัดจากไฟล์ Excel/CSV (อ่านคอลัมน์ A)
+        window.processIndicatorExcel = function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            const c = getCourse();
+            if (!c || !c.id) {
+                alert("กรุณาเลือกรายวิชาก่อนทำการนำเข้าตัวชี้วัด");
+                e.target.value = '';
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = function(evt) {
+                try {
+                    const data = new Uint8Array(evt.target.result);
+                    const workbook = XLSX.read(data, { type: 'array' });
+                    const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+                    const rows = XLSX.utils.sheet_to_json(firstSheet, { header: 1 });
+                    
+                    if (rows && rows.length > 0) {
+                        c.indicators = c.indicators || [];
+                        let addedCount = 0;
+                        
+                        rows.forEach((row, idx) => {
+                            if (row && row[0]) {
+                                const text = String(row[0]).trim();
+                                // ข้ามแถวหัวตาราง ถ้าพบคำว่า ตัวชี้วัด หรือ Indicator
+                                if (idx === 0 && (text.includes("ตัวชี้วัด") || text.toLowerCase().includes("indicator"))) {
+                                    return;
+                                }
+                                if (text.length > 0) {
+                                    c.indicators.push(text);
+                                    addedCount++;
+                                }
+                            }
+                        });
+
+                        renderApp();
+                        alert(`นำเข้าตัวชี้วัดวิชา ${c.name} สำเร็จเรียบร้อย จำนวน ${addedCount} ข้อ`);
+                    } else {
+                        alert("ไม่พบข้อมูลในไฟล์ Excel");
+                    }
+                } catch(err) {
+                    alert("เกิดข้อผิดพลาดในการอ่านไฟล์ กรุณาตรวจสอบว่ามีข้อมูลในคอลัมน์แรก (Column A)");
+                }
+                e.target.value = '';
+            };
+            reader.readAsArrayBuffer(file);
+        };
 
         window.addCourse = function() {
             const id = 'c' + Date.now();
@@ -1213,14 +1287,12 @@
             renderApp();
         };
 
-        // ปรับปรุงฟังก์ชันกรอกคะแนนเพื่อไม่ให้หลุด Focus
         window.handleScore = function(sid, field, val) {
             const cid = window.state.selectedCourseId;
             if(!window.state.scores[cid]) window.state.scores[cid] = {};
             if(!window.state.scores[cid][sid]) window.state.scores[cid][sid] = {};
             window.state.scores[cid][sid][field] = (field.startsWith('ind_')) ? val : (Number(val)||0);
 
-            // อัปเดตเฉพาะ DOM Cell รวม และ เกรด ของนักเรียนคนนั้น
             const sc = window.state.scores[cid][sid];
             const s = window.state.students[window.state.selectedClass].find(x => x.id === sid);
             const stats = calcAtt(sid); 
@@ -1237,7 +1309,6 @@
                 grdEl.className = `sticky-pct-col p-2 text-sm sm:text-lg ${grade.c}`;
             }
 
-            // คำนวณน้ำหนักตัวชี้วัด
             const c = getCourse();
             const indTotal = (c.indicators||[]).length;
             let indSum = 0;
@@ -1299,7 +1370,6 @@
             saveDataToCloud();
         };
 
-        // ฟังก์ชันเปลี่ยนโลโก้โรงเรียน
         window.changeLogo = function() {
             document.getElementById('logoFileInput').click();
         };
@@ -1315,7 +1385,6 @@
             reader.readAsDataURL(file);
         };
 
-        // สำรองและกู้คืนฐานข้อมูล JSON
         window.backupStateJSON = function() {
             const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(window.state, null, 2));
             const dl = document.createElement('a');
@@ -1342,7 +1411,6 @@
             reader.readAsText(file);
         };
 
-        // นำเข้ารายชื่อนักเรียนจาก Excel
         window.processStudentExcel = function(e) {
             const file = e.target.files[0];
             if (!file) return;
