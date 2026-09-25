@@ -6,6 +6,7 @@
   <title>ภารกิจถอดรหัสล่าปริศนา - Scavenger Quest</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;600;700&family=Chakra+Petch:wght@500;700&display=swap" rel="stylesheet">
+  
   <style>
     body { font-family: 'Prompt', sans-serif; }
     .font-code { font-family: 'Chakra Petch', monospace; }
@@ -19,11 +20,36 @@
       animation: mascot-peek 3.5s ease-in-out infinite;
     }
 
+    /* ================= การตั้งค่าสำหรับระบบสั่งพิมพ์ (Print CSS ป้องกันข้อความขาด) ================= */
     @media print {
-      body { background: white !important; color: black !important; }
+      @page {
+        size: A4 portrait;
+        margin: 1.2cm 1cm 1.2cm 1cm; /* เว้นขอบกระดาษพอดีกับเครื่องพิมพ์ */
+      }
+      body {
+        background: white !important;
+        color: black !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+      }
       .no-print { display: none !important; }
       .print-only { display: block !important; }
-      .page-break { page-break-before: always; }
+
+      /* บังคับขึ้นหน้าใหม่แบบสมบูรณ์ */
+      .page-break {
+        page-break-before: always !important;
+        break-before: page !important;
+      }
+
+      /* กฎป้องกันการผ่ากลางกล่อง: ถ้าพื้นที่หน้าไม่พอ ให้ยกทั้งกล่องขึ้นหน้าใหม่ทันที */
+      .print-task-item,
+      .print-knowledge-item,
+      .print-card-item {
+        page-break-inside: avoid !important;
+        break-inside: avoid !important;
+        display: flex !important;
+        margin-bottom: 0.75rem !important;
+      }
     }
   </style>
 </head>
@@ -261,11 +287,11 @@
 
   </div>
 
-  <!-- ================= โซนเอกสารสั่งพิมพ์ (Print Only) ================= -->
-  <div class="hidden print-only p-8 text-black bg-white">
+  <!-- ================= โซนเอกสารสั่งพิมพ์ (Print Only: มีโครงสร้างป้องกันข้อความขาด) ================= -->
+  <div class="hidden print-only p-4 text-black bg-white">
     
-    <!-- แผ่นที่ 1: ใบภารกิจสำหรับแจกนักเรียน (เปลี่ยนเป็น คำใบ้ที่ ...) -->
-    <div class="max-w-3xl mx-auto border-2 border-black p-6 rounded-xl mb-6">
+    <!-- แผ่นที่ 1: ใบภารกิจสำหรับแจกนักเรียน -->
+    <div class="max-w-4xl mx-auto border-2 border-black p-5 rounded-xl mb-4">
       <div class="text-center border-b-2 border-black pb-3 mb-4">
         <h1 class="text-2xl font-bold">ใบภารกิจ: ล่ารหัสลับ & ถอดรหัสปริศนา (<span id="print-subject-title">วิชาคณิตศาสตร์</span>)</h1>
         <p class="text-xs text-gray-700 mt-1">
@@ -277,24 +303,23 @@
 
     <div class="page-break"></div>
 
-    <!-- แผ่นที่ 2: ใบความรู้รอบตัว (Knowledge Sheet - ปรับแยกช่องตารางชัดเจน) -->
-    <div class="max-w-4xl mx-auto border-2 border-slate-800 p-6 rounded-xl mb-6">
-      <div class="text-center border-b-2 border-slate-800 pb-3 mb-5">
+    <!-- แผ่นที่ 2: ใบความรู้รอบตัว (Knowledge Sheet) -->
+    <div class="max-w-4xl mx-auto border-2 border-slate-800 p-5 rounded-xl mb-4">
+      <div class="text-center border-b-2 border-slate-800 pb-3 mb-4">
         <h1 class="text-2xl font-bold">ใบเกร็ดความรู้รอบตัว: ข้อมูลเบาะแสและบุคคลสำคัญ</h1>
         <p class="text-xs text-gray-700 mt-1">อ่านเกร็ดความรู้แยกตามกล่องคำใบ้ เพื่อนำไปตอบคำถามบนหน้าจอคอมพิวเตอร์และเชื่อมโยงกับรหัสลับ</p>
       </div>
-      <!-- ช่องแสดงการ์ดความรู้ แยกเป็นบล็อกเด่นชัด -->
-      <div id="print-knowledge-tasks" class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs"></div>
+      <div id="print-knowledge-tasks" class="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs"></div>
     </div>
 
     <div class="page-break"></div>
 
     <!-- แผ่นที่ 3: การ์ดคำตอบสำหรับติดซ่อนในห้อง -->
     <div class="max-w-4xl mx-auto pt-2">
-      <div class="text-center font-bold text-lg mb-3 text-gray-900">
+      <div class="text-center font-bold text-lg mb-3 text-gray-900 border-b pb-2">
         การ์ดรหัสลับ (สำหรับคุณครูตัดตามรอยประ นำไปติดซ่อนตามจุดต่างๆ ในห้องเรียน)
       </div>
-      <div id="print-cards-container" class="grid grid-cols-2 gap-4"></div>
+      <div id="print-cards-container" class="grid grid-cols-2 gap-3"></div>
     </div>
 
   </div>
@@ -307,8 +332,8 @@
     const AUDIO_FILES = {
       bgmTrack1: "S01.mp3",       // เพลงช่วงครึ่งแรก
       bgmTrack2: "S02.mp3",       // เพลงช่วงครึ่งหลัง
-      victory: "S01V.mp3",      // เพลงตอนชนะผ่านทุกด่าน
-      gameover: "S01O.mp3"     // เพลงตอนแพ้หัวใจหมด
+      victory: "S01V.mp3",        // เพลงตอนชนะผ่านทุกด่าน
+      gameover: "S01O.mp3"        // เพลงตอนแพ้หัวใจหมด
     };
 
     // 🔗 URL Google Apps Script ของคุณครู
@@ -360,6 +385,24 @@
       document.getElementById('total-score-badge').textContent = totalScore.toLocaleString();
     }
 
+    // ================= ระบบดึงข้อมูลแบบ Safe Timeout ป้องกันเบราว์เซอร์หมุนค้าง =================
+    async function fetchWithSafeTimeout(url, ms = 3000) {
+      // ตรวจสอบถ้าเปิดไฟล์ตรงๆ ผ่าน file:/// ให้ข้าม fetch ป้องกันโดนเบราว์เซอร์บล็อก Unsafe Origin
+      if (window.location.protocol === 'file:') {
+        throw new Error("File protocol detected: using local offline fallback mode");
+      }
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), ms);
+      try {
+        const response = await fetch(url, { signal: controller.signal, redirect: "follow" });
+        clearTimeout(timeoutId);
+        return response;
+      } catch (err) {
+        clearTimeout(timeoutId);
+        throw err;
+      }
+    }
+
     // ================= ระบบเล่นไฟล์เสียงในเครื่อง =================
     let currentAudio = null;
     let currentTrackType = "";
@@ -380,12 +423,24 @@
 
       stopAllMusic();
 
-      const audio = new Audio(fileSrc);
+      const audio = new Audio();
+      audio.src = fileSrc;
       audio.loop = isLoop;
       audio.volume = 0.75;
-      audio.play().catch(err => {
-        console.warn(`ไม่สามารถเล่นไฟล์เสียง "${fileSrc}" ได้:`, err.message);
-      });
+      
+      // ดักจับกรณีไม่พบไฟล์เสียง ให้ตัดจบไม่ค้างเบราว์เซอร์
+      audio.onerror = () => {
+        console.warn(`ไม่พบไฟล์เสียง "${fileSrc}" (ระบบจะเล่นต่อโดยไม่มีเพลงนี้)`);
+        audio.pause();
+        currentAudio = null;
+      };
+
+      const playPromise = audio.play();
+      if (playPromise !== undefined) {
+        playPromise.catch(err => {
+          console.warn("Audio playback notice:", err.message);
+        });
+      }
 
       currentAudio = audio;
       currentTrackType = trackType;
@@ -461,7 +516,7 @@
 
       try {
         const discoverUrl = `${DEFAULT_SHEETS_URL}?action=getSheets`;
-        const res = await fetch(discoverUrl);
+        const res = await fetchWithSafeTimeout(discoverUrl, 3000);
         const data = await res.json();
 
         if (data && Array.isArray(data.sheets) && data.sheets.length > 0) {
@@ -477,7 +532,8 @@
           badge.className = 'text-[11px] px-2.5 py-0.5 rounded-full bg-emerald-950 text-emerald-300 border border-emerald-700/50 flex items-center gap-1.5';
         }
       } catch (err) {
-        console.warn("ไม่สามารถดึงรายชื่อแท็บได้ ใช้แท็บค่าเริ่มต้น:", err.message);
+        badge.innerHTML = `⚠️ โหมดออฟไลน์ (พร้อมเล่น)`;
+        badge.className = 'text-[11px] px-2.5 py-0.5 rounded-full bg-slate-800 text-slate-300 border border-slate-700 flex items-center gap-1.5';
       }
 
       await syncDataForSelectedSubject();
@@ -490,7 +546,7 @@
       const badge = document.getElementById('api-sync-badge');
 
       try {
-        const response = await fetch(targetUrl);
+        const response = await fetchWithSafeTimeout(targetUrl, 3000);
         const json = await response.json();
 
         if (Array.isArray(json) && json.length > 0) {
@@ -504,8 +560,6 @@
       } catch (err) {
         const cached = localStorage.getItem(`math_hunt_${sheetTabName}`);
         rawQuestionsData = cached ? JSON.parse(cached) : BUILTIN_MATH_DATA;
-        badge.innerHTML = `⚠️ โหมดสำรอง: ${sheetTabName}`;
-        badge.className = 'text-[11px] px-2.5 py-0.5 rounded-full bg-amber-950 text-amber-300 border border-amber-700/50 flex items-center gap-1.5';
       }
 
       document.getElementById('current-subject-label').textContent = `วิชา: ${sheetTabName}`;
@@ -658,7 +712,7 @@
       checkAnswer();
     });
 
-    // ================= เรนเดอร์เอกสารสำหรับสั่งพิมพ์ =================
+    // ================= เรนเดอร์เอกสารสำหรับสั่งพิมพ์ (ป้องกันการตัดขาดกลางข้อ) =================
     function buildPrintableLayout() {
       const tasksDiv = document.getElementById('print-sheet-tasks');
       const knowledgeDiv = document.getElementById('print-knowledge-tasks');
@@ -673,29 +727,29 @@
       dataset.forEach((item, idx) => {
         const num = item.id || (idx + 1);
 
-        // 1. ช่องโจทย์ในใบภารกิจ (เปลี่ยนเป็น "คำใบ้ที่ ...")
+        // 1. ช่องโจทย์ในใบภารกิจ (ใส่สไตล์ page-break-inside: avoid)
         tasksDiv.innerHTML += `
-          <div class="p-3 border-2 border-gray-400 rounded-xl bg-white shadow-sm flex flex-col justify-between min-h-[110px]">
+          <div class="print-task-item border-2 border-gray-400 rounded-xl p-3 bg-white flex flex-col justify-between" style="break-inside: avoid; page-break-inside: avoid; min-height: 105px;">
             <div>
-              <div class="font-bold text-indigo-900 border-b border-gray-200 pb-1 flex justify-between items-center">
+              <div class="font-bold text-indigo-900 border-b border-gray-200 pb-1 flex justify-between items-center text-xs">
                 <span>📍 คำใบ้ที่ ${num}</span>
-                <span class="text-[10px] text-gray-500 font-normal">รหัสสืบค้น #${num}</span>
+                <span class="text-[10px] text-gray-500 font-normal">ข้อ #${num}</span>
               </div>
-              <div class="text-gray-800 my-2 font-medium">${item.calcQuestion}</div>
+              <div class="text-gray-800 my-2 text-xs font-medium leading-relaxed">${item.calcQuestion}</div>
             </div>
-            <div class="text-gray-500 text-xs border-t border-dashed border-gray-300 pt-1 flex justify-between">
+            <div class="text-gray-500 text-[11px] border-t border-dashed border-gray-300 pt-1 flex justify-between items-center">
               <span>ผลลัพธ์:</span>
-              <span class="border-b border-gray-400 w-28 inline-block"></span>
+              <span class="border-b-2 border-gray-400 w-32 inline-block"></span>
             </div>
           </div>
         `;
 
-        // 2. ใบเกร็ดความรู้รอบตัว (แยกกล่องการ์ดชัดเจน เป็นสัดส่วน สวยงาม)
+        // 2. ใบเกร็ดความรู้รอบตัว (ใส่สไตล์ break-inside: avoid ป้องกันกล่องโดนผ่าครึ่ง)
         knowledgeDiv.innerHTML += `
-          <div class="border-2 border-slate-700 rounded-xl p-3.5 bg-slate-50 flex flex-col justify-between shadow-sm">
+          <div class="print-knowledge-item border-2 border-slate-700 rounded-xl p-3 bg-slate-50 flex flex-col justify-between" style="break-inside: avoid; page-break-inside: avoid;">
             <div>
               <div class="flex items-center justify-between border-b border-slate-300 pb-1.5 mb-2">
-                <span class="font-bold text-indigo-950 text-xs sm:text-sm bg-indigo-100 px-2 py-0.5 rounded border border-indigo-200">
+                <span class="font-bold text-indigo-950 text-xs bg-indigo-100 px-2 py-0.5 rounded border border-indigo-200">
                   💡 คำใบ้ที่ ${num}
                 </span>
                 <span class="font-mono font-bold text-indigo-700 bg-white border border-indigo-200 px-2 py-0.5 rounded text-[11px]">
@@ -706,18 +760,19 @@
                 ${item.knowledge}
               </p>
             </div>
-            <div class="mt-2 pt-1 border-t border-dashed border-slate-200 text-[10px] text-slate-500 text-right">
+            <div class="mt-2 pt-1 border-t border-dashed border-slate-300 text-[10px] text-slate-500 text-right">
               สอดคล้องกับคำใบ้ที่ ${num} ในใบงาน
             </div>
           </div>
         `;
 
-        // 3. การ์ดคำตอบสำหรับติดซ่อนในห้อง (เปลี่ยนเป็น "รหัสลับคำใบ้ที่ ...")
+        // 3. การ์ดคำตอบสำหรับติดซ่อนในห้อง (ใส่สไตล์ break-inside: avoid)
         cardsDiv.innerHTML += `
-          <div class="border-2 border-dashed border-gray-600 p-4 rounded-xl text-center bg-gray-50">
+          <div class="print-card-item border-2 border-dashed border-gray-600 p-3 rounded-xl text-center bg-gray-50 flex flex-col justify-center" style="break-inside: avoid; page-break-inside: avoid; min-height: 120px;">
             <div class="text-[11px] text-gray-500 font-medium">ผลลัพธ์คำตอบ</div>
-            <div class="text-4xl font-extrabold text-blue-700 my-1">${item.answer}</div>
-            <div class="text-2xl font-mono font-bold tracking-widest bg-white border border-gray-300 py-1.5 mt-1 rounded-lg">
+            <div class="text-3xl font-extrabold text-blue-700 my-1">${item.answer}</div>
+            <div class="text-xs text-gray-600 mb-1">รหัสลับคำใบ้ที่ ${num} คือ:</div>
+            <div class="text-xl font-mono font-bold tracking-widest bg-white border border-gray-300 py-1 rounded-lg">
               ${item.code}
             </div>
           </div>
@@ -725,6 +780,7 @@
       });
     }
 
+    // เริ่มต้นระบบ
     discoverSheetsAndLoad();
   </script>
 </body>
