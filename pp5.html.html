@@ -155,7 +155,7 @@
                         <span class="px-1 text-gray-500"><i class="fa-solid fa-book"></i></span>
                         <select id="courseSelector" class="bg-transparent font-bold text-purple-700 focus:outline-none max-w-[120px] sm:max-w-[200px] truncate" onchange="window.changeCourse()"></select>
                     </div>
-                    <button onclick="window.handleLogout()" class="bg-red-50 hover:bg-red-100 text-red-600 p-1.5 rounded-md text-xs sm:text-sm border border-red-200 transition" title="ออกจากระบบ"><i class="fa-solid fa-right-from-bracket"></i></button>
+                    <button id="logoutBtn" onclick="window.handleLogout()" class="bg-red-50 hover:bg-red-100 text-red-600 p-1.5 rounded-md text-xs sm:text-sm border border-red-200 transition" title="ออกจากระบบ"><i class="fa-solid fa-right-from-bracket"></i></button>
                 </div>
             </div>
         </header>
@@ -275,7 +275,56 @@
             }
         }
 
-        window.onload = () => loadDataFromCloud('ป.6');
+        // =========================================================================
+        // SSO & PERMISSION INTEGRATION (ตรวจสอบสิทธิ์จากพอร์ทัลหลักอัตโนมัติ)
+        // =========================================================================
+        window.onload = () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const user = urlParams.get('user');
+            const gradesParam = urlParams.get('grades');
+
+            if (user && gradesParam) {
+                // 1. กำหนดบทบาทเป็นครูผู้สอนทันที
+                window.currentUserRole = 'teacher';
+
+                // 2. ซ่อนหน้าล็อกอิน และเปิดหน้าแอป
+                document.getElementById('loginScreen').classList.add('hidden');
+                document.getElementById('appWrapper').classList.remove('hidden');
+                document.getElementById('appWrapper').classList.add('flex');
+
+                // ซ่อนปุ่มออกจากระบบถ้าเปิดใน iframe พอร์ทัล
+                const logoutBtn = document.getElementById('logoutBtn');
+                if (logoutBtn) logoutBtn.classList.add('hidden');
+
+                // 3. กรองตัวเลือกห้องเรียนตามสิทธิ์จริง (เช่น 'p5,p6' -> 'ป.5', 'ป.6')
+                const gradeMap = {
+                    'p1': 'ป.1', 'p2': 'ป.2', 'p3': 'ป.3',
+                    'p4': 'ป.4', 'p5': 'ป.5', 'p6': 'ป.6'
+                };
+                const allowedKeys = gradesParam.split(',').map(g => g.trim().toLowerCase());
+                const allowedClasses = allowedKeys.map(k => gradeMap[k] || k);
+
+                const classSelector = document.getElementById('classSelector');
+                if (classSelector) {
+                    Array.from(classSelector.options).forEach(opt => {
+                        if (!allowedClasses.includes(opt.value)) {
+                            opt.remove(); // ลบห้องที่ไม่มีสิทธิ์ออกทันที
+                        }
+                    });
+
+                    // เลือกห้องแรกที่มีสิทธิ์เริ่มต้น
+                    if (classSelector.options.length > 0) {
+                        classSelector.selectedIndex = 0;
+                        window.state.selectedClass = classSelector.value;
+                    }
+                }
+
+                loadDataFromCloud(window.state.selectedClass);
+            } else {
+                // กรณีเปิดไฟล์เดี่ยวๆ ให้รอที่หน้าล็อกอินเดิม
+                loadDataFromCloud('ป.6');
+            }
+        };
 
         let saveTimeout = null;
         function saveDataToCloud() {
@@ -1133,7 +1182,6 @@
         };
 
         window.handleLogout = function() {
-            // สั่งหยุดเล่นเพลงและรีเซ็ตสถานะปุ่ม
             const audio = document.getElementById('bgMusic');
             if (audio) {
                 audio.pause();
@@ -1191,7 +1239,6 @@
 
         window.delIndicator = function(idx) { getCourse().indicators.splice(idx, 1); renderApp(); };
 
-        // นำเข้าตัวชี้วัดจากไฟล์ Excel/CSV (อ่านคอลัมน์ A)
         window.processIndicatorExcel = function(e) {
             const file = e.target.files[0];
             if (!file) return;
@@ -1217,7 +1264,6 @@
                         rows.forEach((row, idx) => {
                             if (row && row[0]) {
                                 const text = String(row[0]).trim();
-                                // ข้ามแถวหัวตาราง ถ้าพบคำว่า ตัวชี้วัด หรือ Indicator
                                 if (idx === 0 && (text.includes("ตัวชี้วัด") || text.toLowerCase().includes("indicator"))) {
                                     return;
                                 }
