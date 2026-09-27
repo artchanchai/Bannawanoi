@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>ศูนย์รวมระบบสารสนเทศโรงเรียน</title>
+  <link rel="icon" href="IMG_4847.jpeg" type="image/png">
   
   <!-- ฟอนต์ Kanit -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -43,7 +44,7 @@
   <!-- Mobile Backdrop Overlay -->
   <div id="sidebar-backdrop" onclick="toggleSidebar()" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-40 hidden lg:hidden"></div>
 
-  <!-- ================= 1. แถบเมนูด้านข้าง (Sidebar ซิงค์ตาม Permission) ================= -->
+  <!-- ================= 1. แถบเมนูด้านข้าง (Sidebar) ================= -->
   <aside id="sidebar" class="fixed lg:static top-0 left-0 h-full w-72 bg-white border-r border-slate-200/80 z-30 flex flex-col justify-between transition-transform duration-300 ease-in-out -translate-x-full lg:translate-x-0 shadow-sm shrink-0">
     <div class="p-5 overflow-y-auto flex-1">
       
@@ -154,14 +155,14 @@
           <div class="absolute -right-16 -bottom-16 w-80 h-80 bg-indigo-600/15 rounded-full blur-3xl pointer-events-none"></div>
         </div>
 
-        <!-- การ์ดตัวเลขสถิติ 4 ช่อง (รองรับ Live Stats จาก Sheet ข้ามไฟล์) -->
+        <!-- การ์ดตัวเลขสถิติ 4 ช่อง -->
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-5 max-w-[1400px] mx-auto w-full">
           
           <!-- การ์ด 1: เกียรติบัตร -->
           <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm flex items-center justify-between">
             <div>
               <p class="text-xs font-light text-slate-400">เกียรติบัตรในระบบ</p>
-              <h3 class="text-2xl font-bold text-slate-800 mt-1" id="stat-cert-count">1,420</h3>
+              <h3 class="text-2xl font-bold text-slate-800 mt-1" id="stat-cert-count">0</h3>
               <span class="text-[11px] text-emerald-600 font-normal inline-flex items-center gap-1 mt-1">
                 <i class="fa-solid fa-arrow-trend-up"></i> ดึงสดจากชีต
               </span>
@@ -169,11 +170,16 @@
             <div class="w-11 h-11 rounded-2xl bg-amber-50 text-amber-500 flex items-center justify-center text-lg"><i class="fa-solid fa-award"></i></div>
           </div>
 
-          <!-- การ์ด 2: เกม & สื่อ -->
-          <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm flex items-center justify-between">
+          <!-- การ์ด 2: เกม & สื่อ (พร้อมปุ่มแก้ไขสำหรับ Admin) -->
+          <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm flex items-center justify-between relative group">
             <div>
-              <p class="text-xs font-light text-slate-400">เกม & สื่อการเรียนรู้</p>
-              <h3 class="text-2xl font-bold text-slate-800 mt-1" id="stat-game-count">38</h3>
+              <div class="flex items-center gap-1.5">
+                <p class="text-xs font-light text-slate-400">เกม & สื่อการเรียนรู้</p>
+                <button onclick="openEditStatsModal()" class="admin-edit-btn hidden text-slate-400 hover:text-indigo-600 text-xs transition" title="แก้ไขจำนวน">
+                  <i class="fa-solid fa-pen-to-square"></i>
+                </button>
+              </div>
+              <h3 class="text-2xl font-bold text-slate-800 mt-1" id="stat-game-count">--</h3>
               <span class="text-[11px] text-[#0066cc] font-normal inline-flex items-center gap-1 mt-1">
                 <i class="fa-solid fa-gamepad text-[10px]"></i> เล่นแบบเต็มจอ 100%
               </span>
@@ -181,13 +187,18 @@
             <div class="w-11 h-11 rounded-2xl bg-indigo-50 text-indigo-500 flex items-center justify-center text-lg"><i class="fa-solid fa-gamepad"></i></div>
           </div>
 
-          <!-- การ์ด 3: นักเรียนทั้งหมด (ดึงจากชีต ปพ.5) -->
-          <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm flex items-center justify-between">
+          <!-- การ์ด 3: นักเรียนทั้งหมด (พร้อมปุ่มแก้ไขสำหรับ Admin) -->
+          <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm flex items-center justify-between relative group">
             <div>
-              <p class="text-xs font-light text-slate-400">นักเรียนทั้งหมด</p>
-              <h3 class="text-2xl font-bold text-slate-800 mt-1" id="stat-student-count">856</h3>
-              <span class="text-[11px] text-slate-400 font-normal inline-flex items-center gap-1 mt-1">
-                <i class="fa-solid fa-graduation-cap"></i> ข้อมูล ปพ.5 รวม
+              <div class="flex items-center gap-1.5">
+                <p class="text-xs font-light text-slate-400">นักเรียนทั้งหมด</p>
+                <button onclick="openEditStatsModal()" class="admin-edit-btn hidden text-slate-400 hover:text-emerald-600 text-xs transition" title="แก้ไขจำนวน">
+                  <i class="fa-solid fa-pen-to-square"></i>
+                </button>
+              </div>
+              <h3 class="text-2xl font-bold text-slate-800 mt-1" id="stat-student-count">--</h3>
+              <span class="text-[11px] text-slate-500 font-normal inline-flex items-center gap-1 mt-1">
+                <i class="fa-solid fa-users"></i> ข้อมูลนักเรียนในระบบ
               </span>
             </div>
             <div class="w-11 h-11 rounded-2xl bg-emerald-50 text-emerald-500 flex items-center justify-center text-lg"><i class="fa-solid fa-user-graduate"></i></div>
@@ -208,7 +219,6 @@
 
         <!-- ฟีดประชาสัมพันธ์ & บอร์ดโครงสร้างโรงเรียน -->
         <div class="max-w-[1400px] mx-auto w-full grid grid-cols-1 lg:grid-cols-3 gap-6 pt-2">
-          
           <!-- ข่าวสารกิจกรรม (Feed Slider) -->
           <div class="lg:col-span-2 bg-white rounded-3xl border border-slate-200/80 p-6 shadow-sm flex flex-col justify-between">
             <div class="flex items-center justify-between pb-4 border-b border-slate-100">
@@ -298,7 +308,7 @@
 
       </div>
 
-      <!-- VIEW 2: ระบบงานทั่วไป (In-Page ไม่บัง Sidebar/Topbar)[cite: 1] -->
+      <!-- VIEW 2: ระบบงานทั่วไป (แก้ไขเพิ่ม allow-modals และ allow-downloads แล้ว) -->
       <div id="standard-workspace" class="hidden absolute inset-0 bg-white flex flex-col z-10">
         <div class="h-10 bg-slate-100 border-b border-slate-200 px-4 flex items-center justify-between shrink-0">
           <div class="flex items-center gap-2">
@@ -318,7 +328,7 @@
             </button>
           </div>
         </div>
-        <iframe id="standard-frame" src="" class="w-full flex-1 border-0" sandbox="allow-scripts allow-same-origin allow-forms allow-popups"></iframe>
+        <iframe id="standard-frame" src="" class="w-full flex-1 border-0" sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-modals allow-downloads"></iframe>
       </div>
 
     </div>
@@ -330,10 +340,10 @@
       <i class="fa-solid fa-house text-amber-400"></i>
       <span>ออกจากเกมกลับหน้าหลัก</span>
     </button>
-    <iframe id="game-frame" src="" class="w-full h-full border-0 m-0 p-0 block bg-white" sandbox="allow-scripts allow-same-origin allow-forms allow-popups"></iframe>
+    <iframe id="game-frame" src="" class="w-full h-full border-0 m-0 p-0 block bg-white" sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-modals allow-downloads"></iframe>
   </div>
 
-  <!-- ================= 4. โมดอลเข้าสู่ระบบคุณครู (Username & Password) ================= -->
+  <!-- ================= 4. โมดอลเข้าสู่ระบบคุณครู ================= -->
   <div id="login-modal" class="fixed inset-0 bg-slate-950/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
     <div class="bg-white w-full max-w-sm rounded-3xl p-6 shadow-2xl border border-slate-100 relative">
       <button onclick="closeLoginModal()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 w-8 h-8 rounded-full hover:bg-slate-100 flex items-center justify-center transition">
@@ -368,7 +378,40 @@
     </div>
   </div>
 
-  <!-- ================= 5. สคริปต์การทำงาน ================= -->
+  <!-- ================= 5. โมดอลแก้ไขตัวเลขสถิติ (สำหรับ Admin) ================= -->
+  <div id="edit-stats-modal" class="fixed inset-0 bg-slate-950/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white w-full max-w-sm rounded-3xl p-6 shadow-2xl border border-slate-100 relative">
+      <button onclick="closeEditStatsModal()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 w-8 h-8 rounded-full hover:bg-slate-100 flex items-center justify-center transition">
+        <i class="fa-solid fa-xmark text-sm"></i>
+      </button>
+
+      <div class="text-center mb-5">
+        <div class="w-12 h-12 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center text-xl mx-auto mb-2">
+          <i class="fa-solid fa-sliders"></i>
+        </div>
+        <h3 class="text-base font-semibold text-slate-900">กำหนดตัวเลขสถิติ</h3>
+        <p class="text-xs text-slate-400 mt-0.5">เฉพาะผู้ดูแลระบบ (Admin) กำหนดค่าแสดงผล</p>
+      </div>
+
+      <form onsubmit="handleSaveStats(event)" class="space-y-4">
+        <div>
+          <label class="block text-xs font-medium text-slate-700 mb-1">🎮 จำนวน เกม & สื่อการเรียนรู้</label>
+          <input type="number" id="edit-game-count" required min="0" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs sm:text-sm font-bold text-indigo-600 focus:border-indigo-500 focus:outline-none transition">
+        </div>
+
+        <div>
+          <label class="block text-xs font-medium text-slate-700 mb-1">🎓 จำนวน นักเรียนทั้งหมด</label>
+          <input type="number" id="edit-student-count" required min="0" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs sm:text-sm font-bold text-emerald-600 focus:border-emerald-500 focus:outline-none transition">
+        </div>
+
+        <button type="submit" id="btn-save-stats" class="w-full py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-medium shadow-sm transition active:scale-95 flex items-center justify-center gap-1.5 mt-2">
+          <span>บันทึกตัวเลขขึ้นชีต</span>
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- ================= 6. สคริปต์การทำงาน ================= -->
   <script>
     const AUTH_API_URL = "https://script.google.com/macros/s/AKfycbwi6vMcxNjihUYex3g-vne3Xx2FNAQNhSwgU4siQRA9aOo1YuRncmBoeX3GOf-CKtydVA/exec";
 
@@ -433,6 +476,7 @@
 
     let currentUser = null;
     let currentAppUrl = '';
+    let currentStats = { students: 0, games: 0, certs: 0 };
 
     async function loadLiveStats() {
       if (!AUTH_API_URL.includes("script.google.com")) return;
@@ -441,12 +485,57 @@
         const result = await res.json();
         if (result.status === "success" && result.data) {
           const d = result.data;
-          if (d.certificates) document.getElementById('stat-cert-count').textContent = Number(d.certificates).toLocaleString('th-TH');
-          if (d.games) document.getElementById('stat-game-count').textContent = Number(d.games).toLocaleString('th-TH');
-          if (d.students) document.getElementById('stat-student-count').textContent = Number(d.students).toLocaleString('th-TH');
+          currentStats = {
+            students: d.students || 0,
+            games: d.games || 0,
+            certs: d.certificates || 0
+          };
+          document.getElementById('stat-cert-count').textContent = Number(d.certificates).toLocaleString('th-TH');
+          document.getElementById('stat-game-count').textContent = Number(d.games).toLocaleString('th-TH');
+          document.getElementById('stat-student-count').textContent = Number(d.students).toLocaleString('th-TH');
         }
       } catch (err) {
-        console.warn("ใช้ค่าสถิติเริ่มต้นเนื่องจากไม่สามารถดึงข้อมูลได้:", err);
+        console.warn("ไม่สามารถดึงข้อมูลสถิติได้:", err);
+      }
+    }
+
+    function openEditStatsModal() {
+      document.getElementById('edit-game-count').value = currentStats.games;
+      document.getElementById('edit-student-count').value = currentStats.students;
+      document.getElementById('edit-stats-modal').classList.remove('hidden');
+    }
+
+    function closeEditStatsModal() {
+      document.getElementById('edit-stats-modal').classList.add('hidden');
+    }
+
+    async function handleSaveStats(e) {
+      e.preventDefault();
+      const games = document.getElementById('edit-game-count').value;
+      const students = document.getElementById('edit-student-count').value;
+      const btn = document.getElementById('btn-save-stats');
+
+      btn.disabled = true;
+      btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin text-xs"></i> กำลังบันทึก...';
+
+      try {
+        const res = await fetch(`${AUTH_API_URL}?action=updateStats&games=${encodeURIComponent(games)}&students=${encodeURIComponent(students)}`);
+        const resData = await res.json();
+        if (resData.status === "success") {
+          currentStats.games = Number(games);
+          currentStats.students = Number(students);
+          document.getElementById('stat-game-count').textContent = Number(games).toLocaleString('th-TH');
+          document.getElementById('stat-student-count').textContent = Number(students).toLocaleString('th-TH');
+          closeEditStatsModal();
+          alert("บันทึกสถิติเรียบร้อยแล้ว!");
+        } else {
+          alert("เกิดข้อผิดพลาด: " + resData.message);
+        }
+      } catch (err) {
+        alert("บันทึกไม่สำเร็จ ตรวจสอบการเชื่อมต่อ Apps Script");
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<span>บันทึกตัวเลขขึ้นชีต</span>';
       }
     }
 
@@ -530,6 +619,13 @@
       document.getElementById('btn-logout').classList.remove('hidden');
       document.getElementById('btn-logout').classList.add('flex');
 
+      // ตรวจสอบสิทธิ์ Admin (ถ้า username คือ admin หรือ role มีคำว่า admin ให้เปิดปุ่มแก้สถิติ)
+      const isAdmin = currentUser.username.toLowerCase() === 'admin' || (currentUser.role && currentUser.role.toLowerCase().includes('admin'));
+      document.querySelectorAll('.admin-edit-btn').forEach(btn => {
+        if (isAdmin) btn.classList.remove('hidden');
+        else btn.classList.add('hidden');
+      });
+
       renderSidebarMenu();
     }
 
@@ -544,6 +640,8 @@
       document.getElementById('btn-login-open').classList.remove('hidden');
       document.getElementById('btn-logout').classList.add('hidden');
       document.getElementById('btn-logout').classList.remove('flex');
+
+      document.querySelectorAll('.admin-edit-btn').forEach(btn => btn.classList.add('hidden'));
 
       renderSidebarMenu();
       closeAppFrame();
@@ -589,13 +687,7 @@
         standardWorkspace.classList.remove('hidden');
       }
 
-      // ปิด Sidebar และซ่อน Backdrop เสมอเมื่อเปิดระบบ (แก้ปัญหาหน้าจอเบลอและกดไม่ติด)
-      if (window.innerWidth < 1024) {
-        const sidebar = document.getElementById('sidebar');
-        const backdrop = document.getElementById('sidebar-backdrop');
-        if (sidebar) sidebar.classList.add('-translate-x-full');
-        if (backdrop) backdrop.classList.add('hidden');
-      }
+      if (window.innerWidth < 1024) toggleSidebar();
     }
 
     function closeAppFrame() {
