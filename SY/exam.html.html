@@ -452,7 +452,7 @@
               </div>
             </div>
 
-            <div id="answerSummary" class="mt-4 max-h-36 overflow-y-auto text-[11px] bg-white p-3 rounded-2xl border border-slate-200 text-slate-400">
+            <div id="answerSummary" class="mt-4 max-h-48 overflow-y-auto text-[11px] bg-white p-3 rounded-2xl border border-slate-200 text-slate-400">
               รอสแกนกระดาษคำตอบ...
             </div>
           </div>
@@ -617,7 +617,7 @@
     let editingExamId = null;
     let videoStream = null;
     let isScanning = false;
-    let isFetchingExam = false; // ตัวป้องกันการร้องขอข้อมูลซ้ำซ้อนขณะส่องกล้อง
+    let isFetchingExam = false;
 
     function toggleSubjectiveSection() {
       const hasSubjective = document.getElementById('hasSubjectiveExam').checked;
@@ -810,7 +810,7 @@
       const dot = document.getElementById('subjectIndicatorDot');
       if (dot) dot.style.backgroundColor = theme.color;
 
-      const sampleStu = (studentsList.length > 0) ? studentsList[0] : { studentName: 'ด.ช.นพรัฏฐ์ ทุมทา', rollNo: '1', studentId: '498' };
+      const sampleStu = (studentsList.length > 0) ? studentsList[0] : { studentName: 'ด.ช.ชัยสิทธิ์ วงษ์อุปรี', rollNo: '3', studentId: '498' };
       let idStr = String(sampleStu.studentId || '498').replace(/[^0-9]/g, '');
       while (idStr.length < 5) idStr = '0' + idStr;
       const idDigits = idStr.slice(-5).split('');
@@ -894,7 +894,6 @@
                 </div>
               </div>
 
-              <!-- ขนาด QR Code ในหน้า Preview ให้ตรงสัดส่วน -->
               <div class="bg-slate-50/90 border border-slate-200 rounded p-1.5 flex flex-col items-center justify-center text-center">
                 <div class="w-14 h-14 border border-slate-300 flex items-center justify-center bg-white text-[7px] font-mono text-slate-500 rounded font-bold shadow-2xs">
                   QR CODE
@@ -1188,7 +1187,7 @@
       const data = await res.json();
       if (data.success && data.exams.length > 0) {
         allSavedExams = data.exams;
-        tbody.innerHTML = data.exams.map((ex, idx) => {
+        tbody.innerHTML = data.exams.map((ex) => {
           const isRowEmpty = !ex.examId || ex.examId.trim() === "";
           const rowVal = isRowEmpty ? "EMPTY" : ex.examId;
           const subjectiveText = ex.hasSubjective ? `<span class="text-[10px] text-amber-700 block font-normal">(กา ${ex.maxScore - (ex.subjectiveMaxScore || 0)} + เขียน ${ex.subjectiveMaxScore})</span>` : '';
@@ -1432,7 +1431,6 @@
                     </div>
                   </div>
 
-                  <!-- ขยายขนาด QR Code คมชัด -->
                   <div class="bg-slate-50/90 border border-slate-300 rounded p-2 flex flex-col items-center justify-center shadow-2xs">
                     <div id="print_qr_${sheetIndex}" class="inline-block p-1 border border-slate-300 bg-white rounded"></div>
                     <div class="text-[8px] font-mono font-semibold text-slate-600 tracking-wider mt-1 text-center leading-none">
@@ -1458,7 +1456,6 @@
       setTimeout(() => {
         for (let i = 0; i < items.length; i++) {
           const item = items[i];
-          // ฝังข้อมูล EXAM_ID|ROLL_NO|STUDENT_ID ลงใน QR Code
           const qrPayload = (item && !item.isBlank && item.rollNo && item.rollNo !== '......')
             ? `${examId}|${item.rollNo}|${item.studentId || ''}`
             : examId;
@@ -1538,12 +1535,10 @@
         
         const code = jsQR(imageData.data, imageData.width, imageData.height);
         if (code && code.data.startsWith("EXAM-")) {
-          // ดึงค่า EXAM_ID, เลขที่, รหัสประจำตัว
           const parts = code.data.split("|");
           const scannedExamId = parts[0].trim();
           const scannedRoll = parts[1] ? parts[1].trim() : "";
 
-          // กรอกเลขที่และดึงชื่อนักเรียนทันที
           if (scannedRoll) {
             const rollInput = document.getElementById('scanStudentRoll');
             if (rollInput.value !== scannedRoll) {
@@ -1552,7 +1547,6 @@
             }
           }
 
-          // ป้องกันยิง Request ซ้ำขณะกล้องโฟกัส
           if (!isFetchingExam && (!currentExamData || currentExamData.examId !== scannedExamId)) {
             fetchExamForScanner(scannedExamId);
           }
@@ -1572,7 +1566,6 @@
         if (data.success && data.exam) {
           currentExamData = data.exam;
 
-          // แปลงเฉลย answerKey จาก String เป็น Object เสมอ
           if (typeof currentExamData.answerKey === 'string') {
             try {
               currentExamData.answerKey = JSON.parse(currentExamData.answerKey);
@@ -1602,12 +1595,15 @@
             subjInput.value = 0;
           }
 
+          // ซิงค์รายชื่อนักเรียนในแบ็กกราวด์ ไม่หยุดรอขัดจังหวะการสแกน
           if (studentsList.length === 0 && currentExamData.gradeLevel) {
             document.getElementById('gradeLevel').value = currentExamData.gradeLevel;
-            await onGradeChange();
+            onGradeChange().then(() => findStudentNameByRoll());
+          } else {
+            findStudentNameByRoll();
           }
 
-          findStudentNameByRoll();
+          // ประมวลผลและแสดงผลตรวจ OMR ทันที
           processOMRGrading();
         } else {
           document.getElementById('scanExamInfo').innerHTML = `<span class="text-rose-600 font-bold">❌ ไม่พบข้อสอบรหัส: ${examId} ในระบบ</span>`;
@@ -1624,8 +1620,8 @@
       if (!currentExamData) return;
       let rawScore = 0;
       let studentAnswers = {};
-      let total = currentExamData.totalQuestions;
-      let summaryHtml = '<div class="grid grid-cols-2 gap-1.5">';
+      let total = parseInt(currentExamData.totalQuestions) || 20;
+      let summaryHtml = '<div class="grid grid-cols-1 sm:grid-cols-2 gap-1.5">';
 
       const engToThai = { 'A': 'ก', 'B': 'ข', 'C': 'ค', 'D': 'ง' };
 
@@ -1633,7 +1629,7 @@
         let rawAns = currentExamData.answerKey[i] || currentExamData.answerKey[String(i)] || "ก";
         const correctAns = engToThai[rawAns] || rawAns;
         
-        // กระดาษเปล่าที่ไม่ได้ระบายคำตอบ ให้กำหนดเป็น null (0 คะแนน)
+        // สแกนตรวจ: ค่าเริ่มต้นกรณีเป็นกระดาษเปล่า หรือยังไม่ได้ระบาย
         const studentAns = null;
         studentAnswers[i] = studentAns;
 
@@ -1641,9 +1637,15 @@
         if (isCorrect) rawScore++;
 
         summaryHtml += `
-          <div class="flex justify-between p-1.5 rounded-xl ${isCorrect ? 'bg-emerald-50 text-emerald-800 font-semibold' : 'bg-slate-100 text-slate-600'}">
-            <span>ข้อ ${i}: ${studentAns ? `ตอบ ${studentAns}` : '<span class="text-slate-400 font-medium">ไม่ได้ระบาย</span>'}</span>
-            <span>${isCorrect ? '✓ ถูก' : '<span class="text-slate-400 font-mono text-[10px]">(เฉลย: ' + correctAns + ')</span>'}</span>
+          <div class="flex items-center justify-between p-2 rounded-xl ${isCorrect ? 'bg-emerald-50 text-emerald-800' : 'bg-white border border-slate-200 text-slate-700'}">
+            <span class="font-bold">ข้อ ${i}:</span>
+            <div class="flex items-center space-x-1.5">
+              <span class="text-[10px] text-slate-400">เฉลย: <strong>${correctAns}</strong> |</span>
+              <select onchange="updateIndividualAnswer(${i}, this.value)" class="border border-slate-300 rounded px-1 py-0.5 text-xs bg-white font-bold text-indigo-700">
+                <option value="" ${studentAns === null ? 'selected' : ''}>ไม่ระบาย</option>
+                ${THAI_CHOICES.map(ch => `<option value="${ch}" ${studentAns === ch ? 'selected' : ''}>ตอบ ${ch}</option>`).join('')}
+              </select>
+            </div>
           </div>
         `;
       }
@@ -1659,10 +1661,10 @@
       currentScannedData = { 
         rawScore, 
         objectiveScaledScore, 
-        studentAnswers,
-        objectiveMax,
-        subjectiveMax,
-        maxScore
+        studentAnswers, 
+        objectiveMax, 
+        subjectiveMax, 
+        maxScore 
       };
 
       document.getElementById('scanRawScoreDisplay').innerText = `${rawScore} / ${total}`;
@@ -1671,6 +1673,30 @@
       
       recalculateTotalScore();
       document.getElementById('btnSaveScore').disabled = false;
+    }
+
+    function updateIndividualAnswer(questionNo, choice) {
+      if (!currentScannedData || !currentExamData) return;
+      currentScannedData.studentAnswers[questionNo] = choice || null;
+
+      let total = parseInt(currentExamData.totalQuestions) || 20;
+      let rawScore = 0;
+      const engToThai = { 'A': 'ก', 'B': 'ข', 'C': 'ค', 'D': 'ง' };
+
+      for (let i = 1; i <= total; i++) {
+        let rawAns = currentExamData.answerKey[i] || currentExamData.answerKey[String(i)] || "ก";
+        const correctAns = engToThai[rawAns] || rawAns;
+        if (currentScannedData.studentAnswers[i] === correctAns) {
+          rawScore++;
+        }
+      }
+
+      currentScannedData.rawScore = rawScore;
+      currentScannedData.objectiveScaledScore = Number(((rawScore / total) * currentScannedData.objectiveMax).toFixed(2));
+      
+      document.getElementById('scanRawScoreDisplay').innerText = `${rawScore} / ${total}`;
+      document.getElementById('scanObjectiveScaledDisplay').innerText = `${currentScannedData.objectiveScaledScore} / ${currentScannedData.objectiveMax}`;
+      recalculateTotalScore();
     }
 
     function recalculateTotalScore() {
