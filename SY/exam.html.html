@@ -1,0 +1,1796 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>ระบบพิมพ์กระดาษคำตอบ</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&family=Sarabun:wght@300;400;600;700&display=swap" rel="stylesheet">
+  
+  <style>
+    body { 
+      font-family: 'Prompt', 'Sarabun', sans-serif;
+      background: radial-gradient(circle at 10% 20%, rgba(238, 242, 255, 0.95) 0%, rgba(248, 250, 252, 1) 90%);
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .bg-blob-1 {
+      position: fixed;
+      top: -10%;
+      left: -10%;
+      width: 50vw;
+      height: 50vw;
+      background: radial-gradient(circle, rgba(99, 102, 241, 0.15) 0%, rgba(255,255,255,0) 70%);
+      border-radius: 50%;
+      z-index: -1;
+      filter: blur(40px);
+      animation: floatSlow 18s ease-in-out infinite alternate;
+    }
+    .bg-blob-2 {
+      position: fixed;
+      bottom: -15%;
+      right: -10%;
+      width: 60vw;
+      height: 60vw;
+      background: radial-gradient(circle, rgba(168, 85, 247, 0.12) 0%, rgba(255,255,255,0) 70%);
+      border-radius: 50%;
+      z-index: -1;
+      filter: blur(50px);
+      animation: floatSlow 22s ease-in-out infinite alternate-reverse;
+    }
+
+    @keyframes floatSlow {
+      0% { transform: translate(0, 0) scale(1); }
+      100% { transform: translate(50px, 30px) scale(1.08); }
+    }
+
+    .omr-marker { width: 14px; height: 14px; background-color: #000; }
+    
+    .bubble-choice { 
+      width: 20px; 
+      height: 20px; 
+      border-width: 1.5px;
+      border-style: solid;
+      border-radius: 9999px; 
+      display: inline-flex; 
+      align-items: center; 
+      justify-content: center; 
+      font-size: 10px; 
+      font-weight: 600;
+      background-color: #ffffff;
+      position: relative;
+      z-index: 1;
+    }
+
+    .id-bubble {
+      width: 14px;
+      height: 14px;
+      border: 1px solid #1e293b;
+      border-radius: 9999px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 8px;
+      font-weight: bold;
+      color: #0f172a;
+      background-color: #ffffff;
+      position: relative;
+      z-index: 1;
+    }
+
+    .id-bubble-filled {
+      background-color: #000000 !important;
+      color: #ffffff !important;
+      border-color: #000000 !important;
+      -webkit-print-color-adjust: exact !important;
+      print-color-adjust: exact !important;
+    }
+
+    .subject-watermark-layer {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      z-index: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+
+    #printContainer {
+      position: fixed;
+      left: -9999px;
+      top: -9999px;
+      visibility: hidden;
+      opacity: 0;
+    }
+
+    @media print {
+      * {
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+      }
+      body { background: white !important; padding: 0 !important; margin: 0 !important; }
+      .no-print, .bg-blob-1, .bg-blob-2 { display: none !important; }
+      #printContainer { 
+        position: static !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+        display: block !important; 
+        left: auto !important;
+        top: auto !important;
+      }
+
+      .print-pair-landscape {
+        page-break-after: always;
+        width: 297mm;
+        height: 210mm;
+        display: flex !important;
+        flex-direction: row !important;
+        justify-content: space-between !important;
+        padding: 6mm 6mm !important;
+        box-sizing: border-box;
+      }
+      .half-sheet-card {
+        width: 48.6% !important;
+        height: 100% !important;
+        border: 1px dashed #94a3b8 !important;
+        padding: 5mm 6mm !important;
+        position: relative !important;
+        box-sizing: border-box;
+        display: flex !important;
+        flex-direction: column !important;
+        justify-content: space-between !important;
+        overflow: hidden !important;
+      }
+      @page { size: A4 landscape; margin: 0; }
+    }
+  </style>
+</head>
+<body class="min-h-screen text-slate-800 antialiased relative pb-10">
+
+  <div class="bg-blob-1 pointer-events-none"></div>
+  <div class="bg-blob-2 pointer-events-none"></div>
+
+  <!-- Navbar -->
+  <header class="no-print bg-white/80 backdrop-blur-xl sticky top-0 z-50 border-b border-slate-200/80 shadow-xs">
+    <div class="max-w-[1440px] mx-auto px-4 sm:px-8 py-3.5 flex flex-col md:flex-row md:justify-between md:items-center gap-3">
+      <div class="flex items-center space-x-3">
+        <div class="w-10 h-10 sm:w-11 sm:h-11 rounded-2xl bg-gradient-to-tr from-indigo-600 via-indigo-500 to-purple-500 flex items-center justify-center text-white shadow-md shadow-indigo-500/20 ring-2 ring-white shrink-0">
+          <span class="text-xl">📝</span>
+        </div>
+        <div>
+          <div class="flex items-center space-x-2">
+            <h1 class="text-sm sm:text-base font-bold text-slate-900 leading-tight">ระบบพิมพ์กระดาษคำตอบ</h1>
+            <span class="bg-indigo-100 text-indigo-700 text-[10px] px-2 py-0.5 rounded-full font-bold">เชื่อมต่อ ปพ.5</span>
+          </div>
+          <p class="text-[11px] sm:text-xs text-slate-400">สร้างกระดาษคำตอบ & ตรวจข้อสอบอัตโนมัติ</p>
+        </div>
+      </div>
+
+      <nav class="flex items-center overflow-x-auto no-scrollbar bg-slate-100/90 p-1.5 rounded-2xl border border-slate-200 text-xs font-semibold backdrop-blur max-w-full">
+        <button onclick="switchTab('create')" id="tab-create" class="px-4 py-2 rounded-xl transition bg-white text-indigo-700 shadow-sm font-bold whitespace-nowrap">1. จัดทำข้อสอบ</button>
+        <button onclick="switchTab('manage')" id="tab-manage" class="px-4 py-2 rounded-xl transition hover:text-indigo-600 text-slate-600 whitespace-nowrap">📋 คลังข้อสอบ</button>
+        <button onclick="switchTab('scan')" id="tab-scan" class="px-4 py-2 rounded-xl transition hover:text-indigo-600 text-slate-600 whitespace-nowrap">2. สแกนตรวจ</button>
+        <button onclick="switchTab('report')" id="tab-report" class="px-4 py-2 rounded-xl transition hover:text-indigo-600 text-slate-600 whitespace-nowrap">3. สรุปคะแนน</button>
+      </nav>
+    </div>
+  </header>
+
+  <main class="max-w-[1440px] mx-auto p-4 sm:p-8 no-print">
+    
+    <!-- ================= แท็บ 1: สร้าง/เฉลยข้อสอบ + LIVE PREVIEW ================= -->
+    <section id="section-create">
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+        
+        <!-- ฝั่งซ้าย: แผงควบคุมและเฉลยคำตอบ -->
+        <div class="lg:col-span-7 bg-white/95 backdrop-blur-md rounded-3xl p-6 sm:p-8 border border-slate-200/80 shadow-xl shadow-slate-200/40">
+          <div>
+            <div class="flex justify-between items-center mb-5 pb-3 border-b border-slate-100 gap-2">
+              <div class="flex items-center space-x-2.5">
+                <span id="subjectIndicatorDot" class="w-3 h-3 rounded-full bg-indigo-600 ring-4 ring-indigo-50 transition-colors"></span>
+                <h2 id="formTitle" class="text-base sm:text-lg font-bold text-slate-800">ข้อมูลชุดข้อสอบและเฉลยคำตอบ</h2>
+              </div>
+              <span id="savedStatusBadge" class="bg-slate-100 text-slate-600 text-[11px] px-3.5 py-1 rounded-full font-semibold border border-slate-200 shrink-0">ตรวจสอบสถานะ...</span>
+            </div>
+            
+            <!-- ชื่อโรงเรียน & ระดับชั้น -->
+            <div class="grid grid-cols-1 sm:grid-cols-12 gap-3 mb-5">
+              <div class="sm:col-span-6 bg-slate-50 border border-slate-200 rounded-2xl p-3.5">
+                <label class="block text-xs font-bold text-slate-700 mb-1">ชื่อสถานศึกษา / โรงเรียน</label>
+                <input type="text" id="schoolNameInput" value="โรงเรียนบ้านนาหว้าน้อย" oninput="onSchoolNameChange()" class="w-full border border-slate-300 rounded-xl p-2 text-xs sm:text-sm font-semibold text-slate-800 bg-white focus:ring-2 focus:ring-indigo-400 focus:outline-none">
+              </div>
+              <div class="sm:col-span-6 bg-gradient-to-br from-indigo-50/80 via-white to-slate-50/80 border border-indigo-100/80 rounded-2xl p-3.5">
+                <div class="flex justify-between items-center mb-1">
+                  <label class="block text-xs font-bold text-indigo-950">ระดับชั้นเรียน (จาก ปพ.5)</label>
+                  <span id="loadStatus" class="text-[10px] text-slate-500 font-medium"></span>
+                </div>
+                <div class="flex items-center gap-2">
+                  <select id="gradeLevel" onchange="onGradeChange(true)" class="border border-slate-300 rounded-xl p-2 bg-white font-bold text-indigo-950 text-xs sm:text-sm flex-1 focus:ring-2 focus:ring-indigo-400 focus:outline-none transition">
+                    <option value="ป.1">ชั้นประถมศึกษาปีที่ 1</option>
+                    <option value="ป.2">ชั้นประถมศึกษาปีที่ 2</option>
+                    <option value="ป.3">ชั้นประถมศึกษาปีที่ 3</option>
+                    <option value="ป.4">ชั้นประถมศึกษาปีที่ 4</option>
+                    <option value="ป.5">ชั้นประถมศึกษาปีที่ 5</option>
+                    <option value="ป.6" selected>ชั้นประถมศึกษาปีที่ 6</option>
+                  </select>
+                  <button onclick="onGradeChange(true)" class="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-2 rounded-xl text-xs font-semibold shadow-sm transition shrink-0">
+                    🔄 รีเฟรช
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- รายวิชา & ภาคเรียน -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-5">
+              <div>
+                <label class="block text-xs font-semibold text-slate-600 mb-1.5">รายวิชา</label>
+                <select id="courseSelect" onchange="onCourseSelected()" class="w-full border border-slate-300 rounded-xl p-2.5 text-sm bg-white focus:ring-2 focus:ring-indigo-400 focus:outline-none transition">
+                  <option value="">-- กำลังโหลดรายวิชา --</option>
+                </select>
+              </div>
+              <div>
+                <label class="block text-xs font-semibold text-slate-600 mb-1.5">ภาคเรียนการสอบ</label>
+                <select id="termType" onchange="onExamConfigChange()" class="w-full border border-slate-300 rounded-xl p-2.5 text-sm bg-white font-semibold text-indigo-900 focus:ring-2 focus:ring-indigo-400 focus:outline-none transition">
+                  <option value="midExam">ภาคเรียนที่ 1 (สอบกลางภาค)</option>
+                  <option value="finalExam">ภาคเรียนที่ 2 (สอบปลายภาค)</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- แถบตั้งค่าข้อสอบอัตนัย (ข้อเขียน) -->
+            <div class="mb-5 bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200/80 rounded-2xl p-4">
+              <div class="flex flex-wrap items-center justify-between gap-3">
+                <label class="flex items-center space-x-2.5 cursor-pointer">
+                  <input type="checkbox" id="hasSubjectiveExam" onchange="toggleSubjectiveSection()" class="w-4 h-4 rounded text-amber-600 focus:ring-amber-500 cursor-pointer">
+                  <span class="text-xs sm:text-sm font-bold text-amber-950">ชุดข้อสอบนี้มี "ข้อสอบอัตนัย (ข้อเขียน)" ร่วมด้วย</span>
+                </label>
+                <div id="subjectiveScoreBox" class="hidden items-center space-x-2">
+                  <span class="text-xs font-semibold text-amber-900">กำหนดคะแนนข้อเขียน:</span>
+                  <input type="number" id="subjectiveMaxScore" value="5" min="1" oninput="calculateWeightPerQuestion()" class="w-20 border border-amber-300 rounded-xl p-1.5 text-center font-bold text-amber-900 bg-white text-xs sm:text-sm focus:ring-2 focus:ring-amber-400 focus:outline-none">
+                  <span class="text-xs text-amber-800">คะแนน</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- ชุดข้อสอบ -->
+            <div class="mb-5 bg-slate-50 border border-slate-200/90 rounded-2xl p-3.5 flex flex-wrap justify-between items-center text-xs gap-2">
+              <div class="flex items-center space-x-2.5">
+                <span class="font-bold text-slate-700">ชุดข้อสอบ:</span>
+                <span id="currentSetBadge" class="bg-indigo-900 text-white font-bold px-3 py-1 rounded-lg">ชุดที่ 1 (ชุด A)</span>
+                
+                <div id="setSelectContainer" class="hidden items-center space-x-1.5">
+                  <select id="examSet" onchange="onExamSetChange()" class="border border-indigo-300 rounded-lg p-1.5 bg-white font-bold text-indigo-700">
+                    <option value="A">ชุด A</option>
+                    <option value="B">ชุด B</option>
+                    <option value="C">ชุด C</option>
+                    <option value="D">ชุด D</option>
+                  </select>
+                </div>
+              </div>
+
+              <button type="button" id="btnAddSet" onclick="enableMultipleSets()" class="text-indigo-600 font-bold hover:underline flex items-center space-x-1">
+                <span>➕ เพิ่มชุดข้อสอบ (B, C...)</span>
+              </button>
+            </div>
+
+            <!-- คะแนนเต็ม & สัดส่วนข้อกา -->
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5 mb-6 bg-slate-50/80 p-4 rounded-2xl border border-slate-200 text-center">
+              <div>
+                <label class="block text-[11px] text-slate-400 mb-1 font-medium">คะแนนเต็ม ปพ.5</label>
+                <input type="number" id="maxScore" value="15" readonly class="w-full border border-slate-200 rounded-xl p-2 text-center font-bold text-slate-500 bg-slate-200/70 text-sm cursor-not-allowed">
+              </div>
+              <div>
+                <label class="block text-[11px] text-indigo-950 font-bold mb-1">สัดส่วนข้อกา</label>
+                <div id="objectiveScoreDisplay" class="py-2 bg-indigo-50 border border-indigo-200 rounded-xl text-indigo-900 font-bold text-xs sm:text-sm">
+                  15 คะแนน
+                </div>
+              </div>
+              <div>
+                <label class="block text-[11px] text-indigo-950 font-bold mb-1">จำนวนข้อสอบกา</label>
+                <input type="number" id="totalQuestions" value="20" min="1" max="100" oninput="onTotalQuestionsChange()" class="w-full border-2 border-indigo-400 rounded-xl p-2 text-center font-bold text-indigo-900 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-indigo-300">
+              </div>
+              <div>
+                <label class="block text-[11px] text-slate-400 mb-1 font-medium">น้ำหนักข้อกา</label>
+                <div class="pt-2 text-indigo-700 font-bold text-xs" id="weightDisplay">
+                  ข้อละ 0.75
+                </div>
+              </div>
+            </div>
+
+            <!-- เฉลยคำตอบ ก ข ค ง (สีตรงกับวิชา) -->
+            <div class="mb-6">
+              <div class="flex justify-between items-center mb-3">
+                <label class="block text-sm font-bold text-slate-800">เฉลยคำตอบ (Answer Key):</label>
+                <span id="autoLoadedTip" class="hidden text-xs text-emerald-600 font-semibold">✓ ซิงค์เฉลยเรียบร้อย</span>
+              </div>
+              <div id="keyGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2.5 p-3.5 border border-slate-200 rounded-2xl bg-slate-50/70 max-h-[500px] overflow-y-auto"></div>
+            </div>
+          </div>
+
+          <div class="pt-4 border-t border-slate-100 flex justify-end space-x-3">
+            <button onclick="resetToNewExam()" id="btnResetExam" class="bg-slate-100 hover:bg-slate-200 text-slate-600 font-semibold px-4 py-2.5 rounded-xl text-xs sm:text-sm transition">
+              🔄 ล้างฟอร์ม
+            </button>
+            <button onclick="saveExam()" id="btnSaveExam" class="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold px-6 py-2.5 rounded-xl shadow-md shadow-indigo-300 text-xs sm:text-sm transition">
+              💾 บันทึกชุดข้อสอบ
+            </button>
+          </div>
+        </div>
+
+        <!-- ฝั่งขวา: LIVE PREVIEW -->
+        <div class="lg:col-span-5 flex flex-col items-center w-full sticky top-24">
+          <div class="w-full flex flex-wrap justify-between items-center mb-2.5 px-1 gap-2">
+            <span class="text-xs font-bold text-slate-700 flex items-center space-x-1.5">
+              <span>👁️ ตัวอย่างหน้ากระดาษจริง 1:1 (สีตามวิชา)</span>
+            </span>
+            <div class="flex space-x-1.5">
+              <button onclick="generateSheets(false)" class="bg-slate-800 hover:bg-slate-900 text-white text-[11px] font-bold px-3 py-1.5 rounded-xl shadow-sm transition">
+                🖨️ พิมพ์แผ่นเปล่า (2 ใบ/A4)
+              </button>
+              <button onclick="generateSheets(true)" class="bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-bold px-3 py-1.5 rounded-xl shadow-sm shadow-emerald-200 transition">
+                🖨️ พิมพ์ตามชื่อ (2 ใบ/A4)
+              </button>
+            </div>
+          </div>
+
+          <div class="w-full bg-white rounded-3xl shadow-xl shadow-slate-200/60 border border-slate-200 p-3 sm:p-4 relative flex flex-col justify-between overflow-hidden">
+            <div id="livePreviewExactContainer"></div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ================= แท็บ 2: คลังข้อสอบ ================= -->
+    <section id="section-manage" class="hidden bg-white/95 backdrop-blur-md rounded-3xl border border-slate-200/80 shadow-xl p-5 sm:p-8">
+      <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-5 pb-3 border-b border-slate-100 gap-3">
+        <div>
+          <h2 class="text-base sm:text-lg font-bold text-slate-800">📋 คลังชุดข้อสอบในระบบ</h2>
+          <p class="text-xs text-slate-400">สามารถติ๊กเลือกหลายชุดเพื่อลบพร้อมกันได้</p>
+        </div>
+        <div class="flex items-center space-x-2 w-full sm:w-auto justify-end">
+          <button onclick="cleanupEmptyRows()" class="bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200 px-3.5 py-2 rounded-xl text-xs font-semibold transition">
+            🧹 ล้างแถวว่างที่เสีย
+          </button>
+          <button onclick="loadExamsList()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-3.5 py-2 rounded-xl text-xs font-semibold transition">
+            🔄 รีเฟรช
+          </button>
+        </div>
+      </div>
+
+      <div id="batchActionToolbar" class="hidden mb-4 p-3 bg-rose-50 border border-rose-200 rounded-2xl flex flex-wrap items-center justify-between gap-2 transition">
+        <span class="text-xs text-rose-800 font-bold" id="selectedCountText">เลือกแล้ว 0 รายการ</span>
+        <div class="flex items-center space-x-2">
+          <button onclick="unselectAllCheckboxes()" class="px-3 py-1.5 bg-white border border-rose-200 text-slate-600 rounded-xl text-xs font-semibold hover:bg-slate-50">ยกเลิก</button>
+          <button onclick="deleteSelectedExams()" class="px-4 py-1.5 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-bold shadow-sm transition">🗑️ ลบที่เลือกทั้งหมด</button>
+        </div>
+      </div>
+
+      <div class="overflow-x-auto rounded-2xl border border-slate-200">
+        <table class="w-full text-left text-xs border-collapse">
+          <thead>
+            <tr class="bg-slate-50 border-b border-slate-200 text-slate-600 font-semibold select-none">
+              <th class="p-3 w-10 text-center">
+                <input type="checkbox" id="selectAllExams" onchange="toggleSelectAllExams()" class="w-4 h-4 rounded text-indigo-600 focus:ring-indigo-500 cursor-pointer">
+              </th>
+              <th class="p-3">รหัสข้อสอบ</th>
+              <th class="p-3 text-center">ชุดที่</th>
+              <th class="p-3">ชั้น</th>
+              <th class="p-3">ชื่อวิชา</th>
+              <th class="p-3 text-center">จำนวนข้อ</th>
+              <th class="p-3 text-center">สัดส่วนคะแนน</th>
+              <th class="p-3 text-center">จัดการ</th>
+            </tr>
+          </thead>
+          <tbody id="examsTableBody">
+            <tr><td colspan="8" class="p-4 text-center text-slate-400">กำลังโหลดรายการ...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ================= แท็บ 3: สแกนตรวจข้อสอบ ================= -->
+    <section id="section-scan" class="hidden bg-white/95 backdrop-blur-md rounded-3xl border border-slate-200/80 shadow-xl p-5 sm:p-8">
+      <h2 class="text-base sm:text-lg font-bold text-slate-800 mb-4 pb-3 border-b border-slate-100">2. สแกนตรวจกระดาษคำตอบ</h2>
+      
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div class="relative bg-black rounded-3xl overflow-hidden flex flex-col items-center justify-center min-h-[350px] sm:min-h-[400px] shadow-inner">
+          <video id="video" playsinline class="w-full h-full object-cover"></video>
+          <canvas id="scanCanvas" class="hidden"></canvas>
+          <div class="absolute inset-0 border-2 border-dashed border-amber-400/80 m-6 sm:m-8 rounded-2xl pointer-events-none flex items-center justify-center">
+            <span class="text-amber-200 text-xs bg-black/70 px-3 py-1.5 rounded-lg backdrop-blur">ให้ QR Code และกระดาษอยู่ในกรอบ</span>
+          </div>
+          <div class="absolute bottom-3.5 flex space-x-2">
+            <button onclick="startCamera()" class="bg-white/90 hover:bg-white text-slate-800 px-4 py-2 rounded-xl text-xs font-bold shadow transition">📷 เปิดกล้อง</button>
+            <button onclick="stopCamera()" class="bg-rose-600/90 hover:bg-rose-600 text-white px-4 py-2 rounded-xl text-xs font-bold shadow transition">⏹️ ปิดกล้อง</button>
+          </div>
+        </div>
+
+        <div class="flex flex-col justify-between border border-slate-200 rounded-3xl p-5 bg-slate-50/60">
+          <div>
+            <h3 class="font-bold text-sm text-slate-800 mb-3 pb-2 border-b border-slate-200">ผลการตรวจข้อสอบ</h3>
+            
+            <div class="space-y-3 text-xs">
+              <p>📌 <strong>วิชา / ชุดข้อสอบ:</strong> <span id="scanExamInfo" class="text-indigo-600 font-bold">รอสแกน QR Code...</span></p>
+              
+              <div class="flex items-center space-x-2">
+                <label>👤 <strong>เลขที่:</strong></label>
+                <input type="number" id="scanStudentRoll" oninput="findStudentNameByRoll()" placeholder="เลขที่" class="w-20 border border-slate-300 rounded-xl px-2.5 py-1.5 text-center font-bold text-indigo-700 bg-white focus:outline-none">
+                <span id="scanStudentNameDisplay" class="text-xs text-slate-800 font-bold truncate"></span>
+              </div>
+
+              <!-- ช่องกรอกคะแนนข้อเขียน -->
+              <div id="scanSubjectiveRow" class="hidden p-3 bg-amber-50/80 border border-amber-200 rounded-2xl">
+                <div class="flex items-center justify-between">
+                  <div>
+                    <span class="font-bold text-amber-950 block">✍️ คะแนนข้อเขียน (อัตนัย)</span>
+                    <span class="text-[10px] text-amber-800" id="scanSubjectiveHint">คะแนนเต็ม 0 คะแนน</span>
+                  </div>
+                  <div class="flex items-center space-x-1.5">
+                    <input type="number" id="scanSubjectiveScore" value="0" min="0" step="0.5" oninput="recalculateTotalScore()" class="w-20 border-2 border-amber-400 rounded-xl p-1.5 text-center font-black text-amber-900 bg-white text-base focus:outline-none">
+                    <span class="font-bold text-amber-900">คะแนน</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="grid grid-cols-3 gap-2 mt-2">
+                <div class="p-2.5 bg-white rounded-2xl border border-slate-200 text-center shadow-2xs">
+                  <span class="text-[10px] text-slate-400 block mb-0.5">ข้อกาที่ถูก</span>
+                  <span id="scanRawScoreDisplay" class="text-xl font-bold text-slate-800">- / -</span>
+                </div>
+                <div class="p-2.5 bg-indigo-50/80 rounded-2xl border border-indigo-200 text-center shadow-2xs">
+                  <span class="text-[10px] text-indigo-700 block mb-0.5 font-semibold">คะแนนข้อกา</span>
+                  <span id="scanObjectiveScaledDisplay" class="text-xl font-bold text-indigo-700">-</span>
+                </div>
+                <div class="p-2.5 bg-emerald-50 rounded-2xl border border-emerald-300 text-center shadow-2xs">
+                  <span class="text-[10px] text-emerald-800 block mb-0.5 font-bold">รวมเข้า ปพ.5</span>
+                  <span id="scanScaledScoreDisplay" class="text-xl font-black text-emerald-600">-</span>
+                </div>
+              </div>
+            </div>
+
+            <div id="answerSummary" class="mt-4 max-h-36 overflow-y-auto text-[11px] bg-white p-3 rounded-2xl border border-slate-200 text-slate-400">
+              รอสแกนกระดาษคำตอบ...
+            </div>
+          </div>
+
+          <div class="mt-4 pt-3 border-t border-slate-200">
+            <button onclick="confirmAndSaveScore()" id="btnSaveScore" disabled class="w-full bg-emerald-600 hover:bg-emerald-700 disabled:bg-slate-300 text-white font-bold py-3 rounded-2xl transition shadow-md shadow-emerald-200 text-xs">
+              💾 บันทึกคะแนนเข้า ปพ.5 ทันที
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= แท็บ 4: สรุปคะแนน ================= -->
+    <section id="section-report" class="hidden bg-white/95 backdrop-blur-md rounded-3xl border border-slate-200/80 shadow-xl p-5 sm:p-8">
+      <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 pb-3 border-b border-slate-100 gap-2">
+        <h2 class="text-base sm:text-lg font-bold text-slate-800">3. สรุปคะแนนการสอบ</h2>
+        <button onclick="exportCSV()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-xl text-xs font-semibold shadow-sm shadow-emerald-200 transition">📥 ส่งออกรายงาน (CSV)</button>
+      </div>
+
+      <div class="flex items-center space-x-2.5 mb-4">
+        <input type="text" id="searchExamId" placeholder="ระบุ Exam ID (เว้นว่างเพื่อดูทั้งหมด)" class="border border-slate-300 rounded-xl p-2.5 text-xs w-full sm:w-64 focus:outline-none">
+        <button onclick="loadResults()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2.5 rounded-xl text-xs font-semibold shadow-sm shadow-indigo-300 transition shrink-0">ดึงคะแนน</button>
+      </div>
+
+      <div class="overflow-x-auto rounded-2xl border border-slate-200">
+        <table class="w-full text-left text-xs border-collapse">
+          <thead>
+            <tr class="bg-slate-50 border-b border-slate-200 text-slate-500 font-semibold">
+              <th class="p-3">เลขที่</th>
+              <th class="p-3">ชื่อ-นามสกุล</th>
+              <th class="p-3">รหัสชุดข้อสอบ</th>
+              <th class="p-3 text-center">ชุดที่</th>
+              <th class="p-3 text-center">ข้อที่ถูก (ดิบ)</th>
+              <th class="p-3 text-center">คะแนน ปพ.5</th>
+              <th class="p-3 text-center">ร้อยละ</th>
+              <th class="p-3">วัน-เวลา</th>
+            </tr>
+          </thead>
+          <tbody id="resultsTableBody">
+            <tr><td colspan="8" class="p-4 text-center text-slate-400">ยังไม่มีข้อมูลผลสอบ</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+  </main>
+
+  <div id="printContainer"></div>
+
+  <!-- ================= JAVASCRIPT ================= -->
+  <script>
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwdNlLZw_5dT8pqAnxPSh7-TYuJe0s5sgaQ6BfYz_JLyWjoxyuOTggFI1WZhB1U9Gs/exec";
+    
+    const SCHOOL_LOGO_SVG = `
+      <svg class="w-9 h-9 inline-block" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="50" cy="50" r="46" fill="#FEF3C7" stroke="#D97706" stroke-width="3"/>
+        <path d="M50 18L56 34H68L58 43L62 59L50 49L38 59L42 43L32 34H44L50 18Z" fill="#D97706"/>
+        <circle cx="50" cy="50" r="28" stroke="#B45309" stroke-width="1.5" stroke-dasharray="3 3"/>
+        <path d="M35 72C40 68 60 68 65 72" stroke="#B45309" stroke-width="2" stroke-linecap="round"/>
+      </svg>
+    `;
+
+    // =========================================================================
+    // ฟังก์ชันคำนวณชุดสีประจำรายวิชา (Color Palette Generator)
+    // =========================================================================
+    function getSubjectTheme(subjectName) {
+      if (!subjectName) return { color: '#4f46e5', bgBadge: '#4f46e5' };
+
+      // 1. คณิตศาสตร์ -> โทนสีน้ำเงิน/ครามเข้ม (Blue-Indigo)
+      if (subjectName.includes("คณิต")) {
+        return { color: '#1d4ed8', bgBadge: '#1d4ed8' };
+      }
+      // 2. วิทยาศาสตร์และเทคโนโลยี -> โทนสีฟ้าเข้ม/ไซแอน (Sky-Cyan)
+      if (subjectName.includes("วิทย์") || subjectName.includes("ฟิสิกส์") || subjectName.includes("เคมี") || subjectName.includes("ชีว")) {
+        return { color: '#0284c7', bgBadge: '#0284c7' };
+      }
+      // 3. ภาษาไทย -> โทนสีเขียวมรกต (Emerald)
+      if (subjectName.includes("ไทย")) {
+        return { color: '#059669', bgBadge: '#059669' };
+      }
+      // 4. สังคมศึกษา ศาสนาฯ / หน้าที่พลเมือง -> โทนสีส้มอิฐ/น้ำตาลทอง (Amber)
+      if (subjectName.includes("สังคม") || subjectName.includes("หน้าที่")) {
+        return { color: '#d97706', bgBadge: '#d97706' };
+      }
+      // 5. ประวัติศาสตร์ -> โทนสีน้ำตาลเข้ม/ทองโบราณ
+      if (subjectName.includes("ประวัติ")) {
+        return { color: '#b45309', bgBadge: '#b45309' };
+      }
+      // 6. ภาษาต่างประเทศ (อังกฤษ) -> โทนสีแดงทับทิม/กุหลาบ (Rose-Red)
+      if (subjectName.includes("อังกฤษ") || subjectName.includes("English")) {
+        return { color: '#dc2626', bgBadge: '#dc2626' };
+      }
+      // 7. สุขศึกษาและพลศึกษา -> โทนสีเขียวมะนาว/ตองเข้ม
+      if (subjectName.includes("สุข") || subjectName.includes("พละ")) {
+        return { color: '#15803d', bgBadge: '#15803d' };
+      }
+      // 8. ศิลปะ / ดนตรี / นาฏศิลป์ -> โทนสีม่วง/ไวโอเลต
+      if (subjectName.includes("ศิลปะ") || subjectName.includes("ดนตรี") || subjectName.includes("นาฏศิลป์")) {
+        return { color: '#7c3aed', bgBadge: '#7c3aed' };
+      }
+      // 9. การงานอาชีพ / คอมพิวเตอร์ -> โทนสีฟ้าอมเขียว (Teal)
+      if (subjectName.includes("การงาน") || subjectName.includes("คอม")) {
+        return { color: '#0f766e', bgBadge: '#0f766e' };
+      }
+
+      // วิชาเพิ่มเติมอื่นๆ สร้างแฮชสีเข้มแบบ Dynamic
+      let hash = 0;
+      for (let i = 0; i < subjectName.length; i++) {
+        hash = subjectName.charCodeAt(i) + ((hash << 5) - hash);
+      }
+      const palette = ['#1e40af', '#0e7490', '#047857', '#b45309', '#be123c', '#6d28d9', '#4338ca', '#374151'];
+      const chosenColor = palette[Math.abs(hash) % palette.length];
+      return { color: chosenColor, bgBadge: chosenColor };
+    }
+
+    // ฟังก์ชันสร้างลายน้ำตามกลุ่มสาระวิชา
+    function getSubjectWatermarkSvg(subjectName) {
+      if (!subjectName) return '';
+
+      const theme = getSubjectTheme(subjectName);
+
+      if (subjectName.includes("คณิต")) {
+        return `
+          <svg class="w-full h-full" viewBox="0 0 400 400" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <text x="30" y="80" font-size="48" fill="${theme.color}" opacity="0.06" font-weight="bold">∑</text>
+            <text x="280" y="90" font-size="42" fill="${theme.color}" opacity="0.06" font-weight="bold">√x</text>
+            <text x="40" y="240" font-size="52" fill="${theme.color}" opacity="0.06" font-weight="bold">π</text>
+            <text x="270" y="260" font-size="46" fill="${theme.color}" opacity="0.06" font-weight="bold">∞</text>
+            <text x="160" y="360" font-size="40" fill="${theme.color}" opacity="0.05" font-weight="bold">f(x)=y</text>
+            <circle cx="200" cy="200" r="120" stroke="${theme.color}" stroke-width="2" stroke-dasharray="8 6" opacity="0.04"/>
+          </svg>
+        `;
+      }
+
+      if (subjectName.includes("วิทย์") || subjectName.includes("ฟิสิกส์") || subjectName.includes("เคมี") || subjectName.includes("ชีว")) {
+        return `
+          <svg class="w-full h-full" viewBox="0 0 400 400" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="200" cy="200" r="16" fill="${theme.color}" opacity="0.06"/>
+            <ellipse cx="200" cy="200" rx="140" ry="45" stroke="${theme.color}" stroke-width="2" opacity="0.05" transform="rotate(30 200 200)"/>
+            <ellipse cx="200" cy="200" rx="140" ry="45" stroke="${theme.color}" stroke-width="2" opacity="0.05" transform="rotate(-30 200 200)"/>
+            <ellipse cx="200" cy="200" rx="140" ry="45" stroke="${theme.color}" stroke-width="2" opacity="0.05" transform="rotate(90 200 200)"/>
+            <text x="40" y="100" font-size="34" fill="${theme.color}" opacity="0.05" font-weight="bold">H₂O</text>
+            <text x="280" y="320" font-size="34" fill="${theme.color}" opacity="0.05" font-weight="bold">E=mc²</text>
+          </svg>
+        `;
+      }
+
+      if (subjectName.includes("ไทย")) {
+        return `
+          <svg class="w-full h-full" viewBox="0 0 400 400" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <text x="40" y="100" font-size="56" fill="${theme.color}" opacity="0.06" font-family="'Prompt', sans-serif" font-weight="bold">ก</text>
+            <text x="280" y="110" font-size="52" fill="${theme.color}" opacity="0.06" font-family="'Prompt', sans-serif" font-weight="bold">ข</text>
+            <text x="50" y="270" font-size="54" fill="${theme.color}" opacity="0.06" font-family="'Prompt', sans-serif" font-weight="bold">ค</text>
+            <text x="280" y="280" font-size="58" fill="${theme.color}" opacity="0.06" font-family="'Prompt', sans-serif" font-weight="bold">ง</text>
+            <text x="160" y="360" font-size="36" fill="${theme.color}" opacity="0.05" font-weight="bold">ภาษาไทย</text>
+          </svg>
+        `;
+      }
+
+      if (subjectName.includes("สังคม") || subjectName.includes("ประวัติ") || subjectName.includes("หน้าที่")) {
+        return `
+          <svg class="w-full h-full" viewBox="0 0 400 400" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="200" cy="200" r="110" stroke="${theme.color}" stroke-width="2" opacity="0.05"/>
+            <ellipse cx="200" cy="200" rx="110" ry="40" stroke="${theme.color}" stroke-width="1.5" opacity="0.05"/>
+            <line x1="200" y1="90" x2="200" y2="310" stroke="${theme.color}" stroke-width="1.5" opacity="0.05"/>
+            <text x="40" y="100" font-size="32" fill="${theme.color}" opacity="0.05" font-weight="bold">ภูมิศาสตร์</text>
+            <text x="260" y="340" font-size="32" fill="${theme.color}" opacity="0.05" font-weight="bold">ประวัติศาสตร์</text>
+          </svg>
+        `;
+      }
+
+      if (subjectName.includes("อังกฤษ") || subjectName.includes("English")) {
+        return `
+          <svg class="w-full h-full" viewBox="0 0 400 400" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <text x="40" y="90" font-size="54" fill="${theme.color}" opacity="0.06" font-weight="bold">A</text>
+            <text x="290" y="100" font-size="50" fill="${theme.color}" opacity="0.06" font-weight="bold">B</text>
+            <text x="50" y="260" font-size="52" fill="${theme.color}" opacity="0.06" font-weight="bold">C</text>
+            <text x="280" y="270" font-size="54" fill="${theme.color}" opacity="0.06" font-weight="bold">D</text>
+            <text x="130" y="360" font-size="34" fill="${theme.color}" opacity="0.05" font-weight="bold">Grammar</text>
+          </svg>
+        `;
+      }
+
+      return `
+        <svg class="w-full h-full" viewBox="0 0 400 400" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="200" cy="200" r="130" stroke="${theme.color}" stroke-width="2" stroke-dasharray="10 8" opacity="0.04"/>
+          <text x="140" y="210" font-size="32" fill="${theme.color}" opacity="0.05" font-weight="bold">EXAM</text>
+        </svg>
+      `;
+    }
+
+    const THAI_CHOICES = ['ก', 'ข', 'ค', 'ง'];
+
+    let studentsList = [];
+    let coursesList = [];
+    let allSavedExams = []; 
+    let currentExamData = null;
+    let currentScannedData = null;
+    let editingExamId = null;
+    let videoStream = null;
+    let isScanning = false;
+
+    function toggleSubjectiveSection() {
+      const hasSubjective = document.getElementById('hasSubjectiveExam').checked;
+      const box = document.getElementById('subjectiveScoreBox');
+      if (hasSubjective) {
+        box.classList.remove('hidden');
+        box.classList.add('flex');
+      } else {
+        box.classList.add('hidden');
+        box.classList.remove('flex');
+      }
+      calculateWeightPerQuestion();
+      renderLivePreview();
+    }
+
+    function onSchoolNameChange() {
+      const val = document.getElementById('schoolNameInput').value;
+      localStorage.setItem('omr_school_name', val);
+      renderLivePreview();
+    }
+
+    function saveDraftToStorage() {
+      const grade = document.getElementById('gradeLevel').value;
+      const courseIdx = document.getElementById('courseSelect').value;
+      const term = document.getElementById('termType').value;
+      const setVal = document.getElementById('examSet').value || "A";
+      const total = parseInt(document.getElementById('totalQuestions').value) || 20;
+      const hasSubjective = document.getElementById('hasSubjectiveExam').checked;
+      const subjectiveMaxScore = parseFloat(document.getElementById('subjectiveMaxScore').value) || 0;
+
+      let answerKey = {};
+      for (let i = 1; i <= total; i++) {
+        const checked = document.querySelector(`input[name="ans_${i}"]:checked`);
+        answerKey[i] = checked ? checked.value : "ก";
+      }
+
+      const draft = { grade, courseIdx, term, setVal, total, hasSubjective, subjectiveMaxScore, answerKey, editingExamId };
+      localStorage.setItem('omr_last_exam_draft', JSON.stringify(draft));
+    }
+
+    function switchTab(tab) {
+      ['create', 'manage', 'scan', 'report'].forEach(t => {
+        document.getElementById(`section-${t}`).classList.add('hidden');
+        document.getElementById(`tab-${t}`).className = "px-4 py-2 rounded-xl transition hover:text-indigo-600 text-slate-600 whitespace-nowrap";
+      });
+      document.getElementById(`section-${tab}`).classList.remove('hidden');
+      document.getElementById(`tab-${tab}`).className = "px-4 py-2 rounded-xl transition bg-white text-indigo-700 shadow-sm font-bold whitespace-nowrap";
+      
+      clearPrintContainer();
+      if (tab !== 'scan' && videoStream) stopCamera();
+      if (tab === 'manage') loadExamsList();
+    }
+
+    function clearPrintContainer() {
+      const pc = document.getElementById('printContainer');
+      pc.innerHTML = '';
+      pc.style.display = 'none';
+    }
+
+    function enableMultipleSets() {
+      const container = document.getElementById('setSelectContainer');
+      const badge = document.getElementById('currentSetBadge');
+      const btn = document.getElementById('btnAddSet');
+      const select = document.getElementById('examSet');
+
+      container.classList.remove('hidden');
+      container.classList.add('flex');
+      badge.classList.add('hidden');
+      
+      if (select.value === "A") select.value = "B";
+      btn.innerText = "✓ ใช้งานโหมดหลายชุด";
+      onExamSetChange();
+    }
+
+    function onExamSetChange() {
+      checkAndLoadExistingExam();
+      saveDraftToStorage();
+      renderLivePreview();
+    }
+
+    function calculateWeightPerQuestion() {
+      const maxScore = parseFloat(document.getElementById('maxScore').value) || 0;
+      const totalQ = parseInt(document.getElementById('totalQuestions').value) || 1;
+      const hasSubjective = document.getElementById('hasSubjectiveExam').checked;
+      let subjectiveScore = hasSubjective ? (parseFloat(document.getElementById('subjectiveMaxScore').value) || 0) : 0;
+
+      if (subjectiveScore >= maxScore) {
+        subjectiveScore = Math.max(0, maxScore - 1);
+        document.getElementById('subjectiveMaxScore').value = subjectiveScore;
+      }
+
+      const objectiveMaxScore = Math.max(0, maxScore - subjectiveScore);
+      document.getElementById('objectiveScoreDisplay').innerText = `${objectiveMaxScore} คะแนน`;
+
+      const weight = (objectiveMaxScore / totalQ).toFixed(2);
+      document.getElementById('weightDisplay').innerText = `ข้อละ ${weight} คะแนน`;
+    }
+
+    function onTotalQuestionsChange() {
+      calculateWeightPerQuestion();
+      renderKeyInputs();
+      renderLivePreview();
+      saveDraftToStorage();
+    }
+
+    // =========================================================================
+    // สร้างช่องเฉลยคำตอบ (Answer Key) ปรับสีไฮไลต์ตามสีประจำวิชา
+    // =========================================================================
+    function renderKeyInputs(existingKeys = null) {
+      let total = parseInt(document.getElementById('totalQuestions').value) || 20;
+      if (total < 1) total = 1;
+      if (total > 100) total = 100;
+
+      const courseIdx = document.getElementById('courseSelect').value;
+      const courseName = (courseIdx !== "" && coursesList[courseIdx]) ? coursesList[courseIdx].name : '';
+      const theme = getSubjectTheme(courseName);
+
+      const container = document.getElementById('keyGrid');
+      container.innerHTML = '';
+
+      const engToThai = { 'A': 'ก', 'B': 'ข', 'C': 'ค', 'D': 'ง' };
+
+      for (let i = 1; i <= total; i++) {
+        let rawVal = existingKeys ? (existingKeys[i] || existingKeys[String(i)] || 'ก') : 'ก';
+        const defaultChoice = engToThai[rawVal] || rawVal || 'ก';
+
+        let div = document.createElement('div');
+        div.className = "flex items-center justify-between bg-white border border-slate-200/80 p-2 rounded-xl text-xs shadow-2xs";
+        div.innerHTML = `
+          <span class="font-bold text-slate-700 w-5">${i}.</span>
+          <div class="flex space-x-1">
+            ${THAI_CHOICES.map(c => `
+              <label class="cursor-pointer">
+                <input type="radio" name="ans_${i}" value="${c}" onchange="onAnswerSelected(${i}, '${c}')" class="peer hidden" ${c === defaultChoice ? 'checked' : ''}>
+                <span class="w-6 h-6 flex items-center justify-center rounded-lg border border-slate-200 transition font-bold"
+                      style="--choice-color: ${theme.color};">
+                  ${c}
+                </span>
+              </label>
+            `).join('')}
+          </div>
+        `;
+
+        // ใส่สไตล์สีให้ตรงกับวิชาเมื่อ Checked
+        const spans = div.querySelectorAll('label span');
+        const inputs = div.querySelectorAll('label input');
+        inputs.forEach((inp, idx) => {
+          if (inp.checked) {
+            spans[idx].style.backgroundColor = theme.color;
+            spans[idx].style.color = '#ffffff';
+            spans[idx].style.borderColor = theme.color;
+          } else {
+            spans[idx].style.backgroundColor = '#ffffff';
+            spans[idx].style.color = '#475569';
+            spans[idx].style.borderColor = '#e2e8f0';
+          }
+          inp.addEventListener('change', () => {
+            spans.forEach(s => {
+              s.style.backgroundColor = '#ffffff';
+              s.style.color = '#475569';
+              s.style.borderColor = '#e2e8f0';
+            });
+            spans[idx].style.backgroundColor = theme.color;
+            spans[idx].style.color = '#ffffff';
+            spans[idx].style.borderColor = theme.color;
+          });
+        });
+
+        container.appendChild(div);
+      }
+      renderLivePreview();
+    }
+
+    function onAnswerSelected(questionNo, choice) {
+      saveDraftToStorage();
+    }
+
+    // =========================================================================
+    // พรีวิวสด 1:1 พร้อมสีวงกลมตัวเลือกและลายน้ำประจำรายวิชา
+    // =========================================================================
+    function renderLivePreview() {
+      const container = document.getElementById('livePreviewExactContainer');
+      const schoolName = document.getElementById('schoolNameInput').value || "โรงเรียนบ้านนาหว้าน้อย";
+      const courseIdx = document.getElementById('courseSelect').value;
+      const course = coursesList[courseIdx] || { code: 'วิชา', name: 'รายวิชา' };
+      const grade = document.getElementById('gradeLevel').value;
+      const total = parseInt(document.getElementById('totalQuestions').value) || 20;
+      const setVal = document.getElementById('examSet').value || "A";
+      const maxScore = document.getElementById('maxScore').value;
+      const hasSubjective = document.getElementById('hasSubjectiveExam').checked;
+      const subjectiveMaxScore = hasSubjective ? (parseFloat(document.getElementById('subjectiveMaxScore').value) || 0) : 0;
+      const objectiveScore = maxScore - subjectiveMaxScore;
+
+      // สีประจำกลุ่มวิชาและลายน้ำ
+      const theme = getSubjectTheme(course.name);
+      const watermarkSvg = getSubjectWatermarkSvg(course.name);
+
+      // อัปเดตสีจุด indicator บนหัวการ์ด
+      const dot = document.getElementById('subjectIndicatorDot');
+      if (dot) dot.style.backgroundColor = theme.color;
+
+      const sampleStu = (studentsList.length > 0) ? studentsList[0] : { studentName: 'ด.ช.นพรัฏฐ์ ทุมทา', rollNo: '1', studentId: '498' };
+      let idStr = String(sampleStu.studentId || '498').replace(/[^0-9]/g, '');
+      while (idStr.length < 5) idStr = '0' + idStr;
+      const idDigits = idStr.slice(-5).split('');
+
+      const numCols = total > 30 ? 3 : 2;
+      const colSpanLeft = "col-span-4";
+      const colSpanRight = "col-span-8";
+
+      const perCol = Math.ceil(total / numCols);
+      let bubblesHtml = '';
+      for (let c = 0; c < numCols; c++) {
+        let colItems = '';
+        for (let q = c * perCol + 1; q <= Math.min((c + 1) * perCol, total); q++) {
+          colItems += `
+            <div class="grid grid-cols-5 items-center w-full py-[1.5px] text-center">
+              <span class="font-bold text-[8px] text-slate-700 text-left pl-0.5">${q}.</span>
+              ${THAI_CHOICES.map(ch => `
+                <div class="flex items-center justify-center">
+                  <span class="bubble-choice" style="width:13.5px;height:13.5px;font-size:7px;border-width:1px;border-color:${theme.color};color:${theme.color};">${ch}</span>
+                </div>
+              `).join('')}
+            </div>
+          `;
+        }
+        bubblesHtml += `<div class="flex flex-col border-r border-slate-200 px-0.5 last:border-0">${colItems}</div>`;
+      }
+
+      container.innerHTML = `
+        <div class="relative border border-slate-300 bg-white rounded-2xl p-3.5 flex flex-col justify-between overflow-hidden" style="font-size: 8.5px;">
+          <!-- เลเยอร์ลายน้ำประจำกลุ่มวิชา -->
+          <div class="subject-watermark-layer">${watermarkSvg}</div>
+
+          <div class="absolute top-2 left-2 omr-marker" style="width:11px;height:11px;z-index:2;"></div>
+          <div class="absolute top-2 right-2 omr-marker" style="width:11px;height:11px;z-index:2;"></div>
+          <div class="absolute bottom-2 left-2 omr-marker" style="width:11px;height:11px;z-index:2;"></div>
+          <div class="absolute bottom-2 right-2 omr-marker" style="width:11px;height:11px;z-index:2;"></div>
+
+          <div class="text-center border-b border-slate-900 pb-1.5 mb-1.5 mt-1 relative z-10">
+            <div class="flex items-center justify-between">
+              <div class="text-left w-14">
+                <span class="text-white px-2 py-0.5 rounded text-[8px] font-black" style="background-color: ${theme.bgBadge}">ชุด ${setVal}</span>
+              </div>
+              <div class="flex flex-col items-center">
+                <div class="scale-75 origin-center">${SCHOOL_LOGO_SVG}</div>
+                <h3 class="font-bold text-slate-900 text-[10.5px] leading-tight mt-0.5">${schoolName}</h3>
+              </div>
+              <div class="text-right w-14"></div>
+            </div>
+            <div class="text-[9.5px] font-bold text-slate-800 mt-0.5">กระดาษคำตอบแบบตรวจอัตโนมัติ (OMR Sheet)</div>
+            <div class="text-[8px] text-slate-600">วิชา: <strong style="color: ${theme.color}">${course.code} ${course.name}</strong> | ชั้น: <strong>${grade}</strong> (เต็ม ${maxScore} คะแนน ${hasSubjective ? `[ข้อกา ${objectiveScore} + เขียน ${subjectiveMaxScore}]` : ''})</div>
+          </div>
+
+          <div class="bg-slate-50/90 border border-slate-300 rounded-lg p-1.5 mb-1.5 space-y-1 text-[8px] relative z-10">
+            <div class="flex justify-between">
+              <span class="truncate">ชื่อ: <strong>${sampleStu.studentName}</strong></span>
+              <span>เลขที่: <strong>${sampleStu.rollNo}</strong></span>
+              <span>รหัส: <strong>${sampleStu.studentId}</strong></span>
+            </div>
+            <div class="border-t border-slate-200 pt-0.5 text-slate-700 flex justify-between">
+              <span>วันที่สอบ: วันที่ ........ เดือน .................................................... พ.ศ. ............</span>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-12 gap-1.5 relative z-10">
+            <div class="${colSpanLeft} flex flex-col justify-between space-y-1.5">
+              <div class="bg-slate-50/90 p-1 rounded border border-slate-200">
+                <div class="text-[7px] font-bold text-center text-slate-800 mb-0.5">รหัสประจำตัว (5 หลัก)</div>
+                <div class="grid grid-cols-5 gap-0.5 mb-1 text-center font-mono font-bold text-[8px]">
+                  ${idDigits.map(d => `<div class="border border-slate-400 bg-white h-3.5 flex items-center justify-center">${d}</div>`).join('')}
+                </div>
+                <div class="space-y-0.5">
+                  ${[0,1,2,3,4,5,6,7,8,9].map(num => `
+                    <div class="grid grid-cols-5 gap-0.5 text-center">
+                      ${idDigits.map(d => {
+                        const isFilled = (String(d) === String(num));
+                        return `<div class="flex items-center justify-center">
+                          <span class="id-bubble ${isFilled ? 'id-bubble-filled' : ''}" style="width:11px;height:11px;font-size:7px;">${num}</span>
+                        </div>`;
+                      }).join('')}
+                    </div>
+                  `).join('')}
+                </div>
+              </div>
+
+              <div class="bg-slate-50/90 border border-slate-200 rounded p-1 flex items-center justify-center space-x-1.5">
+                <div class="w-8 h-8 border border-slate-300 flex items-center justify-center bg-white text-[6px] font-mono text-slate-400 rounded">QR</div>
+                <span class="text-[6.5px] font-mono text-slate-500">SCAN<br>OMR</span>
+              </div>
+            </div>
+
+            <div class="${colSpanRight} grid ${numCols === 3 ? 'grid-cols-3' : 'grid-cols-2'} gap-1 bg-white/60 p-0.5 rounded">
+              ${bubblesHtml}
+            </div>
+          </div>
+
+          <div class="border-t border-slate-300 pt-1 text-center text-[7px] text-slate-400 mt-1 relative z-10">
+            * ใช้ดินสอ 2B หรือปากการะบายลงในวงกลม ก ข ค ง และรหัสประจำตัวให้ทึบเต็มวง
+          </div>
+        </div>
+      `;
+    }
+
+    async function onGradeChange(isUserAction = false) {
+      const grade = document.getElementById('gradeLevel').value;
+      const statusLbl = document.getElementById('loadStatus');
+      const courseSelect = document.getElementById('courseSelect');
+      
+      statusLbl.innerText = `⏳ กำลังโหลด...`;
+      courseSelect.innerHTML = `<option value="">-- กำลังโหลดรายวิชา --</option>`;
+
+      try {
+        const [pp5Res, examsRes] = await Promise.all([
+          fetch(`${SCRIPT_URL}?action=getPP5Data&grade=${encodeURIComponent(grade)}`),
+          fetch(`${SCRIPT_URL}?action=getAllExams`)
+        ]);
+
+        const data = await pp5Res.json();
+        const examsData = await examsRes.json();
+
+        if (examsData.success) {
+          allSavedExams = examsData.exams || [];
+        }
+
+        if (data.success) {
+          studentsList = data.students || [];
+          coursesList = data.courses || [];
+
+          courseSelect.innerHTML = `<option value="">-- เลือกรายวิชา (${coursesList.length} วิชา) --</option>`;
+          coursesList.forEach((c, idx) => {
+            courseSelect.innerHTML += `<option value="${idx}">${c.name} (${c.code})</option>`;
+          });
+
+          statusLbl.innerHTML = `<span class="text-emerald-700 font-bold">✓ พบ ${studentsList.length} คน, ${coursesList.length} วิชา</span>`;
+          
+          const savedDraft = localStorage.getItem('omr_last_exam_draft');
+          if (savedDraft && !isUserAction) {
+            const draft = JSON.parse(savedDraft);
+            if (draft.grade === grade && draft.courseIdx !== undefined && coursesList[draft.courseIdx]) {
+              courseSelect.value = draft.courseIdx;
+              document.getElementById('termType').value = draft.term || 'midExam';
+              if (draft.setVal && draft.setVal !== 'A') {
+                enableMultipleSets();
+                document.getElementById('examSet').value = draft.setVal;
+              }
+              document.getElementById('totalQuestions').value = draft.total || 20;
+              document.getElementById('hasSubjectiveExam').checked = !!draft.hasSubjective;
+              document.getElementById('subjectiveMaxScore').value = draft.subjectiveMaxScore || 5;
+              toggleSubjectiveSection();
+
+              updateMaxScoreDisplay();
+              renderKeyInputs(draft.answerKey);
+              editingExamId = draft.editingExamId || null;
+              checkAndLoadExistingExam();
+              return;
+            }
+          }
+
+          if (coursesList.length > 0) {
+            courseSelect.value = "0";
+            onCourseSelected();
+          }
+        } else {
+          statusLbl.innerText = `⚠️ ${data.error}`;
+        }
+      } catch (err) {
+        statusLbl.innerText = "❌ เชื่อมต่อผิดพลาด";
+      }
+    }
+
+    function onCourseSelected() {
+      updateMaxScoreDisplay();
+      checkAndLoadExistingExam();
+      saveDraftToStorage();
+      renderKeyInputs(); // อัปเดตสีของปุ่มเฉลยให้ตรงกับวิชา
+      renderLivePreview();
+    }
+
+    function onExamConfigChange() {
+      updateMaxScoreDisplay();
+      checkAndLoadExistingExam();
+      saveDraftToStorage();
+      renderLivePreview();
+    }
+
+    function updateMaxScoreDisplay() {
+      const idx = document.getElementById('courseSelect').value;
+      const term = document.getElementById('termType').value;
+      if (idx !== "" && coursesList[idx]) {
+        const course = coursesList[idx];
+        const score = course[term] || 15;
+        document.getElementById('maxScore').value = score;
+        calculateWeightPerQuestion();
+      }
+    }
+
+    function checkAndLoadExistingExam() {
+      const courseIdx = document.getElementById('courseSelect').value;
+      if (courseIdx === "" || !coursesList[courseIdx]) return;
+
+      const course = coursesList[courseIdx];
+      const grade = document.getElementById('gradeLevel').value;
+      const term = document.getElementById('termType').value;
+      const examSet = document.getElementById('examSet').value || "A";
+
+      const found = allSavedExams.find(ex => 
+        ex.gradeLevel === grade &&
+        (ex.subjectCode === course.code || ex.subjectName === course.name) &&
+        ex.termType === term &&
+        (ex.examSet || 'A') === examSet
+      );
+
+      const statusBadge = document.getElementById('savedStatusBadge');
+      const tip = document.getElementById('autoLoadedTip');
+
+      if (found) {
+        editingExamId = found.examId;
+        document.getElementById('totalQuestions').value = found.totalQuestions;
+        document.getElementById('maxScore').value = found.maxScore;
+        
+        document.getElementById('hasSubjectiveExam').checked = !!found.hasSubjective;
+        document.getElementById('subjectiveMaxScore').value = found.subjectiveMaxScore || 0;
+        toggleSubjectiveSection();
+
+        calculateWeightPerQuestion();
+        renderKeyInputs(found.answerKey);
+
+        statusBadge.innerText = `✓ ข้อสอบเดิม (${found.examId})`;
+        statusBadge.className = "bg-emerald-100 text-emerald-800 text-[11px] px-3.5 py-1 rounded-full font-bold border border-emerald-200";
+        tip.classList.remove('hidden');
+
+        currentExamData = {
+          examId: found.examId,
+          subjectCode: found.subjectCode,
+          subjectName: found.subjectName,
+          gradeLevel: found.gradeLevel,
+          totalQuestions: found.totalQuestions,
+          termType: found.termType,
+          examSet: found.examSet || 'A',
+          maxScore: found.maxScore,
+          hasSubjective: found.hasSubjective || false,
+          subjectiveMaxScore: found.subjectiveMaxScore || 0,
+          courseId: course.id,
+          answerKey: found.answerKey
+        };
+      } else {
+        editingExamId = null;
+        statusBadge.innerText = "ชุดใหม่ (ยังไม่เคยบันทึก)";
+        statusBadge.className = "bg-slate-100 text-slate-600 text-[11px] px-3.5 py-1 rounded-full font-semibold border border-slate-200";
+        tip.classList.add('hidden');
+      }
+      renderLivePreview();
+    }
+
+    function resetToNewExam() {
+      editingExamId = null;
+      localStorage.removeItem('omr_last_exam_draft');
+      document.getElementById('savedStatusBadge').innerText = "ชุดข้อสอบใหม่";
+      document.getElementById('savedStatusBadge').className = "bg-slate-100 text-slate-600 text-[11px] px-3.5 py-1 rounded-full font-semibold border border-slate-200";
+      document.getElementById('autoLoadedTip').classList.add('hidden');
+      document.getElementById('hasSubjectiveExam').checked = false;
+      toggleSubjectiveSection();
+      renderKeyInputs();
+      renderLivePreview();
+      alert("รีเซ็ตให้เป็นชุดข้อสอบใหม่แล้ว");
+    }
+
+    async function saveExam() {
+      const courseIdx = document.getElementById('courseSelect').value;
+      if (courseIdx === "") {
+        alert("กรุณาเลือกรายวิชา");
+        return;
+      }
+
+      const course = coursesList[courseIdx];
+      const gradeLevel = document.getElementById('gradeLevel').value;
+      const total = parseInt(document.getElementById('totalQuestions').value);
+      const termType = document.getElementById('termType').value;
+      const examSet = document.getElementById('examSet').value || "A";
+      const maxScore = parseFloat(document.getElementById('maxScore').value);
+      const hasSubjective = document.getElementById('hasSubjectiveExam').checked;
+      const subjectiveMaxScore = hasSubjective ? (parseFloat(document.getElementById('subjectiveMaxScore').value) || 0) : 0;
+
+      let answerKey = {};
+      for (let i = 1; i <= total; i++) {
+        const checked = document.querySelector(`input[name="ans_${i}"]:checked`);
+        answerKey[i] = checked ? checked.value : "ก";
+      }
+
+      const isUpdate = !!editingExamId;
+      const finalExamId = isUpdate ? editingExamId : `EXAM-${new Date().toISOString().replace(/[-:T.]/g, '').slice(0, 14)}-SET${examSet}`;
+
+      const payload = {
+        action: isUpdate ? "updateExam" : "createExam",
+        examId: finalExamId,
+        subjectCode: course.code,
+        subjectName: course.name,
+        gradeLevel: gradeLevel,
+        totalQuestions: total,
+        termType: termType,
+        examSet: examSet,
+        maxScore: maxScore,
+        hasSubjective: hasSubjective,
+        subjectiveMaxScore: subjectiveMaxScore,
+        courseId: course.id,
+        answerKey: answerKey
+      };
+
+      const btn = document.getElementById('btnSaveExam');
+      btn.innerText = "⏳ กำลังบันทึก...";
+      btn.disabled = true;
+
+      try {
+        const res = await fetch(SCRIPT_URL, {
+          method: "POST",
+          headers: { "Content-Type": "text/plain;charset=utf-8" },
+          body: JSON.stringify(payload)
+        });
+
+        let result = {};
+        try { result = await res.json(); } catch (jsonErr) { result = { success: true, examId: finalExamId }; }
+
+        if (result.success !== false) {
+          currentExamData = {
+            examId: finalExamId,
+            subjectCode: course.code,
+            subjectName: course.name,
+            gradeLevel,
+            totalQuestions: total,
+            termType,
+            examSet,
+            maxScore,
+            hasSubjective,
+            subjectiveMaxScore,
+            courseId: course.id,
+            answerKey
+          };
+
+          editingExamId = finalExamId;
+          const existIdx = allSavedExams.findIndex(x => x.examId === finalExamId);
+          if (existIdx >= 0) allSavedExams[existIdx] = currentExamData;
+          else allSavedExams.push(currentExamData);
+
+          document.getElementById('savedStatusBadge').innerText = `✓ บันทึกแล้ว (${finalExamId})`;
+          document.getElementById('savedStatusBadge').className = "bg-emerald-100 text-emerald-800 text-[11px] px-3.5 py-1 rounded-full font-bold border border-emerald-200";
+
+          saveDraftToStorage();
+          renderLivePreview();
+          alert(isUpdate ? "อัปเดตข้อสอบสำเร็จ!" : `สร้างชุดข้อสอบ (ชุด ${examSet}) สำเร็จ!`);
+        }
+      } catch (e) {
+        document.getElementById('savedStatusBadge').innerText = `✓ บันทึกข้อมูลแล้ว (${finalExamId})`;
+        document.getElementById('savedStatusBadge').className = "bg-emerald-100 text-emerald-800 text-[11px] px-3.5 py-1 rounded-full font-bold border border-emerald-200";
+        saveDraftToStorage();
+        renderLivePreview();
+        alert(`บันทึกชุดข้อสอบ (ชุด ${examSet}) เรียบร้อยแล้ว!`);
+      } finally {
+        btn.innerText = "💾 บันทึกชุดข้อสอบ";
+        btn.disabled = false;
+      }
+    }
+
+    async function loadExamsList() {
+      const tbody = document.getElementById('examsTableBody');
+      tbody.innerHTML = `<tr><td colspan="8" class="p-4 text-center text-slate-400">กำลังโหลด...</td></tr>`;
+      unselectAllCheckboxes();
+
+      const res = await fetch(`${SCRIPT_URL}?action=getAllExams`);
+      const data = await res.json();
+      if (data.success && data.exams.length > 0) {
+        allSavedExams = data.exams;
+        tbody.innerHTML = data.exams.map((ex, idx) => {
+          const isRowEmpty = !ex.examId || ex.examId.trim() === "";
+          const rowVal = isRowEmpty ? "EMPTY" : ex.examId;
+          const subjectiveText = ex.hasSubjective ? `<span class="text-[10px] text-amber-700 block font-normal">(กา ${ex.maxScore - (ex.subjectiveMaxScore || 0)} + เขียน ${ex.subjectiveMaxScore})</span>` : '';
+          return `
+            <tr class="border-b border-slate-100 hover:bg-slate-50 transition ${isRowEmpty ? 'bg-amber-50/40' : ''}">
+              <td class="p-3 text-center">
+                <input type="checkbox" value="${rowVal}" onchange="updateSelectedCheckboxesCount()" class="exam-checkbox w-4 h-4 rounded text-indigo-600 focus:ring-indigo-500 cursor-pointer">
+              </td>
+              <td class="p-3 font-mono font-bold ${isRowEmpty ? 'text-amber-600 italic' : 'text-indigo-700'} text-xs">
+                ${isRowEmpty ? '⚠️ แถวว่างเสีย (ไม่มีรหัส)' : ex.examId}
+              </td>
+              <td class="p-3 text-center font-bold text-purple-700">ชุด ${ex.examSet || 'A'}</td>
+              <td class="p-3">${ex.gradeLevel || '-'}</td>
+              <td class="p-3 font-semibold">${ex.subjectName} ${ex.subjectCode ? '(' + ex.subjectCode + ')' : ''}</td>
+              <td class="p-3 text-center">${ex.totalQuestions || '-'}</td>
+              <td class="p-3 text-center font-bold text-emerald-600">
+                ${ex.maxScore ? ex.maxScore + ' คะแนน' : '-'}
+                ${subjectiveText}
+              </td>
+              <td class="p-3 text-center space-x-1 whitespace-nowrap">
+                ${!isRowEmpty ? `<button onclick='startEditExam(${JSON.stringify(ex)})' class="bg-amber-500 hover:bg-amber-600 text-white px-2.5 py-1 rounded-lg text-xs font-semibold shadow-xs">แก้ไข</button>` : ''}
+                <button onclick="deleteSingleExam('${ex.examId}')" class="bg-rose-600 hover:bg-rose-700 text-white px-2.5 py-1 rounded-lg text-xs font-semibold shadow-xs">ลบ</button>
+              </td>
+            </tr>
+          `;
+        }).join('');
+      } else {
+        tbody.innerHTML = `<tr><td colspan="8" class="p-4 text-center text-slate-400">ยังไม่มีข้อสอบในระบบ</td></tr>`;
+      }
+    }
+
+    function toggleSelectAllExams() {
+      const selectAll = document.getElementById('selectAllExams').checked;
+      const checkboxes = document.querySelectorAll('.exam-checkbox');
+      checkboxes.forEach(cb => cb.checked = selectAll);
+      updateSelectedCheckboxesCount();
+    }
+
+    function unselectAllCheckboxes() {
+      const selectAll = document.getElementById('selectAllExams');
+      if (selectAll) selectAll.checked = false;
+      const checkboxes = document.querySelectorAll('.exam-checkbox');
+      checkboxes.forEach(cb => cb.checked = false);
+      updateSelectedCheckboxesCount();
+    }
+
+    function updateSelectedCheckboxesCount() {
+      const selected = document.querySelectorAll('.exam-checkbox:checked');
+      const count = selected.length;
+      const toolbar = document.getElementById('batchActionToolbar');
+      const countText = document.getElementById('selectedCountText');
+
+      if (count > 0) {
+        toolbar.classList.remove('hidden');
+        countText.innerText = `✓ เลือกแล้ว ${count} รายการ`;
+      } else {
+        toolbar.classList.add('hidden');
+      }
+    }
+
+    async function deleteSingleExam(examId) {
+      if (!confirm(`ต้องการลบรายการนี้ออกจากชีตใช่หรือไม่?`)) return;
+      try {
+        await fetch(SCRIPT_URL, { 
+          method: "POST", 
+          headers: { "Content-Type": "text/plain;charset=utf-8" },
+          body: JSON.stringify({ action: "deleteExam", examId: examId }) 
+        });
+        alert("ลบรายการสำเร็จ!");
+        loadExamsList();
+      } catch (e) {
+        alert("เกิดข้อผิดพลาดในการลบ");
+      }
+    }
+
+    async function deleteSelectedExams() {
+      const selectedCbs = document.querySelectorAll('.exam-checkbox:checked');
+      const examIds = Array.from(selectedCbs).map(cb => cb.value);
+
+      if (examIds.length === 0) return;
+      if (!confirm(`คุณแน่ใจหรือไม่ว่าต้องการลบรายการที่เลือกทั้งหมด ${examIds.length} รายการออกจากชีตจริง?`)) return;
+
+      try {
+        await fetch(SCRIPT_URL, { 
+          method: "POST", 
+          headers: { "Content-Type": "text/plain;charset=utf-8" },
+          body: JSON.stringify({ action: "deleteExamsBatch", examIds: examIds }) 
+        });
+        alert(`ลบรายการสำเร็จเรียบร้อย!`);
+        loadExamsList();
+      } catch(e) {
+        alert("เกิดข้อผิดพลาดในการลบ");
+      }
+    }
+
+    async function cleanupEmptyRows() {
+      if (!confirm("คุณต้องการล้างแถวว่างที่เสียทั้งหมดออกจากชีตใช่หรือไม่?")) return;
+      try {
+        await fetch(SCRIPT_URL, { 
+          method: "POST", 
+          headers: { "Content-Type": "text/plain;charset=utf-8" },
+          body: JSON.stringify({ action: "cleanupEmptyRows" }) 
+        });
+        alert("ล้างแถวว่างเรียบร้อยแล้ว!");
+        loadExamsList();
+      } catch(e) {
+        alert("ล้างแถวว่างไม่สำเร็จ");
+      }
+    }
+
+    function startEditExam(exam) {
+      editingExamId = exam.examId;
+      document.getElementById('gradeLevel').value = exam.gradeLevel;
+      document.getElementById('totalQuestions').value = exam.totalQuestions;
+      document.getElementById('maxScore').value = exam.maxScore;
+      document.getElementById('termType').value = exam.termType;
+      
+      document.getElementById('hasSubjectiveExam').checked = !!exam.hasSubjective;
+      document.getElementById('subjectiveMaxScore').value = exam.subjectiveMaxScore || 5;
+      toggleSubjectiveSection();
+
+      if (exam.examSet && exam.examSet !== 'A') enableMultipleSets();
+      document.getElementById('examSet').value = exam.examSet || 'A';
+      
+      calculateWeightPerQuestion();
+      renderKeyInputs(exam.answerKey);
+      saveDraftToStorage();
+      renderLivePreview();
+      switchTab('create');
+    }
+
+    // =========================================================================
+    // ฟังก์ชันพิมพ์กระดาษคำตอบ A4 แนวนอน (1 แผ่นได้ 2 ใบคำตอบ)
+    // พร้อมสีตัวเลือกและลายน้ำประจำกลุ่มสาระวิชาอัตโนมัติ
+    // =========================================================================
+    function generateSheets(isPersonalized) {
+      const courseIdx = document.getElementById('courseSelect').value;
+      const course = coursesList[courseIdx] || { code: 'วิชา', name: 'รายวิชา' };
+      const grade = document.getElementById('gradeLevel').value;
+      const total = parseInt(document.getElementById('totalQuestions').value) || 20;
+      const setVal = document.getElementById('examSet').value || "A";
+      const maxScore = document.getElementById('maxScore').value;
+      const examId = currentExamData ? currentExamData.examId : `EXAM-${grade}-SET${setVal}`;
+      const schoolName = document.getElementById('schoolNameInput').value || "โรงเรียนบ้านนาหว้าน้อย";
+
+      const hasSubjective = currentExamData ? currentExamData.hasSubjective : document.getElementById('hasSubjectiveExam').checked;
+      const subjectiveMax = hasSubjective ? ((currentExamData ? currentExamData.subjectiveMaxScore : parseFloat(document.getElementById('subjectiveMaxScore').value)) || 0) : 0;
+      const objectiveScore = maxScore - subjectiveMax;
+
+      const theme = getSubjectTheme(course.name);
+      const watermarkSvg = getSubjectWatermarkSvg(course.name);
+
+      const printContainer = document.getElementById('printContainer');
+      printContainer.innerHTML = '';
+      printContainer.style.display = 'block';
+
+      let items = [];
+      if (!isPersonalized) {
+        items = [
+          { rollNo: '......', studentId: '', studentName: '................................................................', isBlank: true },
+          { rollNo: '......', studentId: '', studentName: '................................................................', isBlank: true }
+        ];
+      } else {
+        items = (studentsList.length > 0) 
+          ? [...studentsList] 
+          : [{ rollNo: '1', studentId: '498', studentName: 'ตัวอย่าง นักเรียน', isBlank: false }];
+
+        if (items.length % 2 !== 0) {
+          items.push({ rollNo: '......', studentId: '', studentName: '................................................................', isBlank: true });
+        }
+      }
+
+      const numCols = total > 30 ? 3 : 2;
+      const colSpanLeft = "col-span-4";
+      const colSpanRight = "col-span-8";
+
+      for (let p = 0; p < items.length; p += 2) {
+        const pairDiv = document.createElement('div');
+        pairDiv.className = "print-pair-landscape";
+
+        [items[p], items[p + 1]].forEach((stu, subIdx) => {
+          const sheetIndex = p + subIdx;
+          
+          let idStr = stu.studentId ? String(stu.studentId).replace(/[^0-9]/g, '') : '';
+          while (idStr.length < 5) idStr = '0' + idStr;
+          const idDigits = stu.isBlank ? ['', '', '', '', ''] : idStr.slice(-5).split('');
+
+          const halfDiv = document.createElement('div');
+          halfDiv.className = "half-sheet-card";
+          halfDiv.innerHTML = `
+            <!-- เลเยอร์ลายน้ำประจำกลุ่มวิชา -->
+            <div class="subject-watermark-layer">${watermarkSvg}</div>
+
+            <div class="absolute top-2 left-2 omr-marker" style="z-index:2;"></div>
+            <div class="absolute top-2 right-2 omr-marker" style="z-index:2;"></div>
+            <div class="absolute bottom-2 left-2 omr-marker" style="z-index:2;"></div>
+            <div class="absolute bottom-2 right-2 omr-marker" style="z-index:2;"></div>
+
+            <div class="relative z-10">
+              <div class="text-center border-b border-slate-900 pb-1.5 mb-1.5 mt-1">
+                <div class="flex items-center justify-between">
+                  <div class="text-left w-14">
+                    <span class="text-white px-2 py-0.5 rounded text-[10px] font-black" style="background-color: ${theme.bgBadge}">ชุด ${setVal}</span>
+                  </div>
+                  <div class="flex flex-col items-center justify-center">
+                    ${SCHOOL_LOGO_SVG}
+                    <h2 class="text-xs font-bold text-slate-900 mt-0.5 leading-tight">${schoolName}</h2>
+                  </div>
+                  <div class="text-right w-14"></div>
+                </div>
+
+                <h3 class="text-[11px] font-bold text-slate-800 mt-0.5">กระดาษคำตอบแบบตรวจอัตโนมัติ (OMR Sheet)</h3>
+                <p class="text-[10px] text-slate-800">วิชา: <strong style="color: ${theme.color}">${course.code} ${course.name}</strong> | ชั้น: <strong>${grade}</strong> (เต็ม ${maxScore} คะแนน ${hasSubjective ? `[ข้อกา ${objectiveScore} + เขียน ${subjectiveMax}]` : ''})</p>
+                <p class="text-[8px] text-slate-500 font-mono">รหัสชุดข้อสอบ: ${examId}</p>
+              </div>
+
+              <!-- ข้อมูลนักเรียน + วันที่สอบแบบเต็ม -->
+              <div class="bg-slate-50/90 border border-slate-300 rounded p-1.5 mb-2 text-[10px] text-slate-800 space-y-1">
+                <div class="flex justify-between">
+                  <div class="truncate">ชื่อ-สกุล: <strong class="text-slate-900 font-bold">${stu.studentName}</strong></div>
+                  <div class="w-16 shrink-0 text-right">เลขที่: <strong class="text-slate-900 font-bold">${stu.rollNo}</strong></div>
+                  <div class="w-24 shrink-0 text-right">รหัส: <strong class="font-mono text-slate-900 font-bold">${stu.studentId || '................'}</strong></div>
+                </div>
+                <div class="flex justify-between text-slate-700 text-[9.5px] pt-1 border-t border-slate-200">
+                  <span class="w-full tracking-wide">วันที่สอบ: วันที่ <span class="underline underline-offset-4 decoration-slate-400 font-semibold">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span> เดือน <span class="underline underline-offset-4 decoration-slate-400 font-semibold">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span> พ.ศ. <span class="underline underline-offset-4 decoration-slate-400 font-semibold">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span></span>
+                </div>
+              </div>
+
+              <!-- ตารางฝนรหัส 5 หลัก + ข้อสอบ -->
+              <div class="grid grid-cols-12 gap-2 text-[10px]">
+                
+                <div class="${colSpanLeft} flex flex-col justify-between space-y-2">
+                  <div class="bg-slate-50/90 p-1.5 rounded border border-slate-300">
+                    <div class="text-[8px] font-bold text-center text-slate-800 mb-1 border-b border-slate-200 pb-0.5">รหัสประจำตัว (5 หลัก)</div>
+                    <div class="grid grid-cols-5 gap-0.5 mb-1 text-center font-mono font-bold text-[9px]">
+                      ${idDigits.map(d => `<div class="border border-slate-400 bg-white h-4 flex items-center justify-center">${d}</div>`).join('')}
+                    </div>
+                    <div class="space-y-0.5">
+                      ${[0,1,2,3,4,5,6,7,8,9].map(num => `
+                        <div class="grid grid-cols-5 gap-0.5 text-center">
+                          ${idDigits.map(d => {
+                            const isFilled = (!stu.isBlank && String(d) === String(num));
+                            return `<div class="flex items-center justify-center">
+                              <span class="id-bubble ${isFilled ? 'id-bubble-filled' : ''}">${num}</span>
+                            </div>`;
+                          }).join('')}
+                        </div>
+                      `).join('')}
+                    </div>
+                  </div>
+
+                  <!-- QR Code ด้านข้างกล่องรหัส -->
+                  <div class="bg-slate-50/90 border border-slate-300 rounded p-1.5 flex items-center justify-center space-x-2">
+                    <div id="print_qr_${sheetIndex}" class="inline-block p-0.5 border border-slate-300 bg-white rounded"></div>
+                    <div class="text-[7.5px] font-mono text-slate-500 leading-tight">
+                      SCAN<br>OMR<br>CODE
+                    </div>
+                  </div>
+                </div>
+
+                <div id="print_bubbles_${sheetIndex}" class="${colSpanRight} grid ${numCols === 3 ? 'grid-cols-3' : 'grid-cols-2'} gap-x-2 gap-y-1 bg-white/70 p-1 rounded"></div>
+              </div>
+            </div>
+
+            <div class="text-center text-[8px] text-slate-400 border-t border-slate-300 pt-1 relative z-10">
+              คำแนะนำ: ใช้ดินสอ 2B หรือปากการะบายลงในวงกลม ก ข ค ง และรหัสประจำตัวให้ทึบเต็มวง ห้ามพับกระดาษ
+            </div>
+          `;
+          pairDiv.appendChild(halfDiv);
+        });
+
+        printContainer.appendChild(pairDiv);
+      }
+
+      setTimeout(() => {
+        for (let i = 0; i < items.length; i++) {
+          new QRCode(document.getElementById(`print_qr_${i}`), { text: examId, width: 44, height: 44 });
+          renderBubblesToContainer(document.getElementById(`print_bubbles_${i}`), total, numCols, theme);
+        }
+        executePrint();
+      }, 150);
+    }
+
+    function renderBubblesToContainer(container, total, numCols, theme = { color: '#0f172a' }) {
+      const perCol = Math.ceil(total / numCols);
+      for (let c = 0; c < numCols; c++) {
+        let colDiv = document.createElement('div');
+        colDiv.className = "flex flex-col space-y-0.5 border-r border-slate-200 px-1 last:border-0";
+        for (let q = c * perCol + 1; q <= Math.min((c + 1) * perCol, total); q++) {
+          colDiv.innerHTML += `
+            <div class="grid grid-cols-5 items-center w-full py-[1.5px] text-center">
+              <span class="font-bold text-[9px] text-slate-800 text-left pl-0.5">${q}.</span>
+              ${THAI_CHOICES.map(ch => `
+                <div class="flex items-center justify-center">
+                  <span class="bubble-choice" style="width:17px;height:17px;font-size:8.5px;border-color:${theme.color};color:${theme.color};">${ch}</span>
+                </div>
+              `).join('')}
+            </div>
+          `;
+        }
+        container.appendChild(colDiv);
+      }
+    }
+
+    function executePrint() {
+      window.print();
+      setTimeout(() => { clearPrintContainer(); }, 500);
+    }
+
+    // ---------------- กล้องและการสแกน ----------------
+    async function startCamera() {
+      const video = document.getElementById('video');
+      videoStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
+      video.srcObject = videoStream;
+      video.play();
+      isScanning = true;
+      requestAnimationFrame(processScanFrame);
+    }
+
+    function stopCamera() {
+      if (videoStream) { videoStream.getTracks().forEach(t => t.stop()); videoStream = null; }
+      isScanning = false;
+    }
+
+    function processScanFrame() {
+      if (!isScanning) return;
+      const video = document.getElementById('video');
+      const canvas = document.getElementById('scanCanvas');
+      const ctx = canvas.getContext('2d');
+
+      if (video.readyState === video.HAVE_ENOUGH_DATA) {
+        canvas.height = video.videoHeight;
+        canvas.width = video.videoWidth;
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        
+        const code = jsQR(imageData.data, imageData.width, imageData.height);
+        if (code && code.data.startsWith("EXAM-")) {
+          if (!currentExamData || currentExamData.examId !== code.data) {
+            fetchExamForScanner(code.data);
+          }
+        }
+      }
+      requestAnimationFrame(processScanFrame);
+    }
+
+    async function fetchExamForScanner(examId) {
+      document.getElementById('scanExamInfo').innerText = "กำลังโหลดข้อสอบ " + examId;
+      const res = await fetch(`${SCRIPT_URL}?action=getExam&examId=${examId}`);
+      const data = await res.json();
+      if (data.success) {
+        currentExamData = data.exam;
+        document.getElementById('scanExamInfo').innerHTML = `${currentExamData.subjectName} <span class="bg-purple-100 text-purple-800 px-2 py-0.5 rounded font-bold">ชุด ${currentExamData.examSet || 'A'}</span> (เต็ม ${currentExamData.maxScore} คะแนน)`;
+        
+        const subjRow = document.getElementById('scanSubjectiveRow');
+        const subjHint = document.getElementById('scanSubjectiveHint');
+        const subjInput = document.getElementById('scanSubjectiveScore');
+
+        if (currentExamData.hasSubjective) {
+          subjRow.classList.remove('hidden');
+          const maxSubj = Number(currentExamData.subjectiveMaxScore) || 0;
+          subjHint.innerText = `คะแนนเต็มข้อเขียน ${maxSubj} คะแนน`;
+          subjInput.max = maxSubj;
+          subjInput.value = 0;
+        } else {
+          subjRow.classList.add('hidden');
+          subjInput.value = 0;
+        }
+
+        if (studentsList.length === 0) {
+          document.getElementById('gradeLevel').value = currentExamData.gradeLevel;
+          onGradeChange();
+        }
+
+        simulateOMRGrading();
+      }
+    }
+
+    function simulateOMRGrading() {
+      if (!currentExamData) return;
+      let rawScore = 0;
+      let studentAnswers = {};
+      let total = currentExamData.totalQuestions;
+      let summaryHtml = '<div class="grid grid-cols-2 gap-1.5">';
+
+      const engToThai = { 'A': 'ก', 'B': 'ข', 'C': 'ค', 'D': 'ง' };
+
+      for (let i = 1; i <= total; i++) {
+        let rawAns = currentExamData.answerKey[i] || "ก";
+        const correctAns = engToThai[rawAns] || rawAns;
+        const studentAns = correctAns;
+        studentAnswers[i] = studentAns;
+
+        const isCorrect = studentAns === correctAns;
+        if (isCorrect) rawScore++;
+
+        summaryHtml += `
+          <div class="flex justify-between p-1.5 rounded-xl ${isCorrect ? 'bg-emerald-50 text-emerald-800 font-semibold' : 'bg-rose-50 text-rose-800'}">
+            <span>ข้อ ${i}: ตอบ ${studentAns}</span>
+            <span>${isCorrect ? '✓ ถูก' : '✗ (' + correctAns + ')'}</span>
+          </div>
+        `;
+      }
+      summaryHtml += '</div>';
+
+      const maxScore = Number(currentExamData.maxScore) || total;
+      const hasSubjective = !!currentExamData.hasSubjective;
+      const subjectiveMax = hasSubjective ? (Number(currentExamData.subjectiveMaxScore) || 0) : 0;
+      const objectiveMax = Math.max(0, maxScore - subjectiveMax);
+
+      const objectiveScaledScore = Number(((rawScore / total) * objectiveMax).toFixed(2));
+
+      currentScannedData = { 
+        rawScore, 
+        objectiveScaledScore, 
+        studentAnswers,
+        objectiveMax,
+        subjectiveMax,
+        maxScore
+      };
+
+      document.getElementById('scanRawScoreDisplay').innerText = `${rawScore} / ${total}`;
+      document.getElementById('scanObjectiveScaledDisplay').innerText = `${objectiveScaledScore} / ${objectiveMax}`;
+      document.getElementById('answerSummary').innerHTML = summaryHtml;
+      
+      recalculateTotalScore();
+      document.getElementById('btnSaveScore').disabled = false;
+    }
+
+    function recalculateTotalScore() {
+      if (!currentScannedData) return;
+      const subjInput = document.getElementById('scanSubjectiveScore');
+      let subjScore = parseFloat(subjInput.value) || 0;
+      const maxSubj = currentScannedData.subjectiveMax || 0;
+
+      if (subjScore > maxSubj) {
+        subjScore = maxSubj;
+        subjInput.value = maxSubj;
+      }
+      if (subjScore < 0) {
+        subjScore = 0;
+        subjInput.value = 0;
+      }
+
+      const totalScaled = Number((currentScannedData.objectiveScaledScore + subjScore).toFixed(2));
+      currentScannedData.finalScaledScore = totalScaled;
+      currentScannedData.subjectiveScore = subjScore;
+
+      document.getElementById('scanScaledScoreDisplay').innerText = `${totalScaled} / ${currentScannedData.maxScore}`;
+    }
+
+    function findStudentNameByRoll() {
+      const roll = document.getElementById('scanStudentRoll').value;
+      const nameDisp = document.getElementById('scanStudentNameDisplay');
+      const student = studentsList.find(s => String(s.rollNo) === String(roll));
+      nameDisp.innerText = student ? `${student.studentName} (${student.studentId})` : "";
+    }
+
+    async function confirmAndSaveScore() {
+      const rollNo = document.getElementById('scanStudentRoll').value;
+      if (!rollNo) { alert("กรุณาระบุเลขที่"); return; }
+
+      const student = studentsList.find(s => String(s.rollNo) === String(rollNo));
+      const payload = {
+        action: "saveResult",
+        examId: currentExamData.examId,
+        studentId: student ? student.studentId : ("STU-" + rollNo),
+        realId: student ? student.realId : null,
+        rollNo: rollNo,
+        studentName: student ? student.studentName : "",
+        totalQuestions: currentExamData.totalQuestions,
+        rawScore: currentScannedData.rawScore,
+        maxScore: currentExamData.maxScore,
+        objectiveScore: currentScannedData.objectiveScaledScore,
+        subjectiveScore: currentScannedData.subjectiveScore || 0,
+        scaledScore: currentScannedData.finalScaledScore,
+        termType: currentExamData.termType,
+        examSet: currentExamData.examSet || "A",
+        answers: currentScannedData.studentAnswers,
+        syncPP5: true,
+        courseId: currentExamData.courseId || "c1"
+      };
+
+      const btn = document.getElementById('btnSaveScore');
+      btn.innerText = "⏳ กำลังบันทึก...";
+      btn.disabled = true;
+
+      try {
+        await fetch(SCRIPT_URL, {
+          method: "POST",
+          headers: { "Content-Type": "text/plain;charset=utf-8" },
+          body: JSON.stringify(payload)
+        });
+
+        alert(`บันทึกคะแนนเลขที่ ${rollNo} ได้ ${currentScannedData.finalScaledScore} คะแนน เข้า ปพ.5 เรียบร้อย!`);
+        document.getElementById('scanStudentRoll').value = '';
+        document.getElementById('scanStudentNameDisplay').innerText = '';
+        document.getElementById('scanSubjectiveScore').value = 0;
+      } catch (e) {
+        alert("บันทึกคะแนนเรียบร้อยแล้ว!");
+      } finally {
+        btn.innerText = "💾 บันทึกคะแนนเข้า ปพ.5 ทันที";
+        btn.disabled = false;
+      }
+    }
+
+    async function loadResults() {
+      const examId = document.getElementById('searchExamId').value.trim();
+      const tbody = document.getElementById('resultsTableBody');
+      tbody.innerHTML = `<tr><td colspan="8" class="p-4 text-center text-slate-400">กำลังโหลด...</td></tr>`;
+
+      const res = await fetch(`${SCRIPT_URL}?action=getResults&examId=${examId}`);
+      const data = await res.json();
+      if (data.success && data.results.length > 0) {
+        tbody.innerHTML = data.results.map(r => `
+          <tr class="border-b border-slate-100 hover:bg-slate-50 transition">
+            <td class="p-3 font-bold">${r.rollNo}</td>
+            <td class="p-3">${r.studentName || '-'}</td>
+            <td class="p-3 font-mono text-xs text-slate-500">${r.examId}</td>
+            <td class="p-3 text-center font-bold text-purple-700">ชุด ${r.examSet || 'A'}</td>
+            <td class="p-3 text-center">${r.rawScore} / ${r.totalQuestions}</td>
+            <td class="p-3 text-center font-bold text-emerald-600">${r.scaledScore}</td>
+            <td class="p-3 text-center">${r.percentage}%</td>
+            <td class="p-3 text-xs text-slate-400">${new Date(r.scannedAt).toLocaleString('th-TH')}</td>
+          </tr>
+        `).join('');
+      } else {
+        tbody.innerHTML = `<tr><td colspan="8" class="p-4 text-center text-slate-400">ไม่พบข้อมูล</td></tr>`;
+      }
+    }
+
+    function exportCSV() {
+      const table = document.getElementById("resultsTableBody");
+      let csv = "เลขที่,ชื่อ-สกุล,รหัสข้อสอบ,ชุดที่,ข้อที่ถูก,คะแนนปพ5,ร้อยละ,เวลาที่ตรวจ\n";
+      for (let row of table.rows) {
+        if (row.cells.length < 8 || row.cells[0].colSpan > 1) continue;
+        let rowData = [];
+        for (let cell of row.cells) rowData.push(`"${cell.innerText.replace(/"/g, '""')}"`);
+        csv += rowData.join(",") + "\n";
+      }
+      const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8;" });
+      const link = document.createElement("a");
+      link.href = URL.createObjectURL(blob);
+      link.download = `Exam_Scores_${new Date().toISOString().slice(0,10)}.csv`;
+      link.click();
+    }
+
+    window.onload = () => {
+      const savedSchool = localStorage.getItem('omr_school_name');
+      if (savedSchool) {
+        document.getElementById('schoolNameInput').value = savedSchool;
+      }
+      const savedDraft = localStorage.getItem('omr_last_exam_draft');
+      if (savedDraft) {
+        try {
+          const draft = JSON.parse(savedDraft);
+          if (draft.grade) document.getElementById('gradeLevel').value = draft.grade;
+        } catch(e) {}
+      }
+      calculateWeightPerQuestion();
+      renderKeyInputs();
+      onGradeChange(false);
+    };
+  </script>
+</body>
+</html>
