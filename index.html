@@ -577,7 +577,10 @@
       if (currentUser && app.category === 'teacher') {
         const gradesParam = encodeURIComponent(currentUser.assignedGrades.join(','));
         const userParam = encodeURIComponent(currentUser.username);
-        finalUrl += `?user=${userParam}&grades=${gradesParam}`;
+        // ถ้า username คือ admin หรือมี role ระบุว่าเป็น admin ให้ส่งค่า role=admin
+        const isAdmin = currentUser.username.toLowerCase() === 'admin' || (currentUser.role && currentUser.role.toLowerCase().includes('admin'));
+        const roleParam = encodeURIComponent(isAdmin ? 'admin' : 'teacher');
+        finalUrl += `?user=${userParam}&grades=${gradesParam}&role=${roleParam}`;
       }
 
       currentAppUrl = finalUrl;
