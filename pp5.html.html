@@ -278,14 +278,19 @@
         // =========================================================================
         // SSO & PERMISSION INTEGRATION (ตรวจสอบสิทธิ์จากพอร์ทัลหลักอัตโนมัติ)
         // =========================================================================
-        window.onload = () => {
+       window.onload = () => {
             const urlParams = new URLSearchParams(window.location.search);
             const user = urlParams.get('user');
             const gradesParam = urlParams.get('grades');
+            const roleParam = urlParams.get('role'); // <-- 1. เพิ่มบรรทัดนี้เพื่อรับค่า role
 
             if (user && gradesParam) {
-                // 1. กำหนดบทบาทเป็นครูผู้สอนทันที
-                window.currentUserRole = 'teacher';
+                // <-- 2. แก้ตรงนี้: ถ้า username เป็น admin หรือส่ง role=admin มา ให้เป็น admin
+                if ((user && user.toLowerCase() === 'admin') || (roleParam && roleParam.toLowerCase() === 'admin')) {
+                    window.currentUserRole = 'admin';
+                } else {
+                    window.currentUserRole = 'teacher';
+                }
 
                 // 2. ซ่อนหน้าล็อกอิน และเปิดหน้าแอป
                 document.getElementById('loginScreen').classList.add('hidden');
