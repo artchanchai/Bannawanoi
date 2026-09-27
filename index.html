@@ -370,18 +370,14 @@
 
   <!-- ================= 5. สคริปต์การทำงาน ================= -->
   <script>
-    // --------------------------------------------------------------------------
-    // ใส่ URL ของ Web App จาก Google Apps Script (ลงท้ายด้วย /exec)
-    // --------------------------------------------------------------------------
     const AUTH_API_URL = "https://script.google.com/macros/s/AKfycbwi6vMcxNjihUYex3g-vne3Xx2FNAQNhSwgU4siQRA9aOo1YuRncmBoeX3GOf-CKtydVA/exec";
 
-    // ทะเบียนลิงก์ระบบงานย่อยทั้งหมด
     const systemRegistry = {
       'cert-app': {
         name: 'ระบบจัดเก็บเกียรติบัตร',
         icon: 'fa-solid fa-award',
         color: 'text-amber-500 bg-amber-50',
-        url: 'cert.html.html', // ปรับเป็น URL หรือชื่อไฟล์ปลายทาง
+        url: 'cert.html.html',
         category: 'public',
         type: 'standard'
       },
@@ -389,9 +385,9 @@
         name: 'คลังเกมการเรียนรู้ (เต็มจอ)',
         icon: 'fa-solid fa-gamepad',
         color: 'text-indigo-500 bg-indigo-50',
-        url: 'games.html',       // ปรับเป็น URL หน้าเกม
+        url: 'games.html',
         category: 'public',
-        type: 'game'             // เปิดแบบเต็มจอ Cinema Mode
+        type: 'game'
       },
       'doc-app': {
         name: 'เอกสารและแบบฟอร์ม',
@@ -405,7 +401,7 @@
         name: 'ระบบบันทึก ปพ.5 (ล็อกชั้น)',
         icon: 'fa-solid fa-book-bookmark',
         color: 'text-[#0066cc] bg-blue-50',
-        url: 'pp5.html',         // ปรับเป็น URL หน้าระบบ ปพ.5
+        url: 'pp5.html',
         category: 'teacher',
         type: 'standard'
       },
@@ -413,7 +409,7 @@
         name: 'คลังข้อสอบ & กระดาษคำตอบ',
         icon: 'fa-solid fa-file-circle-question',
         color: 'text-purple-600 bg-purple-50',
-        url: 'SY/exam.html.html',        // ปรับเป็น URL หน้าข้อสอบ
+        url: 'SY/exam.html.html',
         category: 'teacher',
         type: 'standard'
       },
@@ -421,7 +417,7 @@
         name: 'เช็กชื่อเข้าเรียน & สถิติ',
         icon: 'fa-solid fa-clipboard-user',
         color: 'text-emerald-600 bg-emerald-50',
-        url: 'attendance.html',  // ปรับเป็น URL หน้าเช็กชื่อ
+        url: 'attendance.html',
         category: 'teacher',
         type: 'standard'
       },
@@ -429,7 +425,7 @@
         name: 'ระบบสารบรรณ & คำสั่ง',
         icon: 'fa-solid fa-stamp',
         color: 'text-orange-600 bg-orange-50',
-        url: 'orders.html',      // ปรับเป็น URL หน้าคำสั่งโรงเรียน
+        url: 'orders.html',
         category: 'teacher',
         type: 'standard'
       }
@@ -438,7 +434,6 @@
     let currentUser = null;
     let currentAppUrl = '';
 
-    // ฟังก์ชันดึงสถิติตัวเลขสดจาก Google Sheets (ปพ.5, เกียรติบัตร)
     async function loadLiveStats() {
       if (!AUTH_API_URL.includes("script.google.com")) return;
       try {
@@ -455,7 +450,6 @@
       }
     }
 
-    // เรนเดอร์เมนูใน Sidebar ตาม Permission
     function renderSidebarMenu() {
       const container = document.getElementById('dynamic-nav-container');
       container.innerHTML = '';
@@ -486,7 +480,6 @@
       document.getElementById('stat-active-count').textContent = `${count} ระบบ`;
     }
 
-    // ตรวจสอบชื่อผู้ใช้และรหัสผ่านกับ Google Sheets
     async function handleFormLogin(e) {
       e.preventDefault();
       const user = document.getElementById('login-username').value.trim();
@@ -567,17 +560,14 @@
       document.getElementById('login-modal').classList.add('hidden');
     }
 
-    // เปิดระบบปลายทาง โดยแยกเงื่อนไขเกมกับงานทั่วไป
     function openTargetApp(appKey) {
       const app = systemRegistry[appKey];
       if (!app) return;
 
       let finalUrl = app.url;
-      // แนบพารามิเตอร์ส่งต่อสิทธิ์ไปยัง iframe ปลายทาง
       if (currentUser && app.category === 'teacher') {
         const gradesParam = encodeURIComponent(currentUser.assignedGrades.join(','));
         const userParam = encodeURIComponent(currentUser.username);
-        // ถ้า username คือ admin หรือมี role ระบุว่าเป็น admin ให้ส่งค่า role=admin
         const isAdmin = currentUser.username.toLowerCase() === 'admin' || (currentUser.role && currentUser.role.toLowerCase().includes('admin'));
         const roleParam = encodeURIComponent(isAdmin ? 'admin' : 'teacher');
         finalUrl += `?user=${userParam}&grades=${gradesParam}&role=${roleParam}`;
@@ -586,13 +576,11 @@
       currentAppUrl = finalUrl;
 
       if (app.type === 'game') {
-        // --- 1. ระบบเกม: เปิดแบบเต็มจอ 100% ไร้ขอบ (Cinema Mode) ---
         const gameFrame = document.getElementById('game-frame');
         const gameWorkspace = document.getElementById('game-fullscreen-workspace');
         gameFrame.src = finalUrl;
         gameWorkspace.classList.remove('hidden');
       } else {
-        // --- 2. ระบบงานทั่วไป: เปิดในหน้าเดิมปกติ ไม่บัง Sidebar/Topbar[cite: 1] ---
         const standardFrame = document.getElementById('standard-frame');
         const standardWorkspace = document.getElementById('standard-workspace');
         standardFrame.src = finalUrl;
@@ -601,7 +589,13 @@
         standardWorkspace.classList.remove('hidden');
       }
 
-      if (window.innerWidth < 1024) toggleSidebar();
+      // ปิด Sidebar และซ่อน Backdrop เสมอเมื่อเปิดระบบ (แก้ปัญหาหน้าจอเบลอและกดไม่ติด)
+      if (window.innerWidth < 1024) {
+        const sidebar = document.getElementById('sidebar');
+        const backdrop = document.getElementById('sidebar-backdrop');
+        if (sidebar) sidebar.classList.add('-translate-x-full');
+        if (backdrop) backdrop.classList.add('hidden');
+      }
     }
 
     function closeAppFrame() {
@@ -628,7 +622,6 @@
       backdrop.classList.toggle('hidden');
     }
 
-    // ภาพสไลด์ข่าวสารโรงเรียน
     const feedSlides = [
       {
         title: "โครงการเสริมสร้างการเรียนรู้ Active Learning ประจำภาคเรียน",
@@ -660,7 +653,6 @@
     function nextFeedSlide() { showFeedSlide(currentSlide + 1); }
     function prevFeedSlide() { showFeedSlide(currentSlide - 1); }
 
-    // อัปเดตนาฬิกาและวันที่ภาษาไทย
     function updateDateTime() {
       const now = new Date();
       const thaiDays = ['วันอาทิตย์ที่', 'วันจันทร์ที่', 'วันอังคารที่', 'วันพุธที่', 'วันพฤหัสบดีที่', 'วันศุกร์ที่', 'วันเสาร์ที่'];
