@@ -617,6 +617,7 @@
     let editingExamId = null;
     let videoStream = null;
     let isScanning = false;
+    let isFetchingExam = false; // ตัวป้องกันการร้องขอข้อมูลซ้ำซ้อนขณะส่องกล้อง
 
     function toggleSubjectiveSection() {
       const hasSubjective = document.getElementById('hasSubjectiveExam').checked;
@@ -893,6 +894,7 @@
                 </div>
               </div>
 
+              <!-- ขนาด QR Code ในหน้า Preview ให้ตรงสัดส่วน -->
               <div class="bg-slate-50/90 border border-slate-200 rounded p-1.5 flex flex-col items-center justify-center text-center">
                 <div class="w-14 h-14 border border-slate-300 flex items-center justify-center bg-white text-[7px] font-mono text-slate-500 rounded font-bold shadow-2xs">
                   QR CODE
@@ -1430,7 +1432,7 @@
                     </div>
                   </div>
 
-                  <!-- กล่อง QR Code ขยายใหญ่คมชัด -->
+                  <!-- ขยายขนาด QR Code คมชัด -->
                   <div class="bg-slate-50/90 border border-slate-300 rounded p-2 flex flex-col items-center justify-center shadow-2xs">
                     <div id="print_qr_${sheetIndex}" class="inline-block p-1 border border-slate-300 bg-white rounded"></div>
                     <div class="text-[8px] font-mono font-semibold text-slate-600 tracking-wider mt-1 text-center leading-none">
@@ -1456,7 +1458,7 @@
       setTimeout(() => {
         for (let i = 0; i < items.length; i++) {
           const item = items[i];
-          // ฝังข้อมูลนักเรียนเข้า QR Code ในรูปแบบ EXAM_ID|ROLL_NO|STUDENT_ID
+          // ฝังข้อมูล EXAM_ID|ROLL_NO|STUDENT_ID ลงใน QR Code
           const qrPayload = (item && !item.isBlank && item.rollNo && item.rollNo !== '......')
             ? `${examId}|${item.rollNo}|${item.studentId || ''}`
             : examId;
@@ -1536,13 +1538,12 @@
         
         const code = jsQR(imageData.data, imageData.width, imageData.height);
         if (code && code.data.startsWith("EXAM-")) {
-          // ดึงค่า EXAM_ID, เลขที่, รหัสประจำตัว ออกจาก QR Code
+          // ดึงค่า EXAM_ID, เลขที่, รหัสประจำตัว
           const parts = code.data.split("|");
-          const scannedExamId = parts[0];
-          const scannedRoll = parts[1] || "";
-          const scannedStudentId = parts[2] || "";
+          const scannedExamId = parts[0].trim();
+          const scannedRoll = parts[1] ? parts[1].trim() : "";
 
-          // ตั้งค่าข้อมูลนักเรียนทันที
+          // กรอกเลขที่และดึงชื่อนักเรียนทันที
           if (scannedRoll) {
             const rollInput = document.getElementById('scanStudentRoll');
             if (rollInput.value !== scannedRoll) {
@@ -1551,7 +1552,8 @@
             }
           }
 
-          if (!currentExamData || currentExamData.examId !== scannedExamId) {
+          // ป้องกันยิง Request ซ้ำขณะกล้องโฟกัส
+          if (!isFetchingExam && (!currentExamData || currentExamData.examId !== scannedExamId)) {
             fetchExamForScanner(scannedExamId);
           }
         }
@@ -1560,38 +1562,61 @@
     }
 
     async function fetchExamForScanner(examId) {
-      document.getElementById('scanExamInfo').innerText = "กำลังโหลดข้อสอบ " + examId;
-      const res = await fetch(`${SCRIPT_URL}?action=getExam&examId=${examId}`);
-      const data = await res.json();
-      if (data.success) {
-        currentExamData = data.exam;
-        document.getElementById('scanExamInfo').innerHTML = `${currentExamData.subjectName} <span class="bg-purple-100 text-purple-800 px-2 py-0.5 rounded font-bold">ชุด ${currentExamData.examSet || 'A'}</span> (เต็ม ${currentExamData.maxScore} คะแนน)`;
+      isFetchingExam = true;
+      document.getElementById('scanExamInfo').innerHTML = `<span class="text-amber-600 animate-pulse">⏳ กำลังโหลดเฉลย (${examId})...</span>`;
+      
+      try {
+        const res = await fetch(`${SCRIPT_URL}?action=getExam&examId=${encodeURIComponent(examId)}`);
+        const data = await res.json();
         
-        const subjRow = document.getElementById('scanSubjectiveRow');
-        const subjHint = document.getElementById('scanSubjectiveHint');
-        const subjInput = document.getElementById('scanSubjectiveScore');
+        if (data.success && data.exam) {
+          currentExamData = data.exam;
 
-        if (currentExamData.hasSubjective) {
-          subjRow.classList.remove('hidden');
-          const maxSubj = Number(currentExamData.subjectiveMaxScore) || 0;
-          subjHint.innerText = `คะแนนเต็มข้อเขียน ${maxSubj} คะแนน`;
-          subjInput.max = maxSubj;
-          subjInput.value = 0;
+          // แปลงเฉลย answerKey จาก String เป็น Object เสมอ
+          if (typeof currentExamData.answerKey === 'string') {
+            try {
+              currentExamData.answerKey = JSON.parse(currentExamData.answerKey);
+            } catch (e) {
+              console.error("Parse answerKey error:", e);
+            }
+          }
+
+          document.getElementById('scanExamInfo').innerHTML = `
+            <strong>${currentExamData.subjectName || currentExamData.subjectCode}</strong> 
+            <span class="bg-purple-100 text-purple-800 px-2 py-0.5 rounded font-bold ml-1">ชุด ${currentExamData.examSet || 'A'}</span>
+            <span class="text-slate-500 text-[11px] ml-1">(เต็ม ${currentExamData.maxScore} คะแนน)</span>
+          `;
+          
+          const subjRow = document.getElementById('scanSubjectiveRow');
+          const subjHint = document.getElementById('scanSubjectiveHint');
+          const subjInput = document.getElementById('scanSubjectiveScore');
+
+          if (currentExamData.hasSubjective) {
+            subjRow.classList.remove('hidden');
+            const maxSubj = Number(currentExamData.subjectiveMaxScore) || 0;
+            subjHint.innerText = `คะแนนเต็มข้อเขียน ${maxSubj} คะแนน`;
+            subjInput.max = maxSubj;
+            subjInput.value = 0;
+          } else {
+            subjRow.classList.add('hidden');
+            subjInput.value = 0;
+          }
+
+          if (studentsList.length === 0 && currentExamData.gradeLevel) {
+            document.getElementById('gradeLevel').value = currentExamData.gradeLevel;
+            await onGradeChange();
+          }
+
+          findStudentNameByRoll();
+          processOMRGrading();
         } else {
-          subjRow.classList.add('hidden');
-          subjInput.value = 0;
+          document.getElementById('scanExamInfo').innerHTML = `<span class="text-rose-600 font-bold">❌ ไม่พบข้อสอบรหัส: ${examId} ในระบบ</span>`;
         }
-
-        if (studentsList.length === 0) {
-          document.getElementById('gradeLevel').value = currentExamData.gradeLevel;
-          await onGradeChange();
-        }
-
-        // ดึงชื่อนักเรียนหากมีเลขที่ค้างอยู่
-        findStudentNameByRoll();
-
-        // ประมวลผลคำตอบ (ไม่ตอบ = 0 คะแนน)
-        processOMRGrading();
+      } catch (err) {
+        console.error("fetchExamForScanner error:", err);
+        document.getElementById('scanExamInfo').innerHTML = `<span class="text-rose-600 font-bold">❌ เกิดข้อผิดพลาดในการโหลดเฉลย</span>`;
+      } finally {
+        setTimeout(() => { isFetchingExam = false; }, 1200);
       }
     }
 
@@ -1605,10 +1630,10 @@
       const engToThai = { 'A': 'ก', 'B': 'ข', 'C': 'ค', 'D': 'ง' };
 
       for (let i = 1; i <= total; i++) {
-        let rawAns = currentExamData.answerKey[i] || "ก";
+        let rawAns = currentExamData.answerKey[i] || currentExamData.answerKey[String(i)] || "ก";
         const correctAns = engToThai[rawAns] || rawAns;
         
-        // แก้ไข: กระดาษเปล่ายังไม่ได้ระบายคำตอบ ให้เป็น null
+        // กระดาษเปล่าที่ไม่ได้ระบายคำตอบ ให้กำหนดเป็น null (0 คะแนน)
         const studentAns = null;
         studentAnswers[i] = studentAns;
 
@@ -1617,8 +1642,8 @@
 
         summaryHtml += `
           <div class="flex justify-between p-1.5 rounded-xl ${isCorrect ? 'bg-emerald-50 text-emerald-800 font-semibold' : 'bg-slate-100 text-slate-600'}">
-            <span>ข้อ ${i}: ${studentAns ? `ตอบ ${studentAns}` : '<span class="text-slate-400">ไม่ได้ระบาย</span>'}</span>
-            <span>${isCorrect ? '✓ ถูก' : '<span class="text-slate-400 font-mono">(เฉลย: ' + correctAns + ')</span>'}</span>
+            <span>ข้อ ${i}: ${studentAns ? `ตอบ ${studentAns}` : '<span class="text-slate-400 font-medium">ไม่ได้ระบาย</span>'}</span>
+            <span>${isCorrect ? '✓ ถูก' : '<span class="text-slate-400 font-mono text-[10px]">(เฉลย: ' + correctAns + ')</span>'}</span>
           </div>
         `;
       }
