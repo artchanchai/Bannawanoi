@@ -3,183 +3,679 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ระบบจัดการสารสนเทศ โรงเรียนบ้านนาหว้าน้อย</title>
-  <link rel="icon" href="IMG_4847.jpeg" type="image/jpeg">
+  <title>ศูนย์รวมระบบสารสนเทศโรงเรียน</title>
+  
+  <!-- ฟอนต์ Kanit -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  
+  <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-
-  <style>
-    body { font-family: 'Sarabun', sans-serif; }
-    .portal-card {
-      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    }
-    .portal-card:hover {
-      transform: translateY(-6px);
-    }
-  </style>
-</head>
-<body class="bg-slate-100 text-slate-800 h-screen flex flex-col overflow-hidden">
-
-  <!-- Navbar -->
-  <header class="bg-slate-900 text-white px-4 py-2.5 shadow-md flex items-center justify-between flex-none z-50">
-    <div class="flex items-center space-x-3 cursor-pointer" onclick="switchApp('hub')">
-      <img src="IMG_4847.jpeg" onerror="this.src='https://placehold.co/80x80?text=Logo'" class="w-8 h-8 rounded-full object-contain bg-white p-0.5 shadow">
-      <div>
-        <h1 class="text-sm sm:text-base font-bold tracking-wide leading-tight">โรงเรียนบ้านนาหว้าน้อย</h1>
-        <p class="text-[10px] sm:text-xs text-slate-300">ระบบบริหารจัดการสารสนเทศทางการศึกษา</p>
-      </div>
-    </div>
-
-    <!-- ปุ่มสลับหน้าระบบบน Navbar -->
-    <nav class="flex items-center space-x-1 sm:space-x-2">
-      <button onclick="switchApp('hub')" id="btn-hub" class="px-3 py-1.5 rounded-lg text-xs sm:text-sm font-semibold transition bg-blue-600 text-white flex items-center gap-1.5">
-        <i class="fa-solid fa-house"></i>
-        <span class="hidden sm:inline">หน้าแรก</span>
-      </button>
-      <button onclick="switchApp('pp5')" id="btn-pp5" class="px-3 py-1.5 rounded-lg text-xs sm:text-sm font-semibold transition text-slate-300 hover:text-white hover:bg-slate-800 flex items-center gap-1.5">
-        <i class="fa-solid fa-book-open"></i>
-        <span>ระบบ ปพ.5</span>
-      </button>
-      <button onclick="switchApp('cert')" id="btn-cert" class="px-3 py-1.5 rounded-lg text-xs sm:text-sm font-semibold transition text-slate-300 hover:text-white hover:bg-slate-800 flex items-center gap-1.5">
-        <i class="fa-solid fa-award"></i>
-        <span>ระบบเกียรติบัตร</span>
-      </button>
-      <button onclick="switchApp('sys3')" id="btn-sys3" class="px-3 py-1.5 rounded-lg text-xs sm:text-sm font-semibold transition text-slate-300 hover:text-white hover:bg-slate-800 flex items-center gap-1.5">
-        <i class="fa-solid fa-folder-open"></i>
-        <span>ระบบออมเงิน</span>
-      </button>
-      <button onclick="switchApp('games')" id="btn-games" class="px-3 py-1.5 rounded-lg text-xs sm:text-sm font-semibold transition text-slate-300 hover:text-white hover:bg-slate-800 flex items-center gap-1.5">
-        <i class="fa-solid fa-gamepad"></i>
-        <span>ระบบเกม</span>
-      </button>
-    </nav>
-  </header>
-
-  <!-- Viewport -->
-  <main class="flex-1 relative w-full h-full overflow-hidden">
-    
-    <!-- 1. Hub View -->
-    <div id="view-hub" class="absolute inset-0 overflow-y-auto p-4 sm:p-8 flex flex-col justify-between">
-      <div class="max-w-6xl mx-auto w-full pt-4 sm:pt-8">
-        <div class="text-center mb-8 sm:mb-10">
-          <div class="inline-flex items-center justify-center p-3 bg-blue-50 text-blue-600 rounded-2xl mb-3 shadow-inner">
-            <i class="fa-solid fa-school text-3xl"></i>
-          </div>
-          <h2 class="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">ระบบโรงเรียนบ้านนาหว้าน้อย</h2>
-          <p class="text-slate-500 text-sm sm:text-base mt-2">ศูนย์รวมระบบสารสนเทศและการบันทึกข้อมูลเพื่อสนับสนุนการเรียนการสอน</p>
-        </div>
-
-        <!-- กล่องการ์ด 4 ระบบ (จัด Grid ให้สวยงาม) -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 max-w-6xl mx-auto">
-          
-          <!-- Card 1: ปพ.5 -->
-          <div onclick="switchApp('pp5')" class="portal-card bg-white rounded-2xl p-6 shadow-sm hover:shadow-xl border border-slate-200/80 cursor-pointer flex flex-col items-center text-center group">
-            <div class="w-18 h-18 p-4 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center text-3xl mb-4 group-hover:bg-blue-600 group-hover:text-white transition-colors duration-300 shadow-sm">
-              <i class="fa-solid fa-calculator"></i>
-            </div>
-            <h3 class="text-base sm:text-lg font-bold text-slate-800 mb-1 group-hover:text-blue-600 transition-colors">ระบบ ปพ.5 ออนไลน์</h3>
-            <p class="text-xs text-slate-500 mb-5 leading-relaxed">บันทึกคะแนน เช็คเวลาเรียน และพิมพ์เอกสาร ปพ.5</p>
-            <span class="mt-auto inline-flex items-center text-xs font-bold text-blue-600 group-hover:translate-x-1 transition-transform">
-              เข้าสู่ระบบงาน <i class="fa-solid fa-arrow-right ml-1.5"></i>
-            </span>
-          </div>
-
-          <!-- Card 2: เกียรติบัตร -->
-          <div onclick="switchApp('cert')" class="portal-card bg-white rounded-2xl p-6 shadow-sm hover:shadow-xl border border-slate-200/80 cursor-pointer flex flex-col items-center text-center group">
-            <div class="w-18 h-18 p-4 bg-amber-50 text-amber-600 rounded-2xl flex items-center justify-center text-3xl mb-4 group-hover:bg-amber-500 group-hover:text-white transition-colors duration-300 shadow-sm">
-              <i class="fa-solid fa-award"></i>
-            </div>
-            <h3 class="text-base sm:text-lg font-bold text-slate-800 mb-1 group-hover:text-amber-600 transition-colors">ระบบจัดเก็บเกียรติบัตร</h3>
-            <p class="text-xs text-slate-500 mb-5 leading-relaxed">คลังเกียรติบัตรออนไลน์ ค้นหาผลงาน และจัดเก็บเอกสาร</p>
-            <span class="mt-auto inline-flex items-center text-xs font-bold text-amber-600 group-hover:translate-x-1 transition-transform">
-              เข้าสู่ระบบงาน <i class="fa-solid fa-arrow-right ml-1.5"></i>
-            </span>
-          </div>
-
-          <!-- Card 3: ระบบออมเงิน (sys3 / balance.html) -->
-          <div onclick="switchApp('sys3')" class="portal-card bg-white rounded-2xl p-6 shadow-sm hover:shadow-xl border border-slate-200/80 cursor-pointer flex flex-col items-center text-center group">
-            <div class="w-18 h-18 p-4 bg-emerald-50 text-emerald-600 rounded-2xl flex items-center justify-center text-3xl mb-4 group-hover:bg-emerald-600 group-hover:text-white transition-colors duration-300 shadow-sm">
-              <i class="fa-solid fa-piggy-bank"></i>
-            </div>
-            <h3 class="text-base sm:text-lg font-bold text-slate-800 mb-1 group-hover:text-emerald-600 transition-colors">ระบบออมเงินนักเรียน</h3>
-            <p class="text-xs text-slate-500 mb-5 leading-relaxed">ระบบบันทึกยอดเงินฝาก-ถอน และยอดสะสมของนักเรียน</p>
-            <span class="mt-auto inline-flex items-center text-xs font-bold text-emerald-600 group-hover:translate-x-1 transition-transform">
-              เข้าสู่ระบบงาน <i class="fa-solid fa-arrow-right ml-1.5"></i>
-            </span>
-          </div>
-
-          <!-- Card 4: ระบบเกมการเรียนรู้ -->
-          <div onclick="switchApp('games')" class="portal-card bg-white rounded-2xl p-6 shadow-sm hover:shadow-xl border border-slate-200/80 cursor-pointer flex flex-col items-center text-center group">
-            <div class="w-18 h-18 p-4 bg-purple-50 text-purple-600 rounded-2xl flex items-center justify-center text-3xl mb-4 group-hover:bg-purple-600 group-hover:text-white transition-colors duration-300 shadow-sm">
-              <i class="fa-solid fa-gamepad"></i>
-            </div>
-            <h3 class="text-base sm:text-lg font-bold text-slate-800 mb-1 group-hover:text-purple-600 transition-colors">ระบบเกมการเรียนรู้</h3>
-            <p class="text-xs text-slate-500 mb-5 leading-relaxed">ศูนย์รวมเกมเสริมทักษะ กิจกรรม Active Learning</p>
-            <span class="mt-auto inline-flex items-center text-xs font-bold text-purple-600 group-hover:translate-x-1 transition-transform">
-              เข้าสู่ระบบงาน <i class="fa-solid fa-arrow-right ml-1.5"></i>
-            </span>
-          </div>
-
-        </div>
-      </div>
-
-      <footer class="text-center text-xs text-slate-400 py-6">
-        &copy; 2026 โรงเรียนบ้านนาหว้าน้อย ต.กกสะทอน อ.ด่านซ้าย จ.เลย | พัฒนาโดย ART-CHANCHAI[cite: 2]
-      </footer>
-    </div>
-
-    <!-- Iframes โหลดจากไฟล์แยก -->
-    <iframe id="iframe-pp5" src="pp5.html" class="absolute inset-0 w-full h-full border-0 hidden"></iframe>
-    <iframe id="iframe-cert" src="cert.html" class="absolute inset-0 w-full h-full border-0 hidden"></iframe>
-    <iframe id="iframe-sys3" src="balance.html" class="absolute inset-0 w-full h-full border-0 hidden"></iframe>
-    <iframe id="iframe-games" src="games.html" class="absolute inset-0 w-full h-full border-0 hidden" allow="camera; microphone; fullscreen; accelerometer; gyroscope"></iframe>
-  </main>
-
+  
   <script>
-    function switchApp(app) {
-      const hubView = document.getElementById('view-hub');
-      const pp5Frame = document.getElementById('iframe-pp5');
-      const certFrame = document.getElementById('iframe-cert');
-      const sys3Frame = document.getElementById('iframe-sys3');
-      const gamesFrame = document.getElementById('iframe-games'); // เพิ่มตัวแปรเกม
-
-      const btnHub = document.getElementById('btn-hub');
-      const btnPp5 = document.getElementById('btn-pp5');
-      const btnCert = document.getElementById('btn-cert');
-      const btnSys3 = document.getElementById('btn-sys3');
-      const btnGames = document.getElementById('btn-games'); // เพิ่มปุ่มเกม
-
-      // ซ่อนหน้าจอทั้งหมด
-      hubView.classList.add('hidden');
-      pp5Frame.classList.add('hidden');
-      certFrame.classList.add('hidden');
-      sys3Frame.classList.add('hidden');
-      gamesFrame.classList.add('hidden'); // ซ่อนหน้าเกม
-
-      // รีเซ็ตสไตล์ปุ่มทั้งหมดให้เป็นปกติ
-      [btnHub, btnPp5, btnCert, btnSys3, btnGames].forEach(b => {
-        if(b) b.className = "px-3 py-1.5 rounded-lg text-xs sm:text-sm font-semibold transition text-slate-300 hover:text-white hover:bg-slate-800 flex items-center gap-1.5";
-      });
-
-      // สลับไปแสดงผลเฉพาะหน้าที่เลือก
-      if (app === 'pp5') {
-        pp5Frame.classList.remove('hidden');
-        btnPp5.className = "px-3 py-1.5 rounded-lg text-xs sm:text-sm font-semibold transition bg-blue-600 text-white flex items-center gap-1.5";
-      } else if (app === 'cert') {
-        certFrame.classList.remove('hidden');
-        btnCert.className = "px-3 py-1.5 rounded-lg text-xs sm:text-sm font-semibold transition bg-amber-500 text-slate-900 flex items-center gap-1.5";
-      } else if (app === 'sys3') {
-        sys3Frame.classList.remove('hidden');
-        btnSys3.className = "px-3 py-1.5 rounded-lg text-xs sm:text-sm font-semibold transition bg-emerald-600 text-white flex items-center gap-1.5";
-      } else if (app === 'games') {
-        gamesFrame.classList.remove('hidden');
-        btnGames.className = "px-3 py-1.5 rounded-lg text-xs sm:text-sm font-semibold transition bg-purple-600 text-white flex items-center gap-1.5";
-      } else {
-        hubView.classList.remove('hidden');
-        btnHub.className = "px-3 py-1.5 rounded-lg text-xs sm:text-sm font-semibold transition bg-blue-600 text-white flex items-center gap-1.5";
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: { sans: ['Kanit', 'sans-serif'] },
+          colors: {
+            brand: { 500: '#0e8ce9', 600: '#0066cc', 700: '#0052a3' }
+          }
+        }
       }
     }
+  </script>
+
+  <style>
+    *, ::before, ::after { box-sizing: border-box; }
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: #f1f5f9; }
+    ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 9999px; }
+    ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+  </style>
+</head>
+
+<body class="bg-[#f8fafc] text-slate-800 antialiased font-sans h-screen w-screen overflow-hidden flex m-0 p-0 relative">
+
+  <!-- Mobile Backdrop Overlay -->
+  <div id="sidebar-backdrop" onclick="toggleSidebar()" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-40 hidden lg:hidden"></div>
+
+  <!-- ================= 1. แถบเมนูด้านข้าง (Sidebar ซิงค์ตาม Permission) ================= -->
+  <aside id="sidebar" class="fixed lg:static top-0 left-0 h-full w-72 bg-white border-r border-slate-200/80 z-30 flex flex-col justify-between transition-transform duration-300 ease-in-out -translate-x-full lg:translate-x-0 shadow-sm shrink-0">
+    <div class="p-5 overflow-y-auto flex-1">
+      
+      <!-- โลโก้และหัวข้อพอร์ทัล -->
+      <div class="flex items-center justify-between pb-5 border-b border-slate-100">
+        <div class="flex items-center gap-3 cursor-pointer" onclick="closeAppFrame()">
+          <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-[#0066cc] to-indigo-600 flex items-center justify-center text-white shadow-md">
+            <i class="fa-solid fa-graduation-cap text-lg"></i>
+          </div>
+          <div>
+            <h1 class="text-base font-semibold text-slate-900 leading-tight">SchoolPortal Hub</h1>
+            <p class="text-xs text-slate-400">ระบบสารสนเทศกลาง</p>
+          </div>
+        </div>
+        <button onclick="toggleSidebar()" class="lg:hidden p-2 text-slate-400 hover:text-slate-600 rounded-lg">
+          <i class="fa-solid fa-xmark text-lg"></i>
+        </button>
+      </div>
+
+      <!-- บัตรโปรไฟล์สถานะผู้ใช้งาน -->
+      <div class="mt-4 p-3.5 rounded-2xl bg-slate-50 border border-slate-200/80 flex items-center gap-3">
+        <div id="role-avatar-badge" class="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-600 flex items-center justify-center text-base font-semibold overflow-hidden shrink-0">
+          <i class="fa-solid fa-user-graduate"></i>
+        </div>
+        <div class="min-w-0 flex-1">
+          <p id="current-user-title" class="text-xs font-semibold text-slate-800 truncate">ผู้ใช้งานทั่วไป / นักเรียน</p>
+          <span id="current-user-status" class="inline-flex items-center gap-1.5 text-[11px] text-emerald-600 font-medium truncate">
+            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0"></span> สิทธิ์สาธารณะ
+          </span>
+        </div>
+      </div>
+
+      <!-- รายการระบบที่อนุญาตตาม Permission -->
+      <div class="mt-6">
+        <div class="flex items-center justify-between px-3 mb-2.5">
+          <span class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">ระบบที่คุณมีสิทธิ์เข้าถึง</span>
+          <span id="permission-count-badge" class="text-[11px] px-2 py-0.5 rounded-full bg-blue-50 text-[#0066cc] font-medium">3 ระบบ</span>
+        </div>
+        <nav id="dynamic-nav-container" class="space-y-1.5">
+          <!-- เมนูจะแสดงผลตามสิทธิ์จริงจาก Google Sheets -->
+        </nav>
+      </div>
+    </div>
+
+    <!-- ส่วนท้ายเมนูด้านข้าง -->
+    <div class="p-4 border-t border-slate-100 bg-slate-50 text-xs text-slate-400 flex justify-between items-center">
+      <span id="permission-role-indicator">สิทธิ์ทั่วไป</span>
+      <span class="text-emerald-600 font-medium flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-emerald-500"></span> ซิงค์ตรงชีต</span>
+    </div>
+  </aside>
+
+  <!-- ================= 2. พื้นที่ทำงานหลัก ================= -->
+  <div id="main-content-wrapper" class="flex-1 flex flex-col min-w-0 h-full overflow-hidden relative">
+    
+    <!-- Topbar Header -->
+    <header id="topbar" class="bg-white border-b border-slate-200/80 px-4 sm:px-6 py-3 flex items-center justify-between gap-4 sticky top-0 z-20 shrink-0">
+      <div class="flex items-center gap-3 flex-1 max-w-xl">
+        <button onclick="toggleSidebar()" class="lg:hidden p-2 text-slate-600 hover:bg-slate-100 rounded-xl">
+          <i class="fa-solid fa-bars text-lg"></i>
+        </button>
+
+        <div class="relative w-full">
+          <i class="fa-solid fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
+          <input type="text" id="search-input" placeholder="ค้นหาระบบงานหรือข้อมูลในโรงเรียน..." class="w-full bg-[#f1f5f9] focus:bg-white text-sm text-slate-700 pl-11 pr-4 py-2.5 rounded-2xl border border-transparent focus:border-blue-500 focus:outline-none transition font-light">
+        </div>
+      </div>
+
+      <div class="flex items-center gap-3 sm:gap-4">
+        <!-- วันที่และเวลาเรียลไทม์ -->
+        <div class="text-right flex flex-col justify-center hidden sm:flex">
+          <span class="text-xs font-semibold text-slate-800" id="date-display">--</span>
+          <span class="text-[11px] text-slate-400 font-normal mt-0.5" id="time-display">--:-- น.</span>
+        </div>
+
+        <!-- ปุ่มเข้าสู่ระบบ / ออกจากระบบ -->
+        <button id="btn-login-open" onclick="openLoginModal()" class="px-4 py-2 rounded-xl bg-[#0066cc] hover:bg-[#0052a3] text-white text-xs font-medium shadow-sm transition active:scale-95 flex items-center gap-2">
+          <i class="fa-solid fa-right-to-bracket text-xs"></i>
+          <span>เข้าสู่ระบบครู</span>
+        </button>
+
+        <button id="btn-logout" onclick="logoutUser()" title="ออกจากระบบคุณครู" class="hidden px-3.5 py-2 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 text-xs font-medium shadow-sm transition items-center gap-1.5">
+          <i class="fa-solid fa-arrow-right-from-bracket text-xs"></i>
+          <span>ออกจากระบบ</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- Workspace Area -->
+    <div class="flex-1 relative overflow-hidden flex flex-col">
+      
+      <!-- VIEW 1: แดชบอร์ดข้อมูลโรงเรียน & ข่าวสารฟีด -->
+      <div id="dashboard-scroll-view" class="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 space-y-6 w-full">
+        
+        <!-- แบนเนอร์ Dark Gradient -->
+        <div class="relative overflow-hidden rounded-[26px] bg-gradient-to-r from-[#070919] via-[#0d102b] to-[#171638] px-7 py-8 md:px-9 md:py-9 text-white shadow-sm border border-slate-900/10 max-w-[1400px] mx-auto w-full">
+          <div class="relative z-10 max-w-3xl space-y-3">
+            <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 text-white text-xs font-light backdrop-blur-md">
+              <span class="w-2 h-2 rounded-full bg-[#10b981]"></span>
+              <span>ศูนย์รวมสารสนเทศและประชาสัมพันธ์สถานศึกษา</span>
+            </div>
+            <h1 class="text-2xl md:text-3xl font-bold tracking-tight text-white leading-snug">
+              ระบบสารสนเทศโรงเรียน
+            </h1>
+            <p class="text-slate-300 text-xs md:text-sm leading-relaxed font-light max-w-2xl" id="welcome-subtext">
+              ยินดีต้อนรับนักเรียน ผู้ปกครอง และคณะครู สามารถติดตามข่าวสาร โครงสร้างบุคลากร และเปิดใช้งานระบบงานผ่านแถบเมนูด้านข้างได้ทันที
+            </p>
+          </div>
+          <div class="absolute -right-16 -bottom-16 w-80 h-80 bg-indigo-600/15 rounded-full blur-3xl pointer-events-none"></div>
+        </div>
+
+        <!-- การ์ดตัวเลขสถิติ 4 ช่อง (รองรับ Live Stats จาก Sheet ข้ามไฟล์) -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-5 max-w-[1400px] mx-auto w-full">
+          
+          <!-- การ์ด 1: เกียรติบัตร -->
+          <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm flex items-center justify-between">
+            <div>
+              <p class="text-xs font-light text-slate-400">เกียรติบัตรในระบบ</p>
+              <h3 class="text-2xl font-bold text-slate-800 mt-1" id="stat-cert-count">1,420</h3>
+              <span class="text-[11px] text-emerald-600 font-normal inline-flex items-center gap-1 mt-1">
+                <i class="fa-solid fa-arrow-trend-up"></i> ดึงสดจากชีต
+              </span>
+            </div>
+            <div class="w-11 h-11 rounded-2xl bg-amber-50 text-amber-500 flex items-center justify-center text-lg"><i class="fa-solid fa-award"></i></div>
+          </div>
+
+          <!-- การ์ด 2: เกม & สื่อ -->
+          <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm flex items-center justify-between">
+            <div>
+              <p class="text-xs font-light text-slate-400">เกม & สื่อการเรียนรู้</p>
+              <h3 class="text-2xl font-bold text-slate-800 mt-1" id="stat-game-count">38</h3>
+              <span class="text-[11px] text-[#0066cc] font-normal inline-flex items-center gap-1 mt-1">
+                <i class="fa-solid fa-gamepad text-[10px]"></i> เล่นแบบเต็มจอ 100%
+              </span>
+            </div>
+            <div class="w-11 h-11 rounded-2xl bg-indigo-50 text-indigo-500 flex items-center justify-center text-lg"><i class="fa-solid fa-gamepad"></i></div>
+          </div>
+
+          <!-- การ์ด 3: นักเรียนทั้งหมด (ดึงจากชีต ปพ.5) -->
+          <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm flex items-center justify-between">
+            <div>
+              <p class="text-xs font-light text-slate-400">นักเรียนทั้งหมด</p>
+              <h3 class="text-2xl font-bold text-slate-800 mt-1" id="stat-student-count">856</h3>
+              <span class="text-[11px] text-slate-400 font-normal inline-flex items-center gap-1 mt-1">
+                <i class="fa-solid fa-graduation-cap"></i> ข้อมูล ปพ.5 รวม
+              </span>
+            </div>
+            <div class="w-11 h-11 rounded-2xl bg-emerald-50 text-emerald-500 flex items-center justify-center text-lg"><i class="fa-solid fa-user-graduate"></i></div>
+          </div>
+
+          <!-- การ์ด 4: ระบบที่เปิดบริการ -->
+          <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm flex items-center justify-between">
+            <div>
+              <p class="text-xs font-light text-slate-400">ระบบที่เปิดบริการ</p>
+              <h3 class="text-2xl font-bold text-slate-800 mt-1" id="stat-active-count">3 ระบบ</h3>
+              <span class="text-[11px] text-emerald-600 font-normal inline-flex items-center gap-1 mt-1">
+                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> เข้าถึงตามสิทธิ์
+              </span>
+            </div>
+            <div class="w-11 h-11 rounded-2xl bg-sky-50 text-sky-500 flex items-center justify-center text-lg"><i class="fa-solid fa-server"></i></div>
+          </div>
+        </div>
+
+        <!-- ฟีดประชาสัมพันธ์ & บอร์ดโครงสร้างโรงเรียน -->
+        <div class="max-w-[1400px] mx-auto w-full grid grid-cols-1 lg:grid-cols-3 gap-6 pt-2">
+          
+          <!-- ข่าวสารกิจกรรม (Feed Slider) -->
+          <div class="lg:col-span-2 bg-white rounded-3xl border border-slate-200/80 p-6 shadow-sm flex flex-col justify-between">
+            <div class="flex items-center justify-between pb-4 border-b border-slate-100">
+              <div class="flex items-center gap-2.5">
+                <span class="w-2.5 h-2.5 rounded-full bg-blue-600"></span>
+                <h3 class="text-base font-semibold text-slate-800">ข่าวประชาสัมพันธ์ & กิจกรรมล่าสุด</h3>
+              </div>
+              <span class="text-xs text-slate-400 font-light">อัปเดตประจำวัน</span>
+            </div>
+
+            <div class="relative overflow-hidden rounded-2xl mt-4 aspect-video bg-slate-900 group">
+              <img id="feed-slide-img" src="https://images.unsplash.com/photo-1580582932707-520aed937b7b?auto=format&fit=crop&w=1200&q=80" alt="News Feed" class="w-full h-full object-cover transition-all duration-700">
+              <div class="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-transparent flex items-end p-5">
+                <div class="text-white space-y-1">
+                  <span class="text-[11px] px-2.5 py-0.5 rounded-full bg-blue-600 font-medium">ภาพกิจกรรม</span>
+                  <h4 id="feed-slide-title" class="text-sm sm:text-base font-semibold">โครงการเสริมสร้างการเรียนรู้ Active Learning ประจำภาคเรียน</h4>
+                  <p class="text-xs text-slate-300 font-light">เปิดโอกาสให้นักเรียนได้ลงมือปฏิบัติจริง ณ อาคารวิทยบริการ</p>
+                </div>
+              </div>
+              <button onclick="prevFeedSlide()" class="absolute left-3 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-white/20 backdrop-blur-md text-white hover:bg-white/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition">
+                <i class="fa-solid fa-chevron-left text-xs"></i>
+              </button>
+              <button onclick="nextFeedSlide()" class="absolute right-3 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-white/20 backdrop-blur-md text-white hover:bg-white/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition">
+                <i class="fa-solid fa-chevron-right text-xs"></i>
+              </button>
+            </div>
+
+            <div class="flex justify-center gap-1.5 mt-4">
+              <span class="feed-dot w-6 h-1.5 rounded-full bg-blue-600 transition-all"></span>
+              <span class="feed-dot w-2 h-1.5 rounded-full bg-slate-200 transition-all"></span>
+              <span class="feed-dot w-2 h-1.5 rounded-full bg-slate-200 transition-all"></span>
+            </div>
+          </div>
+
+          <!-- แผนผังฝ่ายบริหารและงานวิชาการ -->
+          <div class="bg-white rounded-3xl border border-slate-200/80 p-6 shadow-sm flex flex-col justify-between">
+            <div>
+              <div class="flex items-center justify-between pb-4 border-b border-slate-100 mb-4">
+                <div class="flex items-center gap-2.5">
+                  <span class="w-2.5 h-2.5 rounded-full bg-amber-500"></span>
+                  <h3 class="text-base font-semibold text-slate-800">ผู้บริหารและงานวิชาการ</h3>
+                </div>
+                <i class="fa-solid fa-id-card text-slate-300"></i>
+              </div>
+
+              <div class="space-y-4">
+                <div class="flex items-center gap-3.5 p-3 rounded-2xl bg-slate-50 border border-slate-100">
+                  <div class="w-12 h-12 rounded-xl bg-blue-100 overflow-hidden shrink-0 border border-white shadow-sm">
+                    <img src="https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&w=150&q=80" alt="ผู้อำนวยการ" class="w-full h-full object-cover">
+                  </div>
+                  <div class="min-w-0">
+                    <p class="text-xs font-semibold text-slate-900 truncate">ผู้อำนวยการโรงเรียน</p>
+                    <p class="text-[11px] text-slate-500">ผู้บริหารสถานศึกษา</p>
+                    <span class="inline-flex items-center text-[10px] text-emerald-600 font-medium mt-0.5">
+                      <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 mr-1"></span> ปฏิบัติหน้าที่
+                    </span>
+                  </div>
+                </div>
+
+                <div class="flex items-center gap-3.5 p-3 rounded-2xl bg-slate-50 border border-slate-100">
+                  <div class="w-12 h-12 rounded-xl bg-emerald-100 overflow-hidden shrink-0 border border-white shadow-sm">
+                    <img src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=150&q=80" alt="หัวหน้าฝ่ายวิชาการ" class="w-full h-full object-cover">
+                  </div>
+                  <div class="min-w-0">
+                    <p class="text-xs font-semibold text-slate-900 truncate">หัวหน้าฝ่ายวิชาการ</p>
+                    <p class="text-[11px] text-slate-500">บริหารหลักสูตรและการวัดผล</p>
+                  </div>
+                </div>
+
+                <div class="flex items-center gap-3.5 p-3 rounded-2xl bg-slate-50 border border-slate-100">
+                  <div class="w-12 h-12 rounded-xl bg-indigo-100 overflow-hidden shrink-0 border border-white shadow-sm">
+                    <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=150&q=80" alt="ครูผู้ดูแลระบบ" class="w-full h-full object-cover">
+                  </div>
+                  <div class="min-w-0">
+                    <p class="text-xs font-semibold text-slate-900 truncate">ครูกลุ่มสาระฯ / สารสนเทศ</p>
+                    <p class="text-[11px] text-slate-500">ดูแลระบบออนไลน์และ ปพ.5</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="mt-4 pt-3 border-t border-slate-100 text-center">
+              <span class="text-[11px] text-slate-400">ติดต่อฝ่ายสารสนเทศโรงเรียน</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- VIEW 2: ระบบงานทั่วไป (In-Page ไม่บัง Sidebar/Topbar)[cite: 1] -->
+      <div id="standard-workspace" class="hidden absolute inset-0 bg-white flex flex-col z-10">
+        <div class="h-10 bg-slate-100 border-b border-slate-200 px-4 flex items-center justify-between shrink-0">
+          <div class="flex items-center gap-2">
+            <button onclick="closeAppFrame()" class="text-xs text-slate-600 hover:text-[#0066cc] font-medium flex items-center gap-1 transition">
+              <i class="fa-solid fa-chevron-left text-[10px]"></i> ย้อนกลับหน้าหลัก
+            </button>
+            <span class="text-slate-300">|</span>
+            <span id="active-app-indicator" class="text-xs font-semibold text-slate-700 truncate">กำลังเปิดระบบ...</span>
+          </div>
+
+          <div class="flex items-center gap-2">
+            <button onclick="reloadStandardFrame()" title="รีโหลด" class="p-1.5 text-slate-500 hover:text-slate-700 rounded-md hover:bg-slate-200 transition">
+              <i class="fa-solid fa-rotate-right text-xs"></i>
+            </button>
+            <button onclick="openCurrentInNewTab()" title="เปิดในแท็บแยกใหม่" class="p-1.5 text-slate-500 hover:text-slate-700 rounded-md hover:bg-slate-200 transition">
+              <i class="fa-solid fa-arrow-up-right-from-square text-xs"></i>
+            </button>
+          </div>
+        </div>
+        <iframe id="standard-frame" src="" class="w-full flex-1 border-0" sandbox="allow-scripts allow-same-origin allow-forms allow-popups"></iframe>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- VIEW 3: เฉพาะระบบเกม (Cinema Mode เต็มจอ 100% ไร้ขอบ) -->
+  <div id="game-fullscreen-workspace" class="hidden fixed inset-0 w-screen h-screen bg-slate-900 z-50 m-0 p-0 border-none outline-none">
+    <button onclick="closeAppFrame()" class="absolute top-4 left-4 z-[60] px-4 py-2 rounded-2xl bg-slate-900/80 hover:bg-slate-950 text-white text-xs font-medium backdrop-blur-md shadow-2xl transition items-center gap-2 border border-white/20 hover:scale-105 active:scale-95">
+      <i class="fa-solid fa-house text-amber-400"></i>
+      <span>ออกจากเกมกลับหน้าหลัก</span>
+    </button>
+    <iframe id="game-frame" src="" class="w-full h-full border-0 m-0 p-0 block bg-white" sandbox="allow-scripts allow-same-origin allow-forms allow-popups"></iframe>
+  </div>
+
+  <!-- ================= 4. โมดอลเข้าสู่ระบบคุณครู (Username & Password) ================= -->
+  <div id="login-modal" class="fixed inset-0 bg-slate-950/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white w-full max-w-sm rounded-3xl p-6 shadow-2xl border border-slate-100 relative">
+      <button onclick="closeLoginModal()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 w-8 h-8 rounded-full hover:bg-slate-100 flex items-center justify-center transition">
+        <i class="fa-solid fa-xmark text-sm"></i>
+      </button>
+
+      <div class="text-center mb-5">
+        <div class="w-12 h-12 rounded-2xl bg-blue-50 text-[#0066cc] flex items-center justify-center text-xl mx-auto mb-2">
+          <i class="fa-solid fa-chalkboard-user"></i>
+        </div>
+        <h3 class="text-base font-semibold text-slate-900">เข้าสู่ระบบคุณครู</h3>
+        <p class="text-xs text-slate-400 mt-0.5">ใช้ชื่อผู้ใช้และรหัสผ่านที่กำหนดในตารางชีต</p>
+      </div>
+
+      <form onsubmit="handleFormLogin(event)" class="space-y-3.5">
+        <div>
+          <label class="block text-xs font-medium text-slate-700 mb-1">ชื่อผู้ใช้ (Username)</label>
+          <input type="text" id="login-username" required placeholder="เช่น art_math" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs focus:border-[#0066cc] focus:outline-none transition">
+        </div>
+
+        <div>
+          <label class="block text-xs font-medium text-slate-700 mb-1">รหัสผ่าน (Password)</label>
+          <input type="password" id="login-password" required placeholder="••••••••" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs focus:border-[#0066cc] focus:outline-none transition">
+        </div>
+
+        <div id="login-error-msg" class="hidden text-xs text-rose-500 text-center font-normal"></div>
+
+        <button type="submit" id="btn-submit-login" class="w-full py-2.5 rounded-xl bg-[#0066cc] hover:bg-[#0052a3] text-white text-xs font-medium shadow-sm transition active:scale-95 flex items-center justify-center gap-1.5 mt-2">
+          <span>ยืนยันเข้าสู่ระบบ</span>
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- ================= 5. สคริปต์การทำงาน ================= -->
+  <script>
+    // --------------------------------------------------------------------------
+    // ใส่ URL ของ Web App จาก Google Apps Script (ลงท้ายด้วย /exec)
+    // --------------------------------------------------------------------------
+    const AUTH_API_URL = "https://script.google.com/macros/s/AKfycbwi6vMcxNjihUYex3g-vne3Xx2FNAQNhSwgU4siQRA9aOo1YuRncmBoeX3GOf-CKtydVA/exec";
+
+    // ทะเบียนลิงก์ระบบงานย่อยทั้งหมด
+    const systemRegistry = {
+      'cert-app': {
+        name: 'ระบบจัดเก็บเกียรติบัตร',
+        icon: 'fa-solid fa-award',
+        color: 'text-amber-500 bg-amber-50',
+        url: 'cert.html.html', // ปรับเป็น URL หรือชื่อไฟล์ปลายทาง
+        category: 'public',
+        type: 'standard'
+      },
+      'game-app': {
+        name: 'คลังเกมการเรียนรู้ (เต็มจอ)',
+        icon: 'fa-solid fa-gamepad',
+        color: 'text-indigo-500 bg-indigo-50',
+        url: 'games.html',       // ปรับเป็น URL หน้าเกม
+        category: 'public',
+        type: 'game'             // เปิดแบบเต็มจอ Cinema Mode
+      },
+      'doc-app': {
+        name: 'เอกสารและแบบฟอร์ม',
+        icon: 'fa-solid fa-file-invoice',
+        color: 'text-teal-600 bg-teal-50',
+        url: 'https://drive.google.com',
+        category: 'public',
+        type: 'standard'
+      },
+      'pp5-app': {
+        name: 'ระบบบันทึก ปพ.5 (ล็อกชั้น)',
+        icon: 'fa-solid fa-book-bookmark',
+        color: 'text-[#0066cc] bg-blue-50',
+        url: 'pp5.html',         // ปรับเป็น URL หน้าระบบ ปพ.5
+        category: 'teacher',
+        type: 'standard'
+      },
+      'exam-app': {
+        name: 'คลังข้อสอบ & กระดาษคำตอบ',
+        icon: 'fa-solid fa-file-circle-question',
+        color: 'text-purple-600 bg-purple-50',
+        url: 'exam.html',        // ปรับเป็น URL หน้าข้อสอบ
+        category: 'teacher',
+        type: 'standard'
+      },
+      'attendance-app': {
+        name: 'เช็กชื่อเข้าเรียน & สถิติ',
+        icon: 'fa-solid fa-clipboard-user',
+        color: 'text-emerald-600 bg-emerald-50',
+        url: 'attendance.html',  // ปรับเป็น URL หน้าเช็กชื่อ
+        category: 'teacher',
+        type: 'standard'
+      },
+      'order-app': {
+        name: 'ระบบสารบรรณ & คำสั่ง',
+        icon: 'fa-solid fa-stamp',
+        color: 'text-orange-600 bg-orange-50',
+        url: 'orders.html',      // ปรับเป็น URL หน้าคำสั่งโรงเรียน
+        category: 'teacher',
+        type: 'standard'
+      }
+    };
+
+    let currentUser = null;
+    let currentAppUrl = '';
+
+    // ฟังก์ชันดึงสถิติตัวเลขสดจาก Google Sheets (ปพ.5, เกียรติบัตร)
+    async function loadLiveStats() {
+      if (!AUTH_API_URL.includes("script.google.com")) return;
+      try {
+        const res = await fetch(`${AUTH_API_URL}?action=getStats`);
+        const result = await res.json();
+        if (result.status === "success" && result.data) {
+          const d = result.data;
+          if (d.certificates) document.getElementById('stat-cert-count').textContent = Number(d.certificates).toLocaleString('th-TH');
+          if (d.games) document.getElementById('stat-game-count').textContent = Number(d.games).toLocaleString('th-TH');
+          if (d.students) document.getElementById('stat-student-count').textContent = Number(d.students).toLocaleString('th-TH');
+        }
+      } catch (err) {
+        console.warn("ใช้ค่าสถิติเริ่มต้นเนื่องจากไม่สามารถดึงข้อมูลได้:", err);
+      }
+    }
+
+    // เรนเดอร์เมนูใน Sidebar ตาม Permission
+    function renderSidebarMenu() {
+      const container = document.getElementById('dynamic-nav-container');
+      container.innerHTML = '';
+      let count = 0;
+
+      for (const [key, app] of Object.entries(systemRegistry)) {
+        const isPublic = (app.category === 'public');
+        const hasTeacherPermission = currentUser && (currentUser.allowedApps.includes(key));
+
+        if (isPublic || hasTeacherPermission) {
+          count++;
+          const button = document.createElement('button');
+          button.onclick = () => openTargetApp(key);
+          button.className = "w-full text-left flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-medium text-slate-700 hover:bg-slate-100 hover:text-[#0066cc] transition-all group";
+          
+          button.innerHTML = `
+            <div class="w-7 h-7 rounded-lg ${app.color} flex items-center justify-center text-xs shrink-0 group-hover:scale-110 transition-transform">
+              <i class="${app.icon}"></i>
+            </div>
+            <span class="truncate">${app.name}</span>
+            ${app.type === 'game' ? '<span class="ml-auto text-[10px] px-1.5 py-0.5 rounded bg-indigo-50 text-indigo-600 font-normal">เต็มจอ</span>' : ''}
+          `;
+          container.appendChild(button);
+        }
+      }
+
+      document.getElementById('permission-count-badge').textContent = `${count} ระบบ`;
+      document.getElementById('stat-active-count').textContent = `${count} ระบบ`;
+    }
+
+    // ตรวจสอบชื่อผู้ใช้และรหัสผ่านกับ Google Sheets
+    async function handleFormLogin(e) {
+      e.preventDefault();
+      const user = document.getElementById('login-username').value.trim();
+      const pass = document.getElementById('login-password').value.trim();
+      const btn = document.getElementById('btn-submit-login');
+      const err = document.getElementById('login-error-msg');
+
+      err.classList.add('hidden');
+      btn.disabled = true;
+      btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin text-xs"></i> <span>กำลังตรวจสอบ...</span>';
+
+      try {
+        const res = await fetch(`${AUTH_API_URL}?username=${encodeURIComponent(user)}&password=${encodeURIComponent(pass)}`);
+        const result = await res.json();
+
+        if (result.status === "success") {
+          currentUser = result.data;
+          applyTeacherLoggedInUI();
+          closeLoginModal();
+        } else {
+          err.textContent = result.message || "ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง";
+          err.classList.remove('hidden');
+        }
+      } catch (error) {
+        console.error("Login Error:", error);
+        err.textContent = "เชื่อมต่อระบบชีตไม่สำเร็จ ตรวจสอบการ Deploy Web App";
+        err.classList.remove('hidden');
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<span>ยืนยันเข้าสู่ระบบ</span>';
+      }
+    }
+
+    function applyTeacherLoggedInUI() {
+      const avatarBox = document.getElementById('role-avatar-badge');
+      if (currentUser.avatarUrl) {
+        avatarBox.innerHTML = `<img src="${currentUser.avatarUrl}" alt="Avatar" class="w-full h-full object-cover">`;
+      } else {
+        avatarBox.innerHTML = `<i class="fa-solid fa-chalkboard-user"></i>`;
+      }
+
+      document.getElementById('current-user-title').textContent = currentUser.fullName;
+      document.getElementById('current-user-status').innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-[#0066cc] shrink-0"></span> ดูแล: ${currentUser.assignedGrades.map(g => g.toUpperCase()).join(', ')}`;
+      document.getElementById('welcome-subtext').textContent = `ยินดีต้อนรับ ${currentUser.fullName} เข้าสู่ระบบแล้ว ระบบเฉพาะคุณครูได้ถูกซิงค์เข้ามาในแถบเมนูด้านข้างเรียบร้อยแล้ว`;
+      document.getElementById('permission-role-indicator').textContent = 'สิทธิ์คุณครู';
+
+      document.getElementById('btn-login-open').classList.add('hidden');
+      document.getElementById('btn-logout').classList.remove('hidden');
+      document.getElementById('btn-logout').classList.add('flex');
+
+      renderSidebarMenu();
+    }
+
+    function logoutUser() {
+      currentUser = null;
+      document.getElementById('role-avatar-badge').innerHTML = '<i class="fa-solid fa-user-graduate"></i>';
+      document.getElementById('current-user-title').textContent = 'ผู้ใช้งานทั่วไป / นักเรียน';
+      document.getElementById('current-user-status').innerHTML = '<span class="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0"></span> สิทธิ์สาธารณะ';
+      document.getElementById('welcome-subtext').textContent = 'ยินดีต้อนรับนักเรียน ผู้ปกครอง และคณะครู สามารถติดตามข่าวสาร โครงสร้างบุคลากร และเปิดใช้งานระบบงานผ่านแถบเมนูด้านข้างได้ทันที';
+      document.getElementById('permission-role-indicator').textContent = 'สิทธิ์ทั่วไป';
+
+      document.getElementById('btn-login-open').classList.remove('hidden');
+      document.getElementById('btn-logout').classList.add('hidden');
+      document.getElementById('btn-logout').classList.remove('flex');
+
+      renderSidebarMenu();
+      closeAppFrame();
+    }
+
+    function openLoginModal() {
+      document.getElementById('login-error-msg').classList.add('hidden');
+      document.getElementById('login-username').value = '';
+      document.getElementById('login-password').value = '';
+      document.getElementById('login-modal').classList.remove('hidden');
+    }
+
+    function closeLoginModal() {
+      document.getElementById('login-modal').classList.add('hidden');
+    }
+
+    // เปิดระบบปลายทาง โดยแยกเงื่อนไขเกมกับงานทั่วไป
+    function openTargetApp(appKey) {
+      const app = systemRegistry[appKey];
+      if (!app) return;
+
+      let finalUrl = app.url;
+      // แนบพารามิเตอร์ส่งต่อสิทธิ์ไปยัง iframe ปลายทาง
+      if (currentUser && app.category === 'teacher') {
+        const gradesParam = encodeURIComponent(currentUser.assignedGrades.join(','));
+        const userParam = encodeURIComponent(currentUser.username);
+        finalUrl += `?user=${userParam}&grades=${gradesParam}`;
+      }
+
+      currentAppUrl = finalUrl;
+
+      if (app.type === 'game') {
+        // --- 1. ระบบเกม: เปิดแบบเต็มจอ 100% ไร้ขอบ (Cinema Mode) ---
+        const gameFrame = document.getElementById('game-frame');
+        const gameWorkspace = document.getElementById('game-fullscreen-workspace');
+        gameFrame.src = finalUrl;
+        gameWorkspace.classList.remove('hidden');
+      } else {
+        // --- 2. ระบบงานทั่วไป: เปิดในหน้าเดิมปกติ ไม่บัง Sidebar/Topbar[cite: 1] ---
+        const standardFrame = document.getElementById('standard-frame');
+        const standardWorkspace = document.getElementById('standard-workspace');
+        standardFrame.src = finalUrl;
+        document.getElementById('active-app-indicator').textContent = app.name;
+        document.getElementById('dashboard-scroll-view').classList.add('hidden');
+        standardWorkspace.classList.remove('hidden');
+      }
+
+      if (window.innerWidth < 1024) toggleSidebar();
+    }
+
+    function closeAppFrame() {
+      document.getElementById('game-frame').src = '';
+      document.getElementById('standard-frame').src = '';
+      currentAppUrl = '';
+      document.getElementById('game-fullscreen-workspace').classList.add('hidden');
+      document.getElementById('standard-workspace').classList.add('hidden');
+      document.getElementById('dashboard-scroll-view').classList.remove('hidden');
+    }
+
+    function reloadStandardFrame() {
+      if (currentAppUrl) document.getElementById('standard-frame').src = currentAppUrl;
+    }
+
+    function openCurrentInNewTab() {
+      if (currentAppUrl) window.open(currentAppUrl, '_blank');
+    }
+
+    function toggleSidebar() {
+      const sidebar = document.getElementById('sidebar');
+      const backdrop = document.getElementById('sidebar-backdrop');
+      sidebar.classList.toggle('-translate-x-full');
+      backdrop.classList.toggle('hidden');
+    }
+
+    // ภาพสไลด์ข่าวสารโรงเรียน
+    const feedSlides = [
+      {
+        title: "โครงการเสริมสร้างการเรียนรู้ Active Learning ประจำภาคเรียน",
+        img: "https://images.unsplash.com/photo-1580582932707-520aed937b7b?auto=format&fit=crop&w=1200&q=80"
+      },
+      {
+        title: "การแข่งขันคณิตศาสตร์และวิทยาศาสตร์ชิงถ้วยรางวัลเกียรติยศ",
+        img: "https://images.unsplash.com/photo-1509062522246-3755977927d7?auto=format&fit=crop&w=1200&q=80"
+      },
+      {
+        title: "กิจกรรมพัฒนาผู้เรียนและทักษะดิจิทัลยุคใหม่สำหรับนักเรียน",
+        img: "https://images.unsplash.com/photo-1524178232363-1fb2b075b655?auto=format&fit=crop&w=1200&q=80"
+      }
+    ];
+
+    let currentSlide = 0;
+    function showFeedSlide(index) {
+      currentSlide = (index + feedSlides.length) % feedSlides.length;
+      document.getElementById('feed-slide-img').src = feedSlides[currentSlide].img;
+      document.getElementById('feed-slide-title').textContent = feedSlides[currentSlide].title;
+
+      document.querySelectorAll('.feed-dot').forEach((dot, idx) => {
+        dot.className = (idx === currentSlide) 
+          ? "feed-dot w-6 h-1.5 rounded-full bg-blue-600 transition-all" 
+          : "feed-dot w-2 h-1.5 rounded-full bg-slate-200 transition-all";
+      });
+    }
+
+    function nextFeedSlide() { showFeedSlide(currentSlide + 1); }
+    function prevFeedSlide() { showFeedSlide(currentSlide - 1); }
+
+    // อัปเดตนาฬิกาและวันที่ภาษาไทย
+    function updateDateTime() {
+      const now = new Date();
+      const thaiDays = ['วันอาทิตย์ที่', 'วันจันทร์ที่', 'วันอังคารที่', 'วันพุธที่', 'วันพฤหัสบดีที่', 'วันศุกร์ที่', 'วันเสาร์ที่'];
+      const thaiMonths = ['ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.', 'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.'];
+
+      const dateEl = document.getElementById('date-display');
+      const timeEl = document.getElementById('time-display');
+      if (dateEl) dateEl.textContent = `${thaiDays[now.getDay()]} ${now.getDate()} ${thaiMonths[now.getMonth()]} ${now.getFullYear()}`;
+      if (timeEl) timeEl.textContent = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')} น.`;
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      updateDateTime();
+      setInterval(updateDateTime, 30000);
+      renderSidebarMenu();
+      loadLiveStats();
+      setInterval(nextFeedSlide, 5000);
+    });
   </script>
 </body>
 </html>
