@@ -893,9 +893,12 @@
                 </div>
               </div>
 
-              <div class="bg-slate-50/90 border border-slate-200 rounded p-1 flex items-center justify-center space-x-1.5">
-                <div class="w-8 h-8 border border-slate-300 flex items-center justify-center bg-white text-[6px] font-mono text-slate-400 rounded">QR</div>
-                <span class="text-[6.5px] font-mono text-slate-500">SCAN<br>OMR</span>
+              <!-- ปรับขนาด QR Code ใน Preview ให้ใหญ่ขึ้นตามขนาดพิมพ์จริง -->
+              <div class="bg-slate-50/90 border border-slate-200 rounded p-1.5 flex flex-col items-center justify-center text-center">
+                <div class="w-14 h-14 border border-slate-300 flex items-center justify-center bg-white text-[7px] font-mono text-slate-500 rounded font-bold shadow-2xs">
+                  QR CODE
+                </div>
+                <span class="text-[6.5px] font-mono font-semibold text-slate-500 mt-1">SCAN OMR CODE</span>
               </div>
             </div>
 
@@ -1428,10 +1431,11 @@
                     </div>
                   </div>
 
-                  <div class="bg-slate-50/90 border border-slate-300 rounded p-1.5 flex items-center justify-center space-x-2">
-                    <div id="print_qr_${sheetIndex}" class="inline-block p-0.5 border border-slate-300 bg-white rounded"></div>
-                    <div class="text-[7.5px] font-mono text-slate-500 leading-tight">
-                      SCAN<br>OMR<br>CODE
+                  <!-- ขยายขนาดกล่องและจัดวาง QR Code ให้เด่นชัด ชัดเจน อ่านง่าย -->
+                  <div class="bg-slate-50/90 border border-slate-300 rounded p-2 flex flex-col items-center justify-center shadow-2xs">
+                    <div id="print_qr_${sheetIndex}" class="inline-block p-1 border border-slate-300 bg-white rounded"></div>
+                    <div class="text-[8px] font-mono font-semibold text-slate-600 tracking-wider mt-1 text-center leading-none">
+                      SCAN OMR CODE
                     </div>
                   </div>
                 </div>
@@ -1452,7 +1456,8 @@
 
       setTimeout(() => {
         for (let i = 0; i < items.length; i++) {
-          new QRCode(document.getElementById(`print_qr_${i}`), { text: examId, width: 44, height: 44 });
+          // ขยายขนาด QR Code ตอนสร้างขึ้นเป็น 84 x 84 px (ประมาณ 2.2 x 2.2 ซม. บนกระดาษ)
+          new QRCode(document.getElementById(`print_qr_${i}`), { text: examId, width: 84, height: 84 });
           renderBubblesToContainer(document.getElementById(`print_bubbles_${i}`), total, numCols, theme);
         }
         executePrint();
