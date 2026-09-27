@@ -300,7 +300,7 @@
               </div>
             </div>
 
-            <!-- เฉลยคำตอบ ก ข ค ง (สีตรงกับวิชา) -->
+            <!-- เฉลยคำตอบ ก ข ค ง -->
             <div class="mb-6">
               <div class="flex justify-between items-center mb-3">
                 <label class="block text-sm font-bold text-slate-800">เฉลยคำตอบ (Answer Key):</label>
@@ -893,7 +893,6 @@
                 </div>
               </div>
 
-              <!-- ปรับขนาด QR Code ใน Preview ให้ใหญ่ขึ้นตามขนาดพิมพ์จริง -->
               <div class="bg-slate-50/90 border border-slate-200 rounded p-1.5 flex flex-col items-center justify-center text-center">
                 <div class="w-14 h-14 border border-slate-300 flex items-center justify-center bg-white text-[7px] font-mono text-slate-500 rounded font-bold shadow-2xs">
                   QR CODE
@@ -1431,7 +1430,7 @@
                     </div>
                   </div>
 
-                  <!-- ขยายขนาดกล่องและจัดวาง QR Code ให้เด่นชัด ชัดเจน อ่านง่าย -->
+                  <!-- กล่อง QR Code ขยายใหญ่คมชัด -->
                   <div class="bg-slate-50/90 border border-slate-300 rounded p-2 flex flex-col items-center justify-center shadow-2xs">
                     <div id="print_qr_${sheetIndex}" class="inline-block p-1 border border-slate-300 bg-white rounded"></div>
                     <div class="text-[8px] font-mono font-semibold text-slate-600 tracking-wider mt-1 text-center leading-none">
@@ -1456,8 +1455,18 @@
 
       setTimeout(() => {
         for (let i = 0; i < items.length; i++) {
-          // ขยายขนาด QR Code ตอนสร้างขึ้นเป็น 84 x 84 px (ประมาณ 2.2 x 2.2 ซม. บนกระดาษ)
-          new QRCode(document.getElementById(`print_qr_${i}`), { text: examId, width: 84, height: 84 });
+          const item = items[i];
+          // ฝังข้อมูลนักเรียนเข้า QR Code ในรูปแบบ EXAM_ID|ROLL_NO|STUDENT_ID
+          const qrPayload = (item && !item.isBlank && item.rollNo && item.rollNo !== '......')
+            ? `${examId}|${item.rollNo}|${item.studentId || ''}`
+            : examId;
+
+          new QRCode(document.getElementById(`print_qr_${i}`), { 
+            text: qrPayload, 
+            width: 84, 
+            height: 84,
+            correctLevel: QRCode.CorrectLevel.M
+          });
           renderBubblesToContainer(document.getElementById(`print_bubbles_${i}`), total, numCols, theme);
         }
         executePrint();
@@ -1491,16 +1500,25 @@
     }
 
     async function startCamera() {
-      const video = document.getElementById('video');
-      videoStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
-      video.srcObject = videoStream;
-      video.play();
-      isScanning = true;
-      requestAnimationFrame(processScanFrame);
+      try {
+        const video = document.getElementById('video');
+        videoStream = await navigator.mediaDevices.getUserMedia({ 
+          video: { facingMode: "environment", width: { ideal: 1280 }, height: { ideal: 720 } } 
+        });
+        video.srcObject = videoStream;
+        video.play();
+        isScanning = true;
+        requestAnimationFrame(processScanFrame);
+      } catch (err) {
+        alert("ไม่สามารถเปิดกล้องได้ กรุณาตรวจสอบสิทธิ์การเข้าถึงกล้อง");
+      }
     }
 
     function stopCamera() {
-      if (videoStream) { videoStream.getTracks().forEach(t => t.stop()); videoStream = null; }
+      if (videoStream) { 
+        videoStream.getTracks().forEach(t => t.stop()); 
+        videoStream = null; 
+      }
       isScanning = false;
     }
 
@@ -1518,8 +1536,23 @@
         
         const code = jsQR(imageData.data, imageData.width, imageData.height);
         if (code && code.data.startsWith("EXAM-")) {
-          if (!currentExamData || currentExamData.examId !== code.data) {
-            fetchExamForScanner(code.data);
+          // ดึงค่า EXAM_ID, เลขที่, รหัสประจำตัว ออกจาก QR Code
+          const parts = code.data.split("|");
+          const scannedExamId = parts[0];
+          const scannedRoll = parts[1] || "";
+          const scannedStudentId = parts[2] || "";
+
+          // ตั้งค่าข้อมูลนักเรียนทันที
+          if (scannedRoll) {
+            const rollInput = document.getElementById('scanStudentRoll');
+            if (rollInput.value !== scannedRoll) {
+              rollInput.value = scannedRoll;
+              findStudentNameByRoll();
+            }
+          }
+
+          if (!currentExamData || currentExamData.examId !== scannedExamId) {
+            fetchExamForScanner(scannedExamId);
           }
         }
       }
@@ -1551,14 +1584,18 @@
 
         if (studentsList.length === 0) {
           document.getElementById('gradeLevel').value = currentExamData.gradeLevel;
-          onGradeChange();
+          await onGradeChange();
         }
 
-        simulateOMRGrading();
+        // ดึงชื่อนักเรียนหากมีเลขที่ค้างอยู่
+        findStudentNameByRoll();
+
+        // ประมวลผลคำตอบ (ไม่ตอบ = 0 คะแนน)
+        processOMRGrading();
       }
     }
 
-    function simulateOMRGrading() {
+    function processOMRGrading() {
       if (!currentExamData) return;
       let rawScore = 0;
       let studentAnswers = {};
@@ -1570,16 +1607,18 @@
       for (let i = 1; i <= total; i++) {
         let rawAns = currentExamData.answerKey[i] || "ก";
         const correctAns = engToThai[rawAns] || rawAns;
-        const studentAns = correctAns;
+        
+        // แก้ไข: กระดาษเปล่ายังไม่ได้ระบายคำตอบ ให้เป็น null
+        const studentAns = null;
         studentAnswers[i] = studentAns;
 
-        const isCorrect = studentAns === correctAns;
+        const isCorrect = (studentAns !== null && studentAns === correctAns);
         if (isCorrect) rawScore++;
 
         summaryHtml += `
-          <div class="flex justify-between p-1.5 rounded-xl ${isCorrect ? 'bg-emerald-50 text-emerald-800 font-semibold' : 'bg-rose-50 text-rose-800'}">
-            <span>ข้อ ${i}: ตอบ ${studentAns}</span>
-            <span>${isCorrect ? '✓ ถูก' : '✗ (' + correctAns + ')'}</span>
+          <div class="flex justify-between p-1.5 rounded-xl ${isCorrect ? 'bg-emerald-50 text-emerald-800 font-semibold' : 'bg-slate-100 text-slate-600'}">
+            <span>ข้อ ${i}: ${studentAns ? `ตอบ ${studentAns}` : '<span class="text-slate-400">ไม่ได้ระบาย</span>'}</span>
+            <span>${isCorrect ? '✓ ถูก' : '<span class="text-slate-400 font-mono">(เฉลย: ' + correctAns + ')</span>'}</span>
           </div>
         `;
       }
@@ -1634,15 +1673,19 @@
     function findStudentNameByRoll() {
       const roll = document.getElementById('scanStudentRoll').value;
       const nameDisp = document.getElementById('scanStudentNameDisplay');
-      const student = studentsList.find(s => String(s.rollNo) === String(roll));
-      nameDisp.innerText = student ? `${student.studentName} (${student.studentId})` : "";
+      if (!roll) {
+        nameDisp.innerText = "";
+        return;
+      }
+      const student = studentsList.find(s => String(s.rollNo).trim() === String(roll).trim());
+      nameDisp.innerText = student ? `${student.studentName} (รหัส: ${student.studentId})` : " (ไม่พบข้อมูลใน ปพ.5)";
     }
 
     async function confirmAndSaveScore() {
       const rollNo = document.getElementById('scanStudentRoll').value;
-      if (!rollNo) { alert("กรุณาระบุเลขที่"); return; }
+      if (!rollNo) { alert("กรุณาระบุเลขที่นักเรียน"); return; }
 
-      const student = studentsList.find(s => String(s.rollNo) === String(rollNo));
+      const student = studentsList.find(s => String(s.rollNo).trim() === String(rollNo).trim());
       const payload = {
         action: "saveResult",
         examId: currentExamData.examId,
@@ -1674,7 +1717,7 @@
           body: JSON.stringify(payload)
         });
 
-        alert(`บันทึกคะแนนเลขที่ ${rollNo} ได้ ${currentScannedData.finalScaledScore} คะแนน เข้า ปพ.5 เรียบร้อย!`);
+        alert(`บันทึกคะแนนเลขที่ ${rollNo} (${student ? student.studentName : ''}) รวม ${currentScannedData.finalScaledScore} คะแนน เรียบร้อย!`);
         document.getElementById('scanStudentRoll').value = '';
         document.getElementById('scanStudentNameDisplay').innerText = '';
         document.getElementById('scanSubjectiveScore').value = 0;
