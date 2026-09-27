@@ -516,50 +516,19 @@
       </svg>
     `;
 
-    // =========================================================================
-    // ฟังก์ชันคำนวณชุดสีประจำรายวิชา (Color Palette Generator)
-    // =========================================================================
     function getSubjectTheme(subjectName) {
       if (!subjectName) return { color: '#4f46e5', bgBadge: '#4f46e5' };
 
-      // 1. คณิตศาสตร์ -> โทนสีน้ำเงิน/ครามเข้ม (Blue-Indigo)
-      if (subjectName.includes("คณิต")) {
-        return { color: '#1d4ed8', bgBadge: '#1d4ed8' };
-      }
-      // 2. วิทยาศาสตร์และเทคโนโลยี -> โทนสีฟ้าเข้ม/ไซแอน (Sky-Cyan)
-      if (subjectName.includes("วิทย์") || subjectName.includes("ฟิสิกส์") || subjectName.includes("เคมี") || subjectName.includes("ชีว")) {
-        return { color: '#0284c7', bgBadge: '#0284c7' };
-      }
-      // 3. ภาษาไทย -> โทนสีเขียวมรกต (Emerald)
-      if (subjectName.includes("ไทย")) {
-        return { color: '#059669', bgBadge: '#059669' };
-      }
-      // 4. สังคมศึกษา ศาสนาฯ / หน้าที่พลเมือง -> โทนสีส้มอิฐ/น้ำตาลทอง (Amber)
-      if (subjectName.includes("สังคม") || subjectName.includes("หน้าที่")) {
-        return { color: '#d97706', bgBadge: '#d97706' };
-      }
-      // 5. ประวัติศาสตร์ -> โทนสีน้ำตาลเข้ม/ทองโบราณ
-      if (subjectName.includes("ประวัติ")) {
-        return { color: '#b45309', bgBadge: '#b45309' };
-      }
-      // 6. ภาษาต่างประเทศ (อังกฤษ) -> โทนสีแดงทับทิม/กุหลาบ (Rose-Red)
-      if (subjectName.includes("อังกฤษ") || subjectName.includes("English")) {
-        return { color: '#dc2626', bgBadge: '#dc2626' };
-      }
-      // 7. สุขศึกษาและพลศึกษา -> โทนสีเขียวมะนาว/ตองเข้ม
-      if (subjectName.includes("สุข") || subjectName.includes("พละ")) {
-        return { color: '#15803d', bgBadge: '#15803d' };
-      }
-      // 8. ศิลปะ / ดนตรี / นาฏศิลป์ -> โทนสีม่วง/ไวโอเลต
-      if (subjectName.includes("ศิลปะ") || subjectName.includes("ดนตรี") || subjectName.includes("นาฏศิลป์")) {
-        return { color: '#7c3aed', bgBadge: '#7c3aed' };
-      }
-      // 9. การงานอาชีพ / คอมพิวเตอร์ -> โทนสีฟ้าอมเขียว (Teal)
-      if (subjectName.includes("การงาน") || subjectName.includes("คอม")) {
-        return { color: '#0f766e', bgBadge: '#0f766e' };
-      }
+      if (subjectName.includes("คณิต")) return { color: '#1d4ed8', bgBadge: '#1d4ed8' };
+      if (subjectName.includes("วิทย์") || subjectName.includes("ฟิสิกส์") || subjectName.includes("เคมี") || subjectName.includes("ชีว")) return { color: '#0284c7', bgBadge: '#0284c7' };
+      if (subjectName.includes("ไทย")) return { color: '#059669', bgBadge: '#059669' };
+      if (subjectName.includes("สังคม") || subjectName.includes("หน้าที่")) return { color: '#d97706', bgBadge: '#d97706' };
+      if (subjectName.includes("ประวัติ")) return { color: '#b45309', bgBadge: '#b45309' };
+      if (subjectName.includes("อังกฤษ") || subjectName.includes("English")) return { color: '#dc2626', bgBadge: '#dc2626' };
+      if (subjectName.includes("สุข") || subjectName.includes("พละ")) return { color: '#15803d', bgBadge: '#15803d' };
+      if (subjectName.includes("ศิลปะ") || subjectName.includes("ดนตรี") || subjectName.includes("นาฏศิลป์")) return { color: '#7c3aed', bgBadge: '#7c3aed' };
+      if (subjectName.includes("การงาน") || subjectName.includes("คอม")) return { color: '#0f766e', bgBadge: '#0f766e' };
 
-      // วิชาเพิ่มเติมอื่นๆ สร้างแฮชสีเข้มแบบ Dynamic
       let hash = 0;
       for (let i = 0; i < subjectName.length; i++) {
         hash = subjectName.charCodeAt(i) + ((hash << 5) - hash);
@@ -569,10 +538,8 @@
       return { color: chosenColor, bgBadge: chosenColor };
     }
 
-    // ฟังก์ชันสร้างลายน้ำตามกลุ่มสาระวิชา
     function getSubjectWatermarkSvg(subjectName) {
       if (!subjectName) return '';
-
       const theme = getSubjectTheme(subjectName);
 
       if (subjectName.includes("คณิต")) {
@@ -587,7 +554,6 @@
           </svg>
         `;
       }
-
       if (subjectName.includes("วิทย์") || subjectName.includes("ฟิสิกส์") || subjectName.includes("เคมี") || subjectName.includes("ชีว")) {
         return `
           <svg class="w-full h-full" viewBox="0 0 400 400" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -600,7 +566,6 @@
           </svg>
         `;
       }
-
       if (subjectName.includes("ไทย")) {
         return `
           <svg class="w-full h-full" viewBox="0 0 400 400" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -612,7 +577,6 @@
           </svg>
         `;
       }
-
       if (subjectName.includes("สังคม") || subjectName.includes("ประวัติ") || subjectName.includes("หน้าที่")) {
         return `
           <svg class="w-full h-full" viewBox="0 0 400 400" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -624,7 +588,6 @@
           </svg>
         `;
       }
-
       if (subjectName.includes("อังกฤษ") || subjectName.includes("English")) {
         return `
           <svg class="w-full h-full" viewBox="0 0 400 400" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -636,7 +599,6 @@
           </svg>
         `;
       }
-
       return `
         <svg class="w-full h-full" viewBox="0 0 400 400" fill="none" xmlns="http://www.w3.org/2000/svg">
           <circle cx="200" cy="200" r="130" stroke="${theme.color}" stroke-width="2" stroke-dasharray="10 8" opacity="0.04"/>
@@ -760,9 +722,6 @@
       saveDraftToStorage();
     }
 
-    // =========================================================================
-    // สร้างช่องเฉลยคำตอบ (Answer Key) ปรับสีไฮไลต์ตามสีประจำวิชา
-    // =========================================================================
     function renderKeyInputs(existingKeys = null) {
       let total = parseInt(document.getElementById('totalQuestions').value) || 20;
       if (total < 1) total = 1;
@@ -798,7 +757,6 @@
           </div>
         `;
 
-        // ใส่สไตล์สีให้ตรงกับวิชาเมื่อ Checked
         const spans = div.querySelectorAll('label span');
         const inputs = div.querySelectorAll('label input');
         inputs.forEach((inp, idx) => {
@@ -832,9 +790,6 @@
       saveDraftToStorage();
     }
 
-    // =========================================================================
-    // พรีวิวสด 1:1 พร้อมสีวงกลมตัวเลือกและลายน้ำประจำรายวิชา
-    // =========================================================================
     function renderLivePreview() {
       const container = document.getElementById('livePreviewExactContainer');
       const schoolName = document.getElementById('schoolNameInput').value || "โรงเรียนบ้านนาหว้าน้อย";
@@ -848,11 +803,9 @@
       const subjectiveMaxScore = hasSubjective ? (parseFloat(document.getElementById('subjectiveMaxScore').value) || 0) : 0;
       const objectiveScore = maxScore - subjectiveMaxScore;
 
-      // สีประจำกลุ่มวิชาและลายน้ำ
       const theme = getSubjectTheme(course.name);
       const watermarkSvg = getSubjectWatermarkSvg(course.name);
 
-      // อัปเดตสีจุด indicator บนหัวการ์ด
       const dot = document.getElementById('subjectIndicatorDot');
       if (dot) dot.style.backgroundColor = theme.color;
 
@@ -886,7 +839,6 @@
 
       container.innerHTML = `
         <div class="relative border border-slate-300 bg-white rounded-2xl p-3.5 flex flex-col justify-between overflow-hidden" style="font-size: 8.5px;">
-          <!-- เลเยอร์ลายน้ำประจำกลุ่มวิชา -->
           <div class="subject-watermark-layer">${watermarkSvg}</div>
 
           <div class="absolute top-2 left-2 omr-marker" style="width:11px;height:11px;z-index:2;"></div>
@@ -1030,7 +982,6 @@
       updateMaxScoreDisplay();
       checkAndLoadExistingExam();
       saveDraftToStorage();
-      renderKeyInputs(); // อัปเดตสีของปุ่มเฉลยให้ตรงกับวิชา
       renderLivePreview();
     }
 
@@ -1062,10 +1013,10 @@
       const examSet = document.getElementById('examSet').value || "A";
 
       const found = allSavedExams.find(ex => 
-        ex.gradeLevel === grade &&
-        (ex.subjectCode === course.code || ex.subjectName === course.name) &&
-        ex.termType === term &&
-        (ex.examSet || 'A') === examSet
+        String(ex.gradeLevel).trim() === String(grade).trim() &&
+        (String(ex.subjectCode).trim() === String(course.code).trim() || String(ex.subjectName).trim() === String(course.name).trim()) &&
+        String(ex.termType).trim() === String(term).trim() &&
+        (String(ex.examSet || 'A').trim().toUpperCase() === String(examSet).trim().toUpperCase())
       );
 
       const statusBadge = document.getElementById('savedStatusBadge');
@@ -1081,7 +1032,12 @@
         toggleSubjectiveSection();
 
         calculateWeightPerQuestion();
-        renderKeyInputs(found.answerKey);
+
+        let keyObj = found.answerKey;
+        if (typeof keyObj === 'string') {
+          try { keyObj = JSON.parse(keyObj); } catch(e) {}
+        }
+        renderKeyInputs(keyObj);
 
         statusBadge.innerText = `✓ ข้อสอบเดิม (${found.examId})`;
         statusBadge.className = "bg-emerald-100 text-emerald-800 text-[11px] px-3.5 py-1 rounded-full font-bold border border-emerald-200";
@@ -1099,13 +1055,14 @@
           hasSubjective: found.hasSubjective || false,
           subjectiveMaxScore: found.subjectiveMaxScore || 0,
           courseId: course.id,
-          answerKey: found.answerKey
+          answerKey: keyObj
         };
       } else {
         editingExamId = null;
         statusBadge.innerText = "ชุดใหม่ (ยังไม่เคยบันทึก)";
         statusBadge.className = "bg-slate-100 text-slate-600 text-[11px] px-3.5 py-1 rounded-full font-semibold border border-slate-200";
         tip.classList.add('hidden');
+        renderKeyInputs();
       }
       renderLivePreview();
     }
@@ -1359,10 +1316,6 @@
       switchTab('create');
     }
 
-    // =========================================================================
-    // ฟังก์ชันพิมพ์กระดาษคำตอบ A4 แนวนอน (1 แผ่นได้ 2 ใบคำตอบ)
-    // พร้อมสีตัวเลือกและลายน้ำประจำกลุ่มสาระวิชาอัตโนมัติ
-    // =========================================================================
     function generateSheets(isPersonalized) {
       const courseIdx = document.getElementById('courseSelect').value;
       const course = coursesList[courseIdx] || { code: 'วิชา', name: 'รายวิชา' };
@@ -1418,7 +1371,6 @@
           const halfDiv = document.createElement('div');
           halfDiv.className = "half-sheet-card";
           halfDiv.innerHTML = `
-            <!-- เลเยอร์ลายน้ำประจำกลุ่มวิชา -->
             <div class="subject-watermark-layer">${watermarkSvg}</div>
 
             <div class="absolute top-2 left-2 omr-marker" style="z-index:2;"></div>
@@ -1444,7 +1396,6 @@
                 <p class="text-[8px] text-slate-500 font-mono">รหัสชุดข้อสอบ: ${examId}</p>
               </div>
 
-              <!-- ข้อมูลนักเรียน + วันที่สอบแบบเต็ม -->
               <div class="bg-slate-50/90 border border-slate-300 rounded p-1.5 mb-2 text-[10px] text-slate-800 space-y-1">
                 <div class="flex justify-between">
                   <div class="truncate">ชื่อ-สกุล: <strong class="text-slate-900 font-bold">${stu.studentName}</strong></div>
@@ -1456,9 +1407,7 @@
                 </div>
               </div>
 
-              <!-- ตารางฝนรหัส 5 หลัก + ข้อสอบ -->
               <div class="grid grid-cols-12 gap-2 text-[10px]">
-                
                 <div class="${colSpanLeft} flex flex-col justify-between space-y-2">
                   <div class="bg-slate-50/90 p-1.5 rounded border border-slate-300">
                     <div class="text-[8px] font-bold text-center text-slate-800 mb-1 border-b border-slate-200 pb-0.5">รหัสประจำตัว (5 หลัก)</div>
@@ -1479,7 +1428,6 @@
                     </div>
                   </div>
 
-                  <!-- QR Code ด้านข้างกล่องรหัส -->
                   <div class="bg-slate-50/90 border border-slate-300 rounded p-1.5 flex items-center justify-center space-x-2">
                     <div id="print_qr_${sheetIndex}" class="inline-block p-0.5 border border-slate-300 bg-white rounded"></div>
                     <div class="text-[7.5px] font-mono text-slate-500 leading-tight">
@@ -1537,7 +1485,6 @@
       setTimeout(() => { clearPrintContainer(); }, 500);
     }
 
-    // ---------------- กล้องและการสแกน ----------------
     async function startCamera() {
       const video = document.getElementById('video');
       videoStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
