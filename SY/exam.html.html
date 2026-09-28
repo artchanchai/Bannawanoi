@@ -563,18 +563,9 @@
     const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwdNlLZw_5dT8pqAnxPSh7-TYuJe0s5sgaQ6BfYz_JLyWjoxyuOTggFI1WZhB1U9Gs/exec";
     const THAI_CHOICES = ['ก', 'ข', 'ค', 'ง'];
 
-   const SCHOOL_LOGO_SVG = `
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="1cm" height="1cm">
-  <image 
-    href="logo.png" 
-    x="0" 
-    y="0" 
-    width="100" 
-    height="100" 
-    preserveAspectRatio="xMidYMid meet" 
-  />
-</svg>
-`;
+   const SCHOOL_LOGO_IMG = `
+      <img src="IMG_4847.jpeg" class="w-10 h-10 object-contain inline-block" alt="โลโก้โรงเรียน" onerror="this.src='PP1.jpg'; this.onerror=null;" />
+    `;
 
     function getSubjectTheme(subjectName) {
       if (!subjectName) return { color: '#059669', bgBadge: '#059669' };
