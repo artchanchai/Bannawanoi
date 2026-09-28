@@ -371,7 +371,7 @@
 
           <div id="scanOverlayFrame" class="absolute inset-0 border-2 border-dashed border-amber-400/80 m-4 rounded-2xl pointer-events-none flex flex-col items-center justify-between p-3 z-10">
             <span class="text-amber-200 text-xs bg-black/80 px-3 py-1.5 rounded-lg backdrop-blur">
-              วางกระดาษแนวตั้ง ให้เห็นจุดดำหัว-ท้ายคอลัมน์ครบถ้วน
+              วางกระดาษแนวตั้ง เล็งให้เห็นมาร์กเกอร์สี่เหลี่ยมดำ 4 มุมครบถ้วน
             </span>
             <span id="scanStatusBadge" class="text-emerald-400 text-[11px] bg-black/80 px-3 py-1 rounded-full backdrop-blur">
               พร้อมตรวจจับ...
@@ -628,7 +628,6 @@
       renderLivePreview();
     }
 
-    // ตัวอย่างกระดาษคำตอบ 50 ข้อพร้อมจุดสี่เหลี่ยมดำนำสายตา (ZipGrade Marks)
     function renderLivePreview() {
       const container = document.getElementById('livePreviewExactContainer');
       const schoolName = document.getElementById('schoolNameInput').value || "โรงเรียนบ้านนาหว้าน้อย";
@@ -720,7 +719,6 @@
             </div>
 
             <div class="col-span-8 flex flex-col justify-between">
-              <!-- แถวหัวมาร์กเกอร์สี่เหลี่ยมดำนำสายตา -->
               <div class="grid grid-cols-2 gap-2 pb-1 border-b border-slate-200 text-center font-bold text-[7px]">
                 <div class="flex items-center justify-between px-2">
                   <span class="w-2.5 h-2.5 bg-black rounded-xs inline-block"></span>
@@ -737,7 +735,6 @@
                 <div class="flex flex-col pl-1">${col2}</div>
               </div>
 
-              <!-- แถวท้ายมาร์กเกอร์สี่เหลี่ยมดำนำสายตา -->
               <div class="grid grid-cols-2 gap-2 pt-1 border-t border-slate-200 text-center">
                 <div class="flex justify-start px-2"><span class="w-2.5 h-2.5 bg-black rounded-xs inline-block"></span></div>
                 <div class="flex justify-start px-2"><span class="w-2.5 h-2.5 bg-black rounded-xs inline-block"></span></div>
@@ -876,7 +873,6 @@
       }
     }
 
-    // พิมพ์กระดาษคำตอบมาตรฐานพร้อมสี่เหลี่ยมดำนำสายตาสไตล์ ZipGrade
     function generateSheets(isPersonalized) {
       const courseIdx = document.getElementById('courseSelect').value;
       const course = coursesList[courseIdx] || { code: 'วิชา', name: 'รายวิชา' };
@@ -994,7 +990,6 @@
                 </div>
 
                 <div class="col-span-8 flex flex-col justify-between">
-                  <!-- แถวหัวมาร์กเกอร์สี่เหลี่ยมดำนำสายตา (ZipGrade Top Marks) -->
                   <div class="grid grid-cols-2 gap-2 pb-1 border-b border-slate-300 font-bold text-[8px]">
                     <div class="flex items-center justify-between px-2">
                       <span class="timing-marker"></span>
@@ -1011,7 +1006,6 @@
                     <div class="flex flex-col space-y-0.5 pl-1">${col2}</div>
                   </div>
 
-                  <!-- แถวท้ายมาร์กเกอร์สี่เหลี่ยมดำนำสายตา (ZipGrade Bottom Marks) -->
                   <div class="grid grid-cols-2 gap-2 pt-1 border-t border-slate-300">
                     <div class="flex justify-start px-2"><span class="timing-marker"></span></div>
                     <div class="flex justify-start px-2"><span class="timing-marker"></span></div>
@@ -1038,7 +1032,7 @@
     }
 
     // =========================================================================
-    // OMR ENGINE: ZIPGRADE-STYLE LINEAR TIMING MARKS INTERPOLATION
+    // ROBUST OMR ENGINE (ADVANCED PERSPECTIVE DOCKING & CORNER DETECTION)
     // =========================================================================
 
     async function startCamera() {
@@ -1075,7 +1069,7 @@
         video.srcObject = videoStream;
         video.play();
         isScanning = true;
-        document.getElementById('scanStatusBadge').innerText = "กล้องพร้อม: ส่องให้เห็นกระดาษแนวตั้งและ QR Code";
+        document.getElementById('scanStatusBadge').innerText = "กล้องพร้อม: ส่องให้เห็นมาร์กเกอร์สี่เหลี่ยมดำ 4 มุม";
         requestAnimationFrame(processScanFrame);
       } catch (err) {
         alert("ไม่สามารถเปิดกล้องได้: " + err.message);
@@ -1097,20 +1091,21 @@
         canvas.height = video.videoHeight;
         canvas.width = video.videoWidth;
         ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
         
-        const code = jsQR(imageData.data, imageData.width, imageData.height);
+        // ทดลองสแกน QR Code แบบเรียลไทม์เพื่อพรีโหลดข้อมูลวิชาไว้ล่วงหน้า
+        const sampleW = Math.min(canvas.width, 1000);
+        const sampleH = Math.floor(canvas.height * (sampleW / canvas.width));
+        const tempCanvas = document.createElement('canvas');
+        tempCanvas.width = sampleW; tempCanvas.height = sampleH;
+        tempCanvas.getContext('2d').drawImage(canvas, 0, 0, sampleW, sampleH);
+
+        const imgData = tempCanvas.getContext('2d').getImageData(0, 0, sampleW, sampleH);
+        const code = jsQR(imgData.data, sampleW, sampleH, { inversionAttempts: "dontInvert" });
         if (code && code.data.startsWith("EXAM-")) {
           const parts = code.data.split("|");
           const scannedExamId = parts[0].trim();
-          const scannedRoll = parts[1] ? parts[1].trim() : "";
-          if (scannedRoll) {
-            document.getElementById('scanStudentRoll').value = scannedRoll;
-            findStudentNameByRoll();
-          }
-
           if (!isFetchingExam && (!currentExamData || currentExamData.examId !== scannedExamId)) {
-            fetchExamForScanner(scannedExamId, canvas);
+            fetchExamForScanner(scannedExamId, null);
           }
         }
       }
@@ -1131,7 +1126,7 @@
       canvas.height = video.videoHeight;
       ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-      document.getElementById('scanStatusBadge').innerText = "⏳ กำลังล็อกมาร์กเกอร์หัว-ท้ายคอลัมน์...";
+      document.getElementById('scanStatusBadge').innerText = "⏳ กำลังดัดระนาบกระดาษและตรวจข้อสอบ...";
       runAdvancedOMR(canvas);
     }
 
@@ -1150,38 +1145,58 @@
       img.src = URL.createObjectURL(file);
     }
 
-    function evaluateBubbleLum(data, w, h, cx, cy, radius) {
-      let innerLum = 0, innerCount = 0;
-      for (let r = 0; r <= radius; r += 2) {
-        for (let a = 0; a < Math.PI * 2; a += 0.8) {
-          const px = Math.floor(cx + r * Math.cos(a));
-          const py = Math.floor(cy + r * Math.sin(a));
-          if (px >= 0 && px < w && py >= 0 && py < h) {
-            const idx = (py * w + px) * 4;
-            innerLum += (0.299 * data[idx] + 0.587 * data[idx+1] + 0.114 * data[idx+2]);
-            innerCount++;
-          }
-        }
-      }
-      return innerLum / (innerCount || 1);
-    }
+    // ==========================================
+    // Core OMR Processing Pipeline
+    // ==========================================
 
-    // ฟังก์ชันคำนวณและล็อกเป้าหมายหัว-ท้ายคอลัมน์ (ZipGrade Logic)
     function runAdvancedOMR(sourceCanvas) {
-      const ctx = sourceCanvas.getContext('2d');
       const w = sourceCanvas.width;
       const h = sourceCanvas.height;
-      const imgData = ctx.getImageData(0, 0, w, h);
+      const ctx = sourceCanvas.getContext('2d');
+      const fullImgData = ctx.getImageData(0, 0, w, h);
+
+      // 1. ค้นหามาร์กเกอร์สี่เหลี่ยมดำ 4 มุม
+      const corners = detectCornersFromCanvas(fullImgData, w, h);
       
-      const code = jsQR(imgData.data, w, h);
-      
-      if (!code) {
+      const W_STD = 900;
+      const H_STD = 1270;
+      const warpCanvas = document.createElement('canvas');
+      warpCanvas.width = W_STD;
+      warpCanvas.height = H_STD;
+      const wctx = warpCanvas.getContext('2d');
+
+      if (corners) {
+        warpPerspectiveCanvas(sourceCanvas, corners, warpCanvas, W_STD, H_STD);
+      } else {
+        // Fallback หากแสงสะท้อนจนมุมกลืน: ขยายขนาดรูปเพื่อให้อ่านเต็มหน้า
+        wctx.drawImage(sourceCanvas, 0, 0, W_STD, H_STD);
+      }
+
+      // แสดงผล Debug Warp ให้ผู้ใช้เห็นว่ากระดาษถูกดัดตรงเรียบร้อย
+      const debugCanvas = document.getElementById('debugWarpCanvas');
+      debugCanvas.width = W_STD;
+      debugCanvas.height = H_STD;
+      const dctx = debugCanvas.getContext('2d');
+      dctx.drawImage(warpCanvas, 0, 0);
+      debugCanvas.classList.remove('hidden');
+
+      const warpedData = wctx.getImageData(0, 0, W_STD, H_STD);
+
+      // 2. สแกน QR Code จากโซนมุมซ้ายล่างโดยตรง (High-Precision ROI Scan)
+      let qrText = scanSubRegionQR(warpCanvas, W_STD, H_STD);
+      if (!qrText) {
+        // ถ้าไม่พบใน ROI ให้ลองสแกนทั้งแผ่น Warped
+        const fallbackQr = jsQR(warpedData.data, W_STD, H_STD);
+        if (fallbackQr) qrText = fallbackQr.data;
+      }
+
+      if (!qrText) {
         document.getElementById('scanStatusBadge').innerText = "❌ ไม่พบ QR Code บนกระดาษ";
-        alert("ไม่พบ QR Code บนกระดาษคำตอบ กรุณาจัดกล้องให้เห็น QR Code ชัดเจนครับ");
+        alert("ไม่พบ QR Code บนกระดาษคำตอบ กรุณาจัดกล้องให้เห็นกระดาษชัดเจนและไม่มีเงาบัง QR Code ครับ");
         return;
       }
 
-      const parts = code.data.split("|");
+      const parts = qrText.split("|");
       const scannedExamId = parts[0].trim();
       const scannedRoll = parts[1] ? parts[1].trim() : "";
       if (scannedRoll) {
@@ -1189,39 +1204,9 @@
         findStudentNameByRoll();
       }
 
-      const qrTopLeft = code.location.topLeftCorner;
-      const qrTopRight = code.location.topRightCorner;
-      const qrWidth = Math.hypot(qrTopRight.x - qrTopLeft.x, qrTopRight.y - qrTopLeft.y);
-      const scale = qrWidth / 150; 
-      const angle = Math.atan2(qrTopRight.y - qrTopLeft.y, qrTopRight.x - qrTopLeft.x);
-
-      const originX = qrTopLeft.x;
-      const originY = qrTopLeft.y;
-
-      // ฟังก์ชันแปลงพิกัด Target สัมพัทธ์
-      function getRealPoint(targetX, targetY) {
-        const dx = (targetX - 180) * scale;
-        const dy = (targetY - 1100) * scale;
-        const rotatedX = dx * Math.cos(angle) - dy * Math.sin(angle);
-        const rotatedY = dx * Math.sin(angle) + dy * Math.cos(angle);
-        return { x: originX + rotatedX, y: originY + rotatedY };
-      }
-
-      const debugCanvas = document.getElementById('debugWarpCanvas');
-      debugCanvas.width = w;
-      debugCanvas.height = h;
-      const dctx = debugCanvas.getContext('2d');
-      dctx.drawImage(sourceCanvas, 0, 0);
-      debugCanvas.classList.remove('hidden');
-
-      // วาดกรอบ QR Code
-      dctx.strokeStyle = "#eab308";
-      dctx.lineWidth = 3;
-      dctx.strokeRect(qrTopLeft.x - 5, qrTopLeft.y - 5, qrWidth + 10, qrWidth + 10);
-
-      // 1. อ่านรหัสนักเรียน 3 หลัก
-      const detectedId = scanIdWithAnchor(dctx, imgData.data, w, h, getRealPoint, scale);
-      document.getElementById('detectedStudentId').innerText = detectedId;
+      // 3. อ่านรหัสนักเรียน 3 หลัก (หลักร้อย, สิบ, หน่วย)
+      const detectedId = scanWarpedStudentId(warpedData, W_STD, H_STD, dctx);
+      document.getElementById('detectedStudentId').innerText = detectedId || "- - -";
 
       if (studentsList.length > 0 && detectedId) {
         const matchedStu = studentsList.find(s => String(s.studentId).slice(-3) === detectedId);
@@ -1231,119 +1216,267 @@
         }
       }
 
-      // 2. อ่านคำตอบ 50 ข้อด้วยการเกาะตามมาร์กเกอร์หัว-ท้ายคอลัมน์
+      // 4. หากยังไม่ได้โหลดเฉลย ให้โหลดเฉลยก่อน
       if (!currentExamData || currentExamData.examId !== scannedExamId) {
-        fetchExamForScanner(scannedExamId, sourceCanvas);
+        fetchExamForScanner(scannedExamId, warpCanvas);
         return;
       }
 
-      const detectedAnswers = scanAnswersWithTimingMarks(dctx, imgData.data, w, h, getRealPoint, scale);
+      // 5. อ่านคำตอบ 50 ข้อ ด้วย Relative Density Comparison
+      const detectedAnswers = scanWarpedAnswers(warpedData, W_STD, H_STD, dctx);
       processOMRGrading(detectedAnswers);
-      document.getElementById('scanStatusBadge').innerText = "✅ ล็อกเป้ามาร์กเกอร์ ZipGrade สำเร็จ!";
+      document.getElementById('scanStatusBadge').innerText = "✅ ล็อกเป้ามาร์กเกอร์และตรวจข้อสอบสำเร็จ!";
     }
 
-    function scanIdWithAnchor(ctx, data, w, h, getRealPoint, scale) {
-      const startX = 160;
-      const colW = 65;
-      const startY = 490;
-      const rowH = 26.5;
+    // กรองและหามาร์กเกอร์สี่เหลี่ยมดำ 4 มุม
+    function detectCornersFromCanvas(imgData, w, h) {
+      const step = Math.max(1, Math.floor(w / 400));
+      const data = imgData.data;
+      const points = [];
 
-      let studentIdDigits = [];
-
-      for (let col = 0; col < 3; col++) {
-        let bestDigit = 0;
-        let minLum = 255;
-
-        for (let digit = 0; digit <= 9; digit++) {
-          const target = getRealPoint(startX + col * colW, startY + digit * rowH);
-          const lum = evaluateBubbleLum(data, w, h, target.x, target.y, 6 * scale);
-
-          ctx.beginPath();
-          ctx.arc(target.x, target.y, 3.5 * scale, 0, Math.PI * 2);
-          ctx.fillStyle = lum < 115 ? "#22c55e" : "rgba(239, 68, 68, 0.4)";
-          ctx.fill();
-
-          if (lum < minLum) {
-            minLum = lum;
-            bestDigit = digit;
-          }
-        }
-        studentIdDigits.push(bestDigit);
-      }
-      return studentIdDigits.join('');
-    }
-
-    // ล็อกเป้าคำตอบ 50 ข้อด้วยมาร์กเกอร์หัว-ท้ายคอลัมน์
-    function scanAnswersWithTimingMarks(ctx, data, w, h, getRealPoint, scale) {
-      let answers = {};
-
-      // คอลัมน์ที่ 1: หัวมาร์กเกอร์ (430, 420) ท้ายมาร์กเกอร์ (430, 1260)
-      // คอลัมน์ที่ 2: หัวมาร์กเกอร์ (680, 420) ท้ายมาร์กเกอร์ (680, 1260)
-      const columnConfigs = [
-        { 
-          startQ: 1, endQ: 25, 
-          topMarker: { x: 430, y: 420 }, 
-          bottomMarker: { x: 430, y: 1260 },
-          choiceWidth: 170
-        },
-        { 
-          startQ: 26, endQ: 50, 
-          topMarker: { x: 680, y: 420 }, 
-          bottomMarker: { x: 680, y: 1260 },
-          choiceWidth: 170
-        }
-      ];
-
-      columnConfigs.forEach(col => {
-        // วาดจุดสีฟ้าไฮไลต์มาร์กเกอร์หัว-ท้ายคอลัมน์
-        const topPt = getRealPoint(col.topMarker.x, col.topMarker.y);
-        const botPt = getRealPoint(col.bottomMarker.x, col.bottomMarker.y);
-
-        ctx.fillStyle = "#38bdf8";
-        ctx.fillRect(topPt.x - 4 * scale, topPt.y - 4 * scale, 8 * scale, 8 * scale);
-        ctx.fillRect(botPt.x - 4 * scale, botPt.y - 4 * scale, 8 * scale, 8 * scale);
-
-        const choiceStep = (col.choiceWidth * scale) / 4;
-
-        // วนลูป 25 แถวตามการแบ่งช่วงเชิงเส้นระหว่างหัว-ท้ายมาร์กเกอร์
-        for (let r = 0; r < 25; r++) {
-          const qNum = col.startQ + r;
-          const ratio = (r + 0.8) / 26; // สัดส่วนระยะจากบนลงล่าง
-
-          // พิกัดแนวตั้งของแถวนี้
-          const rowAnchorX = topPt.x + (botPt.x - topPt.x) * ratio;
-          const rowAnchorY = topPt.y + (botPt.y - topPt.y) * ratio;
-
-          let minLum = 255;
-          let secondMinLum = 255;
-          let bestChoiceIdx = -1;
-
-          for (let cIdx = 0; cIdx < 4; cIdx++) {
-            const curX = rowAnchorX + (cIdx + 1.2) * choiceStep;
-            const curY = rowAnchorY;
-            const lum = evaluateBubbleLum(data, w, h, curX, curY, 6.5 * scale);
-
-            ctx.beginPath();
-            ctx.arc(curX, curY, 3.8 * scale, 0, Math.PI * 2);
-            ctx.fillStyle = lum < 118 ? "#22c55e" : "rgba(239, 68, 68, 0.4)";
-            ctx.fill();
-
-            if (lum < minLum) {
-              secondMinLum = minLum;
-              minLum = lum;
-              bestChoiceIdx = cIdx;
-            } else if (lum < secondMinLum) {
-              secondMinLum = lum;
+      // ค้นหาพิกเซลสีดำที่มีความเปรียบต่างสูง (Contrast Black)
+      for (let y = 15; y < h - 15; y += step * 2) {
+        for (let x = 15; x < w - 15; x += step * 2) {
+          const idx = (y * w + x) * 4;
+          const lum = 0.299 * data[idx] + 0.587 * data[idx+1] + 0.114 * data[idx+2];
+          if (lum < 65) {
+            // เช็กความทึบของบล็อกดำรอบข้าง
+            let blackNeighbors = 0;
+            for (let dy = -2; dy <= 2; dy++) {
+              for (let dx = -2; dx <= 2; dx++) {
+                const nIdx = ((y + dy * step) * w + (x + dx * step)) * 4;
+                if ((0.299 * data[nIdx] + 0.587 * data[nIdx+1] + 0.114 * data[nIdx+2]) < 85) blackNeighbors++;
+              }
+            }
+            if (blackNeighbors > 20) {
+              points.push({ x, y });
             }
           }
+        }
+      }
 
-          if (minLum < 125 && (secondMinLum - minLum) > 15) {
-            answers[qNum] = THAI_CHOICES[bestChoiceIdx];
-          } else {
-            answers[qNum] = null;
+      if (points.length < 4) return null;
+
+      // แบ่งพื้นที่ 4 โซน (Top-Left, Top-Right, Bottom-Left, Bottom-Right)
+      const midX = w / 2;
+      const midY = h / 2;
+
+      let tlList = points.filter(p => p.x < midX && p.y < midY);
+      let trList = points.filter(p => p.x >= midX && p.y < midY);
+      let blList = points.filter(p => p.x < midX && p.y >= midY);
+      let brList = points.filter(p => p.x >= midX && p.y >= midY);
+
+      if (!tlList.length || !trList.length || !blList.length || !brList.length) return null;
+
+      // จุดที่ชิดมุมมากที่สุดของแต่ละโซน
+      const getClosest = (list, targetX, targetY) => {
+        return list.reduce((best, p) => {
+          const dBest = Math.hypot(best.x - targetX, best.y - targetY);
+          const dP = Math.hypot(p.x - targetX, p.y - targetY);
+          return dP < dBest ? p : best;
+        }, list[0]);
+      };
+
+      const tl = getClosest(tlList, 0, 0);
+      const tr = getClosest(trList, w, 0);
+      const bl = getClosest(blList, 0, h);
+      const br = getClosest(brList, w, h);
+
+      return { tl, tr, br, bl };
+    }
+
+    // ฟังก์ชัน Warp Perspective แบบ Pure JS Canvas
+    function warpPerspectiveCanvas(sourceCanvas, corners, targetCanvas, tw, th) {
+      const tctx = targetCanvas.getContext('2d');
+      tctx.clearRect(0, 0, tw, th);
+
+      const srcCtx = sourceCanvas.getContext('2d');
+      const srcW = sourceCanvas.width;
+      const srcH = sourceCanvas.height;
+
+      // ใช้ Bilinear Patching 16x16 Grid เพื่อดัดระนาบอย่างแม่นยำและรวดเร็ว
+      const grid = 16;
+      const cellW = tw / grid;
+      const cellH = th / grid;
+
+      const interpolate = (p1, p2, t) => ({ x: p1.x + (p2.x - p1.x) * t, y: p1.y + (p2.y - p1.y) * t });
+
+      for (let gy = 0; gy < grid; gy++) {
+        const v0 = gy / grid;
+        const v1 = (gy + 1) / grid;
+        const left0 = interpolate(corners.tl, corners.bl, v0);
+        const left1 = interpolate(corners.tl, corners.bl, v1);
+        const right0 = interpolate(corners.tr, corners.br, v0);
+        const right1 = interpolate(corners.tr, corners.br, v1);
+
+        for (let gx = 0; gx < grid; gx++) {
+          const u0 = gx / grid;
+          const u1 = (gx + 1) / grid;
+
+          const p00 = interpolate(left0, right0, u0);
+          const p10 = interpolate(left0, right0, u1);
+          const p01 = interpolate(left1, right1, u0);
+          const p11 = interpolate(left1, right1, u1);
+
+          const minX = Math.max(0, Math.min(p00.x, p10.x, p01.x, p11.x));
+          const minY = Math.max(0, Math.min(p00.y, p10.y, p01.y, p11.y));
+          const maxX = Math.min(srcW, Math.max(p00.x, p10.x, p01.x, p11.x));
+          const maxY = Math.min(srcH, Math.max(p00.y, p10.y, p01.y, p11.y));
+
+          const patchW = Math.max(1, maxX - minX);
+          const patchH = Math.max(1, maxY - minY);
+
+          tctx.drawImage(
+            sourceCanvas,
+            minX, minY, patchW, patchH,
+            gx * cellW, gy * cellH, cellW + 0.5, cellH + 0.5
+          );
+        }
+      }
+    }
+
+    // ครอปเฉพาะพื้นที่มุมล่างซ้ายไปถอดรหัส QR Code
+    function scanSubRegionQR(warpCanvas, tw, th) {
+      const cropX = Math.floor(tw * 0.05);
+      const cropY = Math.floor(th * 0.65);
+      const cropW = Math.floor(tw * 0.35);
+      const cropH = Math.floor(th * 0.32);
+
+      const qrCanvas = document.createElement('canvas');
+      qrCanvas.width = cropW;
+      qrCanvas.height = cropH;
+      const qctx = qrCanvas.getContext('2d');
+      qctx.drawImage(warpCanvas, cropX, cropY, cropW, cropH, 0, 0, cropW, cropH);
+
+      const imgData = qctx.getImageData(0, 0, cropW, cropH);
+      const code = jsQR(imgData.data, cropW, cropH, { inversionAttempts: "attemptBoth" });
+      return code ? code.data : null;
+    }
+
+    // วัดค่าความมืดในวงกลม (Relative Density Calculation)
+    function calculateCircleDensity(imgData, w, h, cx, cy, radius) {
+      let darkCount = 0;
+      let totalSample = 0;
+      const data = imgData.data;
+
+      // วัดค่า Background รอบนอกวงกลมเพื่อปรับตามแสงเงาแบบไดนามิก (Local Ambient Light)
+      let localAmbient = 0, ambientSamples = 0;
+      for (let angle = 0; angle < Math.PI * 2; angle += 0.8) {
+        const ox = Math.floor(cx + (radius + 6) * Math.cos(angle));
+        const oy = Math.floor(cy + (radius + 6) * Math.sin(angle));
+        if (ox >= 0 && ox < w && oy >= 0 && oy < h) {
+          const idx = (oy * w + ox) * 4;
+          localAmbient += (0.299 * data[idx] + 0.587 * data[idx+1] + 0.114 * data[idx+2]);
+          ambientSamples++;
+        }
+      }
+      const localThreshold = (ambientSamples > 0 ? (localAmbient / ambientSamples) : 200) * 0.72;
+
+      // นับพิกเซลที่มืดกว่าพื้นหลังรอบข้าง
+      for (let r = 0; r <= radius; r += 1.5) {
+        for (let a = 0; a < Math.PI * 2; a += 0.6) {
+          const px = Math.floor(cx + r * Math.cos(a));
+          const py = Math.floor(cy + r * Math.sin(a));
+          if (px >= 0 && px < w && py >= 0 && py < h) {
+            const idx = (py * w + px) * 4;
+            const lum = 0.299 * data[idx] + 0.587 * data[idx+1] + 0.114 * data[idx+2];
+            if (lum < localThreshold) darkCount++;
+            totalSample++;
           }
         }
-      });
+      }
+
+      return totalSample > 0 ? (darkCount / totalSample) : 0;
+    }
+
+    // ตรวจรหัสนักเรียน 3 หลัก
+    function scanWarpedStudentId(imgData, tw, th, debugCtx) {
+      const colX = [Math.floor(tw * 0.115), Math.floor(tw * 0.203), Math.floor(tw * 0.292)];
+      const startY = Math.floor(th * 0.325);
+      const stepY = th * 0.0264;
+      const radius = Math.floor(tw * 0.016);
+
+      let resultId = '';
+
+      for (let col = 0; col < 3; col++) {
+        let scores = [];
+        for (let d = 0; d <= 9; d++) {
+          const cx = colX[col];
+          const cy = Math.round(startY + d * stepY);
+          const density = calculateCircleDensity(imgData, tw, th, cx, cy, radius);
+          scores.push({ digit: d, density, cx, cy });
+        }
+
+        scores.sort((a, b) => b.density - a.density);
+        const best = scores[0];
+        const second = scores[1];
+
+        // วาด Marker แสดงผล
+        debugCtx.beginPath();
+        debugCtx.arc(best.cx, best.cy, radius, 0, Math.PI * 2);
+        if (best.density > 0.40 && best.density > second.density * 1.3) {
+          debugCtx.strokeStyle = "#22c55e";
+          debugCtx.lineWidth = 2.5;
+          resultId += best.digit.toString();
+        } else {
+          debugCtx.strokeStyle = "#ef4444";
+          debugCtx.lineWidth = 1.5;
+          resultId += '?';
+        }
+        debugCtx.stroke();
+      }
+
+      return resultId.includes('?') ? '' : resultId;
+    }
+
+    // ตรวจคำตอบทั้ง 50 ข้อ
+    function scanWarpedAnswers(imgData, tw, th, debugCtx) {
+      const answers = {};
+      const radius = Math.floor(tw * 0.015);
+      const choiceStep = tw * 0.053;
+      const rowStep = th * 0.0242;
+
+      // คอลัมน์ที่ 1 (ข้อ 1-25) และ คอลัมน์ที่ 2 (ข้อ 26-50)
+      const col1_BaseX = Math.floor(tw * 0.456);
+      const col2_BaseX = Math.floor(tw * 0.722);
+      const startY = Math.floor(th * 0.268);
+
+      for (let i = 1; i <= 50; i++) {
+        const isCol2 = i > 25;
+        const rowIndex = isCol2 ? i - 26 : i - 1;
+        const baseX = isCol2 ? col2_BaseX : col1_BaseX;
+        const currentY = Math.round(startY + rowIndex * rowStep);
+
+        let scores = [];
+        for (let c = 0; c < 4; c++) {
+          const currentX = Math.round(baseX + c * choiceStep);
+          const density = calculateCircleDensity(imgData, tw, th, currentX, currentY, radius);
+          scores.push({ choice: THAI_CHOICES[c], density, x: currentX, y: currentY });
+        }
+
+        scores.sort((a, b) => b.density - a.density);
+        const top1 = scores[0];
+        const top2 = scores[1];
+
+        // วาดวงกลมเฉลยบน Debug Canvas
+        debugCtx.beginPath();
+        debugCtx.arc(top1.x, top1.y, radius + 1, 0, Math.PI * 2);
+
+        if (top1.density > 0.42 && top1.density > top2.density * 1.35) {
+          answers[i] = top1.choice;
+          debugCtx.strokeStyle = "#22c55e"; // เขียว = อ่านพบและชัดเจน
+          debugCtx.lineWidth = 2.5;
+        } else if (top1.density > 0.38 && top2.density > 0.38) {
+          answers[i] = null; // ฝนซ้ำ 2 ข้อ
+          debugCtx.strokeStyle = "#eab308"; // เหลือง = ฝนซ้ำ
+          debugCtx.lineWidth = 2;
+        } else {
+          answers[i] = null; // ไม่ระบาย
+          debugCtx.strokeStyle = "rgba(148, 163, 184, 0.4)";
+          debugCtx.lineWidth = 1;
+        }
+        debugCtx.stroke();
+      }
 
       return answers;
     }
