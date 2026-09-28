@@ -46,7 +46,7 @@
       100% { transform: translate(50px, 30px) scale(1.08); }
     }
 
-    .omr-marker { width: 14px; height: 14px; background-color: #000; }
+    .omr-marker { width: 20px; height: 20px; background-color: #000; border-radius: 2px; }
     
     .bubble-choice { 
       width: 20px; 
@@ -88,15 +88,9 @@
       print-color-adjust: exact !important;
     }
 
+    /* ปิดการแสดงผลลายน้ำอย่างสมบูรณ์ */
     .subject-watermark-layer {
-      position: absolute;
-      inset: 0;
-      pointer-events: none;
-      z-index: 0;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      overflow: hidden;
+      display: none !important;
     }
 
     #printContainer {
@@ -144,6 +138,7 @@
         flex-direction: column !important;
         justify-content: space-between !important;
         overflow: hidden !important;
+        background: #ffffff !important;
       }
       @page { size: A4 landscape; margin: 0; }
     }
@@ -181,11 +176,9 @@
 
   <main class="max-w-[1440px] mx-auto p-4 sm:p-8 no-print">
     
-    <!-- ================= แท็บ 1: สร้าง/เฉลยข้อสอบ + LIVE PREVIEW ================= -->
+    <!-- แท็บ 1: จัดทำข้อสอบ -->
     <section id="section-create">
       <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-        
-        <!-- ฝั่งซ้าย: แผงควบคุมและเฉลยคำตอบ -->
         <div class="lg:col-span-7 bg-white/95 backdrop-blur-md rounded-3xl p-6 sm:p-8 border border-slate-200/80 shadow-xl shadow-slate-200/40">
           <div>
             <div class="flex justify-between items-center mb-5 pb-3 border-b border-slate-100 gap-2">
@@ -196,7 +189,6 @@
               <span id="savedStatusBadge" class="bg-slate-100 text-slate-600 text-[11px] px-3.5 py-1 rounded-full font-semibold border border-slate-200 shrink-0">ตรวจสอบสถานะ...</span>
             </div>
             
-            <!-- ชื่อโรงเรียน & ระดับชั้น -->
             <div class="grid grid-cols-1 sm:grid-cols-12 gap-3 mb-5">
               <div class="sm:col-span-6 bg-slate-50 border border-slate-200 rounded-2xl p-3.5">
                 <label class="block text-xs font-bold text-slate-700 mb-1">ชื่อสถานศึกษา / โรงเรียน</label>
@@ -223,7 +215,6 @@
               </div>
             </div>
 
-            <!-- รายวิชา & ภาคเรียน -->
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-5">
               <div>
                 <label class="block text-xs font-semibold text-slate-600 mb-1.5">รายวิชา</label>
@@ -240,7 +231,6 @@
               </div>
             </div>
 
-            <!-- แถบตั้งค่าข้อสอบอัตนัย (ข้อเขียน) -->
             <div class="mb-5 bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200/80 rounded-2xl p-4">
               <div class="flex flex-wrap items-center justify-between gap-3">
                 <label class="flex items-center space-x-2.5 cursor-pointer">
@@ -255,12 +245,10 @@
               </div>
             </div>
 
-            <!-- ชุดข้อสอบ -->
             <div class="mb-5 bg-slate-50 border border-slate-200/90 rounded-2xl p-3.5 flex flex-wrap justify-between items-center text-xs gap-2">
               <div class="flex items-center space-x-2.5">
                 <span class="font-bold text-slate-700">ชุดข้อสอบ:</span>
                 <span id="currentSetBadge" class="bg-indigo-900 text-white font-bold px-3 py-1 rounded-lg">ชุดที่ 1 (ชุด A)</span>
-                
                 <div id="setSelectContainer" class="hidden items-center space-x-1.5">
                   <select id="examSet" onchange="onExamSetChange()" class="border border-indigo-300 rounded-lg p-1.5 bg-white font-bold text-indigo-700">
                     <option value="A">ชุด A</option>
@@ -270,13 +258,11 @@
                   </select>
                 </div>
               </div>
-
               <button type="button" id="btnAddSet" onclick="enableMultipleSets()" class="text-indigo-600 font-bold hover:underline flex items-center space-x-1">
                 <span>➕ เพิ่มชุดข้อสอบ (B, C...)</span>
               </button>
             </div>
 
-            <!-- คะแนนเต็ม & สัดส่วนข้อกา -->
             <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5 mb-6 bg-slate-50/80 p-4 rounded-2xl border border-slate-200 text-center">
               <div>
                 <label class="block text-[11px] text-slate-400 mb-1 font-medium">คะแนนเต็ม ปพ.5</label>
@@ -284,9 +270,7 @@
               </div>
               <div>
                 <label class="block text-[11px] text-indigo-950 font-bold mb-1">สัดส่วนข้อกา</label>
-                <div id="objectiveScoreDisplay" class="py-2 bg-indigo-50 border border-indigo-200 rounded-xl text-indigo-900 font-bold text-xs sm:text-sm">
-                  15 คะแนน
-                </div>
+                <div id="objectiveScoreDisplay" class="py-2 bg-indigo-50 border border-indigo-200 rounded-xl text-indigo-900 font-bold text-xs sm:text-sm">15 คะแนน</div>
               </div>
               <div>
                 <label class="block text-[11px] text-indigo-950 font-bold mb-1">จำนวนข้อสอบกา</label>
@@ -294,13 +278,10 @@
               </div>
               <div>
                 <label class="block text-[11px] text-slate-400 mb-1 font-medium">น้ำหนักข้อกา</label>
-                <div class="pt-2 text-indigo-700 font-bold text-xs" id="weightDisplay">
-                  ข้อละ 0.75
-                </div>
+                <div class="pt-2 text-indigo-700 font-bold text-xs" id="weightDisplay">ข้อละ 0.75</div>
               </div>
             </div>
 
-            <!-- เฉลยคำตอบ ก ข ค ง -->
             <div class="mb-6">
               <div class="flex justify-between items-center mb-3">
                 <label class="block text-sm font-bold text-slate-800">เฉลยคำตอบ (Answer Key):</label>
@@ -311,40 +292,27 @@
           </div>
 
           <div class="pt-4 border-t border-slate-100 flex justify-end space-x-3">
-            <button onclick="resetToNewExam()" id="btnResetExam" class="bg-slate-100 hover:bg-slate-200 text-slate-600 font-semibold px-4 py-2.5 rounded-xl text-xs sm:text-sm transition">
-              🔄 ล้างฟอร์ม
-            </button>
-            <button onclick="saveExam()" id="btnSaveExam" class="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold px-6 py-2.5 rounded-xl shadow-md shadow-indigo-300 text-xs sm:text-sm transition">
-              💾 บันทึกชุดข้อสอบ
-            </button>
+            <button onclick="resetToNewExam()" id="btnResetExam" class="bg-slate-100 hover:bg-slate-200 text-slate-600 font-semibold px-4 py-2.5 rounded-xl text-xs sm:text-sm transition">🔄 ล้างฟอร์ม</button>
+            <button onclick="saveExam()" id="btnSaveExam" class="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold px-6 py-2.5 rounded-xl shadow-md shadow-indigo-300 text-xs sm:text-sm transition">💾 บันทึกชุดข้อสอบ</button>
           </div>
         </div>
 
-        <!-- ฝั่งขวา: LIVE PREVIEW -->
         <div class="lg:col-span-5 flex flex-col items-center w-full sticky top-24">
           <div class="w-full flex flex-wrap justify-between items-center mb-2.5 px-1 gap-2">
-            <span class="text-xs font-bold text-slate-700 flex items-center space-x-1.5">
-              <span>👁️ ตัวอย่างหน้ากระดาษจริง 1:1 (สีตามวิชา)</span>
-            </span>
+            <span class="text-xs font-bold text-slate-700 flex items-center space-x-1.5"><span>👁️ ตัวอย่างหน้ากระดาษจริง 1:1</span></span>
             <div class="flex space-x-1.5">
-              <button onclick="generateSheets(false)" class="bg-slate-800 hover:bg-slate-900 text-white text-[11px] font-bold px-3 py-1.5 rounded-xl shadow-sm transition">
-                🖨️ พิมพ์แผ่นเปล่า (2 ใบ/A4)
-              </button>
-              <button onclick="generateSheets(true)" class="bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-bold px-3 py-1.5 rounded-xl shadow-sm shadow-emerald-200 transition">
-                🖨️ พิมพ์ตามชื่อ (2 ใบ/A4)
-              </button>
+              <button onclick="generateSheets(false)" class="bg-slate-800 hover:bg-slate-900 text-white text-[11px] font-bold px-3 py-1.5 rounded-xl shadow-sm transition">🖨️ พิมพ์แผ่นเปล่า</button>
+              <button onclick="generateSheets(true)" class="bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-bold px-3 py-1.5 rounded-xl shadow-sm shadow-emerald-200 transition">🖨️ พิมพ์ตามชื่อ</button>
             </div>
           </div>
-
           <div class="w-full bg-white rounded-3xl shadow-xl shadow-slate-200/60 border border-slate-200 p-3 sm:p-4 relative flex flex-col justify-between overflow-hidden">
             <div id="livePreviewExactContainer"></div>
           </div>
         </div>
-
       </div>
     </section>
 
-    <!-- ================= แท็บ 2: คลังข้อสอบ ================= -->
+    <!-- แท็บ 2: คลังข้อสอบ -->
     <section id="section-manage" class="hidden bg-white/95 backdrop-blur-md rounded-3xl border border-slate-200/80 shadow-xl p-5 sm:p-8">
       <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-5 pb-3 border-b border-slate-100 gap-3">
         <div>
@@ -352,12 +320,8 @@
           <p class="text-xs text-slate-400">สามารถติ๊กเลือกหลายชุดเพื่อลบพร้อมกันได้</p>
         </div>
         <div class="flex items-center space-x-2 w-full sm:w-auto justify-end">
-          <button onclick="cleanupEmptyRows()" class="bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200 px-3.5 py-2 rounded-xl text-xs font-semibold transition">
-            🧹 ล้างแถวว่างที่เสีย
-          </button>
-          <button onclick="loadExamsList()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-3.5 py-2 rounded-xl text-xs font-semibold transition">
-            🔄 รีเฟรช
-          </button>
+          <button onclick="cleanupEmptyRows()" class="bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200 px-3.5 py-2 rounded-xl text-xs font-semibold transition">🧹 ล้างแถวว่างที่เสีย</button>
+          <button onclick="loadExamsList()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-3.5 py-2 rounded-xl text-xs font-semibold transition">🔄 รีเฟรช</button>
         </div>
       </div>
 
@@ -373,9 +337,7 @@
         <table class="w-full text-left text-xs border-collapse">
           <thead>
             <tr class="bg-slate-50 border-b border-slate-200 text-slate-600 font-semibold select-none">
-              <th class="p-3 w-10 text-center">
-                <input type="checkbox" id="selectAllExams" onchange="toggleSelectAllExams()" class="w-4 h-4 rounded text-indigo-600 focus:ring-indigo-500 cursor-pointer">
-              </th>
+              <th class="p-3 w-10 text-center"><input type="checkbox" id="selectAllExams" onchange="toggleSelectAllExams()" class="w-4 h-4 rounded text-indigo-600 focus:ring-indigo-500 cursor-pointer"></th>
               <th class="p-3">รหัสข้อสอบ</th>
               <th class="p-3 text-center">ชุดที่</th>
               <th class="p-3">ชั้น</th>
@@ -392,20 +354,36 @@
       </div>
     </section>
 
-    <!-- ================= แท็บ 3: สแกนตรวจข้อสอบ ================= -->
+    <!-- แท็บ 3: สแกนตรวจข้อสอบ -->
     <section id="section-scan" class="hidden bg-white/95 backdrop-blur-md rounded-3xl border border-slate-200/80 shadow-xl p-5 sm:p-8">
       <h2 class="text-base sm:text-lg font-bold text-slate-800 mb-4 pb-3 border-b border-slate-100">2. สแกนตรวจกระดาษคำตอบ</h2>
       
       <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div class="relative bg-black rounded-3xl overflow-hidden flex flex-col items-center justify-center min-h-[350px] sm:min-h-[400px] shadow-inner">
+        <div class="relative bg-slate-900 rounded-3xl overflow-hidden flex flex-col items-center justify-center min-h-[380px] sm:min-h-[440px] shadow-inner">
           <video id="video" playsinline class="w-full h-full object-cover"></video>
           <canvas id="scanCanvas" class="hidden"></canvas>
-          <div class="absolute inset-0 border-2 border-dashed border-amber-400/80 m-6 sm:m-8 rounded-2xl pointer-events-none flex items-center justify-center">
-            <span class="text-amber-200 text-xs bg-black/70 px-3 py-1.5 rounded-lg backdrop-blur">ให้ QR Code และกระดาษอยู่ในกรอบ</span>
+          
+          <canvas id="debugWarpCanvas" class="hidden absolute inset-0 w-full h-full object-contain bg-black/90 z-20"></canvas>
+
+          <div id="scanOverlayFrame" class="absolute inset-0 border-2 border-dashed border-amber-400/80 m-6 sm:m-8 rounded-2xl pointer-events-none flex flex-col items-center justify-between p-3 z-10">
+            <span class="text-amber-200 text-xs bg-black/80 px-3 py-1.5 rounded-lg backdrop-blur">
+              จัดกระดาษให้เห็นจุดมาร์กเกอร์สีดำ 4 มุมครบถ้วน
+            </span>
+            <span id="scanStatusBadge" class="text-emerald-400 text-[11px] bg-black/80 px-3 py-1 rounded-full backdrop-blur">
+              พร้อมตรวจจับ...
+            </span>
           </div>
-          <div class="absolute bottom-3.5 flex space-x-2">
-            <button onclick="startCamera()" class="bg-white/90 hover:bg-white text-slate-800 px-4 py-2 rounded-xl text-xs font-bold shadow transition">📷 เปิดกล้อง</button>
-            <button onclick="stopCamera()" class="bg-rose-600/90 hover:bg-rose-600 text-white px-4 py-2 rounded-xl text-xs font-bold shadow transition">⏹️ ปิดกล้อง</button>
+
+          <div class="absolute bottom-3.5 flex flex-wrap justify-center gap-2 z-30 px-3">
+            <button onclick="startCamera()" class="bg-white/90 hover:bg-white text-slate-800 px-3 py-2 rounded-xl text-xs font-bold shadow transition">📷 เปิดกล้อง</button>
+            <button onclick="captureSnapshotAndGrade()" id="btnSnapshot" class="bg-amber-500 hover:bg-amber-600 text-white px-4 py-2 rounded-xl text-xs font-black shadow-lg ring-2 ring-white/50 transition">
+              ⚡ ถ่ายภาพ & ตรวจ
+            </button>
+            <label class="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-2 rounded-xl text-xs font-bold shadow transition cursor-pointer flex items-center">
+              <span>🖼️ เลือกรูปภาพ</span>
+              <input type="file" accept="image/*" onchange="handleImageUpload(event)" class="hidden">
+            </label>
+            <button onclick="stopCamera()" class="bg-rose-600/90 hover:bg-rose-600 text-white px-3 py-2 rounded-xl text-xs font-bold shadow transition">⏹️ ปิด</button>
           </div>
         </div>
 
@@ -422,7 +400,6 @@
                 <span id="scanStudentNameDisplay" class="text-xs text-slate-800 font-bold truncate"></span>
               </div>
 
-              <!-- ช่องกรอกคะแนนข้อเขียน -->
               <div id="scanSubjectiveRow" class="hidden p-3 bg-amber-50/80 border border-amber-200 rounded-2xl">
                 <div class="flex items-center justify-between">
                   <div>
@@ -466,7 +443,7 @@
       </div>
     </section>
 
-    <!-- ================= แท็บ 4: สรุปคะแนน ================= -->
+    <!-- แท็บ 4: สรุปคะแนน -->
     <section id="section-report" class="hidden bg-white/95 backdrop-blur-md rounded-3xl border border-slate-200/80 shadow-xl p-5 sm:p-8">
       <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 pb-3 border-b border-slate-100 gap-2">
         <h2 class="text-base sm:text-lg font-bold text-slate-800">3. สรุปคะแนนการสอบ</h2>
@@ -503,22 +480,16 @@
 
   <div id="printContainer"></div>
 
-  <!-- ================= JAVASCRIPT ================= -->
+  <!-- ================= JAVASCRIPT LOGIC ================= -->
   <script>
     const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwdNlLZw_5dT8pqAnxPSh7-TYuJe0s5sgaQ6BfYz_JLyWjoxyuOTggFI1WZhB1U9Gs/exec";
     
     const SCHOOL_LOGO_SVG = `
-      <svg class="w-9 h-9 inline-block" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <circle cx="50" cy="50" r="46" fill="#FEF3C7" stroke="#D97706" stroke-width="3"/>
-        <path d="M50 18L56 34H68L58 43L62 59L50 49L38 59L42 43L32 34H44L50 18Z" fill="#D97706"/>
-        <circle cx="50" cy="50" r="28" stroke="#B45309" stroke-width="1.5" stroke-dasharray="3 3"/>
-        <path d="M35 72C40 68 60 68 65 72" stroke="#B45309" stroke-width="2" stroke-linecap="round"/>
-      </svg>
+      <img src="PP1.jpg" class="w-9 h-9 object-contain inline-block" alt="โลโก้โรงเรียน" />
     `;
 
     function getSubjectTheme(subjectName) {
       if (!subjectName) return { color: '#4f46e5', bgBadge: '#4f46e5' };
-
       if (subjectName.includes("คณิต")) return { color: '#1d4ed8', bgBadge: '#1d4ed8' };
       if (subjectName.includes("วิทย์") || subjectName.includes("ฟิสิกส์") || subjectName.includes("เคมี") || subjectName.includes("ชีว")) return { color: '#0284c7', bgBadge: '#0284c7' };
       if (subjectName.includes("ไทย")) return { color: '#059669', bgBadge: '#059669' };
@@ -530,85 +501,17 @@
       if (subjectName.includes("การงาน") || subjectName.includes("คอม")) return { color: '#0f766e', bgBadge: '#0f766e' };
 
       let hash = 0;
-      for (let i = 0; i < subjectName.length; i++) {
-        hash = subjectName.charCodeAt(i) + ((hash << 5) - hash);
-      }
+      for (let i = 0; i < subjectName.length; i++) hash = subjectName.charCodeAt(i) + ((hash << 5) - hash);
       const palette = ['#1e40af', '#0e7490', '#047857', '#b45309', '#be123c', '#6d28d9', '#4338ca', '#374151'];
-      const chosenColor = palette[Math.abs(hash) % palette.length];
-      return { color: chosenColor, bgBadge: chosenColor };
+      return { color: palette[Math.abs(hash) % palette.length], bgBadge: palette[Math.abs(hash) % palette.length] };
     }
 
+    // ปิดลายน้ำทุกกรณี เพื่อให้พื้นกระดาษขาวสนิท ไม่รบกวนการคำนวณ OMR
     function getSubjectWatermarkSvg(subjectName) {
-      if (!subjectName) return '';
-      const theme = getSubjectTheme(subjectName);
-
-      if (subjectName.includes("คณิต")) {
-        return `
-          <svg class="w-full h-full" viewBox="0 0 400 400" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <text x="30" y="80" font-size="48" fill="${theme.color}" opacity="0.06" font-weight="bold">∑</text>
-            <text x="280" y="90" font-size="42" fill="${theme.color}" opacity="0.06" font-weight="bold">√x</text>
-            <text x="40" y="240" font-size="52" fill="${theme.color}" opacity="0.06" font-weight="bold">π</text>
-            <text x="270" y="260" font-size="46" fill="${theme.color}" opacity="0.06" font-weight="bold">∞</text>
-            <text x="160" y="360" font-size="40" fill="${theme.color}" opacity="0.05" font-weight="bold">f(x)=y</text>
-            <circle cx="200" cy="200" r="120" stroke="${theme.color}" stroke-width="2" stroke-dasharray="8 6" opacity="0.04"/>
-          </svg>
-        `;
-      }
-      if (subjectName.includes("วิทย์") || subjectName.includes("ฟิสิกส์") || subjectName.includes("เคมี") || subjectName.includes("ชีว")) {
-        return `
-          <svg class="w-full h-full" viewBox="0 0 400 400" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <circle cx="200" cy="200" r="16" fill="${theme.color}" opacity="0.06"/>
-            <ellipse cx="200" cy="200" rx="140" ry="45" stroke="${theme.color}" stroke-width="2" opacity="0.05" transform="rotate(30 200 200)"/>
-            <ellipse cx="200" cy="200" rx="140" ry="45" stroke="${theme.color}" stroke-width="2" opacity="0.05" transform="rotate(-30 200 200)"/>
-            <ellipse cx="200" cy="200" rx="140" ry="45" stroke="${theme.color}" stroke-width="2" opacity="0.05" transform="rotate(90 200 200)"/>
-            <text x="40" y="100" font-size="34" fill="${theme.color}" opacity="0.05" font-weight="bold">H₂O</text>
-            <text x="280" y="320" font-size="34" fill="${theme.color}" opacity="0.05" font-weight="bold">E=mc²</text>
-          </svg>
-        `;
-      }
-      if (subjectName.includes("ไทย")) {
-        return `
-          <svg class="w-full h-full" viewBox="0 0 400 400" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <text x="40" y="100" font-size="56" fill="${theme.color}" opacity="0.06" font-family="'Prompt', sans-serif" font-weight="bold">ก</text>
-            <text x="280" y="110" font-size="52" fill="${theme.color}" opacity="0.06" font-family="'Prompt', sans-serif" font-weight="bold">ข</text>
-            <text x="50" y="270" font-size="54" fill="${theme.color}" opacity="0.06" font-family="'Prompt', sans-serif" font-weight="bold">ค</text>
-            <text x="280" y="280" font-size="58" fill="${theme.color}" opacity="0.06" font-family="'Prompt', sans-serif" font-weight="bold">ง</text>
-            <text x="160" y="360" font-size="36" fill="${theme.color}" opacity="0.05" font-weight="bold">ภาษาไทย</text>
-          </svg>
-        `;
-      }
-      if (subjectName.includes("สังคม") || subjectName.includes("ประวัติ") || subjectName.includes("หน้าที่")) {
-        return `
-          <svg class="w-full h-full" viewBox="0 0 400 400" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <circle cx="200" cy="200" r="110" stroke="${theme.color}" stroke-width="2" opacity="0.05"/>
-            <ellipse cx="200" cy="200" rx="110" ry="40" stroke="${theme.color}" stroke-width="1.5" opacity="0.05"/>
-            <line x1="200" y1="90" x2="200" y2="310" stroke="${theme.color}" stroke-width="1.5" opacity="0.05"/>
-            <text x="40" y="100" font-size="32" fill="${theme.color}" opacity="0.05" font-weight="bold">ภูมิศาสตร์</text>
-            <text x="260" y="340" font-size="32" fill="${theme.color}" opacity="0.05" font-weight="bold">ประวัติศาสตร์</text>
-          </svg>
-        `;
-      }
-      if (subjectName.includes("อังกฤษ") || subjectName.includes("English")) {
-        return `
-          <svg class="w-full h-full" viewBox="0 0 400 400" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <text x="40" y="90" font-size="54" fill="${theme.color}" opacity="0.06" font-weight="bold">A</text>
-            <text x="290" y="100" font-size="50" fill="${theme.color}" opacity="0.06" font-weight="bold">B</text>
-            <text x="50" y="260" font-size="52" fill="${theme.color}" opacity="0.06" font-weight="bold">C</text>
-            <text x="280" y="270" font-size="54" fill="${theme.color}" opacity="0.06" font-weight="bold">D</text>
-            <text x="130" y="360" font-size="34" fill="${theme.color}" opacity="0.05" font-weight="bold">Grammar</text>
-          </svg>
-        `;
-      }
-      return `
-        <svg class="w-full h-full" viewBox="0 0 400 400" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <circle cx="200" cy="200" r="130" stroke="${theme.color}" stroke-width="2" stroke-dasharray="10 8" opacity="0.04"/>
-          <text x="140" y="210" font-size="32" fill="${theme.color}" opacity="0.05" font-weight="bold">EXAM</text>
-        </svg>
-      `;
+      return '';
     }
 
     const THAI_CHOICES = ['ก', 'ข', 'ค', 'ง'];
-
     let studentsList = [];
     let coursesList = [];
     let allSavedExams = []; 
@@ -622,20 +525,14 @@
     function toggleSubjectiveSection() {
       const hasSubjective = document.getElementById('hasSubjectiveExam').checked;
       const box = document.getElementById('subjectiveScoreBox');
-      if (hasSubjective) {
-        box.classList.remove('hidden');
-        box.classList.add('flex');
-      } else {
-        box.classList.add('hidden');
-        box.classList.remove('flex');
-      }
+      if (hasSubjective) { box.classList.remove('hidden'); box.classList.add('flex'); }
+      else { box.classList.add('hidden'); box.classList.remove('flex'); }
       calculateWeightPerQuestion();
       renderLivePreview();
     }
 
     function onSchoolNameChange() {
-      const val = document.getElementById('schoolNameInput').value;
-      localStorage.setItem('omr_school_name', val);
+      localStorage.setItem('omr_school_name', document.getElementById('schoolNameInput').value);
       renderLivePreview();
     }
 
@@ -653,9 +550,7 @@
         const checked = document.querySelector(`input[name="ans_${i}"]:checked`);
         answerKey[i] = checked ? checked.value : "ก";
       }
-
-      const draft = { grade, courseIdx, term, setVal, total, hasSubjective, subjectiveMaxScore, answerKey, editingExamId };
-      localStorage.setItem('omr_last_exam_draft', JSON.stringify(draft));
+      localStorage.setItem('omr_last_exam_draft', JSON.stringify({ grade, courseIdx, term, setVal, total, hasSubjective, subjectiveMaxScore, answerKey, editingExamId }));
     }
 
     function switchTab(tab) {
@@ -665,7 +560,6 @@
       });
       document.getElementById(`section-${tab}`).classList.remove('hidden');
       document.getElementById(`tab-${tab}`).className = "px-4 py-2 rounded-xl transition bg-white text-indigo-700 shadow-sm font-bold whitespace-nowrap";
-      
       clearPrintContainer();
       if (tab !== 'scan' && videoStream) stopCamera();
       if (tab === 'manage') loadExamsList();
@@ -678,17 +572,12 @@
     }
 
     function enableMultipleSets() {
-      const container = document.getElementById('setSelectContainer');
-      const badge = document.getElementById('currentSetBadge');
-      const btn = document.getElementById('btnAddSet');
+      document.getElementById('setSelectContainer').classList.remove('hidden');
+      document.getElementById('setSelectContainer').classList.add('flex');
+      document.getElementById('currentSetBadge').classList.add('hidden');
       const select = document.getElementById('examSet');
-
-      container.classList.remove('hidden');
-      container.classList.add('flex');
-      badge.classList.add('hidden');
-      
       if (select.value === "A") select.value = "B";
-      btn.innerText = "✓ ใช้งานโหมดหลายชุด";
+      document.getElementById('btnAddSet').innerText = "✓ ใช้งานโหมดหลายชุด";
       onExamSetChange();
     }
 
@@ -708,12 +597,9 @@
         subjectiveScore = Math.max(0, maxScore - 1);
         document.getElementById('subjectiveMaxScore').value = subjectiveScore;
       }
-
       const objectiveMaxScore = Math.max(0, maxScore - subjectiveScore);
       document.getElementById('objectiveScoreDisplay').innerText = `${objectiveMaxScore} คะแนน`;
-
-      const weight = (objectiveMaxScore / totalQ).toFixed(2);
-      document.getElementById('weightDisplay').innerText = `ข้อละ ${weight} คะแนน`;
+      document.getElementById('weightDisplay').innerText = `ข้อละ ${(objectiveMaxScore / totalQ).toFixed(2)} คะแนน`;
     }
 
     function onTotalQuestionsChange() {
@@ -731,16 +617,13 @@
       const courseIdx = document.getElementById('courseSelect').value;
       const courseName = (courseIdx !== "" && coursesList[courseIdx]) ? coursesList[courseIdx].name : '';
       const theme = getSubjectTheme(courseName);
-
       const container = document.getElementById('keyGrid');
       container.innerHTML = '';
-
       const engToThai = { 'A': 'ก', 'B': 'ข', 'C': 'ค', 'D': 'ง' };
 
       for (let i = 1; i <= total; i++) {
         let rawVal = existingKeys ? (existingKeys[i] || existingKeys[String(i)] || 'ก') : 'ก';
         const defaultChoice = engToThai[rawVal] || rawVal || 'ก';
-
         let div = document.createElement('div');
         div.className = "flex items-center justify-between bg-white border border-slate-200/80 p-2 rounded-xl text-xs shadow-2xs";
         div.innerHTML = `
@@ -749,47 +632,28 @@
             ${THAI_CHOICES.map(c => `
               <label class="cursor-pointer">
                 <input type="radio" name="ans_${i}" value="${c}" onchange="onAnswerSelected(${i}, '${c}')" class="peer hidden" ${c === defaultChoice ? 'checked' : ''}>
-                <span class="w-6 h-6 flex items-center justify-center rounded-lg border border-slate-200 transition font-bold"
-                      style="--choice-color: ${theme.color};">
-                  ${c}
-                </span>
+                <span class="w-6 h-6 flex items-center justify-center rounded-lg border border-slate-200 transition font-bold" style="--choice-color: ${theme.color};">${c}</span>
               </label>
             `).join('')}
           </div>
         `;
-
         const spans = div.querySelectorAll('label span');
         const inputs = div.querySelectorAll('label input');
         inputs.forEach((inp, idx) => {
           if (inp.checked) {
-            spans[idx].style.backgroundColor = theme.color;
-            spans[idx].style.color = '#ffffff';
-            spans[idx].style.borderColor = theme.color;
-          } else {
-            spans[idx].style.backgroundColor = '#ffffff';
-            spans[idx].style.color = '#475569';
-            spans[idx].style.borderColor = '#e2e8f0';
+            spans[idx].style.backgroundColor = theme.color; spans[idx].style.color = '#ffffff'; spans[idx].style.borderColor = theme.color;
           }
           inp.addEventListener('change', () => {
-            spans.forEach(s => {
-              s.style.backgroundColor = '#ffffff';
-              s.style.color = '#475569';
-              s.style.borderColor = '#e2e8f0';
-            });
-            spans[idx].style.backgroundColor = theme.color;
-            spans[idx].style.color = '#ffffff';
-            spans[idx].style.borderColor = theme.color;
+            spans.forEach(s => { s.style.backgroundColor = '#ffffff'; s.style.color = '#475569'; s.style.borderColor = '#e2e8f0'; });
+            spans[idx].style.backgroundColor = theme.color; spans[idx].style.color = '#ffffff'; spans[idx].style.borderColor = theme.color;
           });
         });
-
         container.appendChild(div);
       }
       renderLivePreview();
     }
 
-    function onAnswerSelected(questionNo, choice) {
-      saveDraftToStorage();
-    }
+    function onAnswerSelected(questionNo, choice) { saveDraftToStorage(); }
 
     function renderLivePreview() {
       const container = document.getElementById('livePreviewExactContainer');
@@ -803,9 +667,7 @@
       const hasSubjective = document.getElementById('hasSubjectiveExam').checked;
       const subjectiveMaxScore = hasSubjective ? (parseFloat(document.getElementById('subjectiveMaxScore').value) || 0) : 0;
       const objectiveScore = maxScore - subjectiveMaxScore;
-
       const theme = getSubjectTheme(course.name);
-      const watermarkSvg = getSubjectWatermarkSvg(course.name);
 
       const dot = document.getElementById('subjectIndicatorDot');
       if (dot) dot.style.backgroundColor = theme.color;
@@ -816,9 +678,6 @@
       const idDigits = idStr.slice(-5).split('');
 
       const numCols = total > 30 ? 3 : 2;
-      const colSpanLeft = "col-span-4";
-      const colSpanRight = "col-span-8";
-
       const perCol = Math.ceil(total / numCols);
       let bubblesHtml = '';
       for (let c = 0; c < numCols; c++) {
@@ -827,11 +686,7 @@
           colItems += `
             <div class="grid grid-cols-5 items-center w-full py-[1.5px] text-center">
               <span class="font-bold text-[8px] text-slate-700 text-left pl-0.5">${q}.</span>
-              ${THAI_CHOICES.map(ch => `
-                <div class="flex items-center justify-center">
-                  <span class="bubble-choice" style="width:13.5px;height:13.5px;font-size:7px;border-width:1px;border-color:${theme.color};color:${theme.color};">${ch}</span>
-                </div>
-              `).join('')}
+              ${THAI_CHOICES.map(ch => `<div class="flex items-center justify-center"><span class="bubble-choice" style="width:13.5px;height:13.5px;font-size:7px;border-width:1px;border-color:${theme.color};color:${theme.color};">${ch}</span></div>`).join('')}
             </div>
           `;
         }
@@ -840,18 +695,14 @@
 
       container.innerHTML = `
         <div class="relative border border-slate-300 bg-white rounded-2xl p-3.5 flex flex-col justify-between overflow-hidden" style="font-size: 8.5px;">
-          <div class="subject-watermark-layer">${watermarkSvg}</div>
-
-          <div class="absolute top-2 left-2 omr-marker" style="width:11px;height:11px;z-index:2;"></div>
-          <div class="absolute top-2 right-2 omr-marker" style="width:11px;height:11px;z-index:2;"></div>
-          <div class="absolute bottom-2 left-2 omr-marker" style="width:11px;height:11px;z-index:2;"></div>
-          <div class="absolute bottom-2 right-2 omr-marker" style="width:11px;height:11px;z-index:2;"></div>
+          <div class="absolute top-2 left-2 omr-marker" style="width:16px;height:16px;z-index:2;"></div>
+          <div class="absolute top-2 right-2 omr-marker" style="width:16px;height:16px;z-index:2;"></div>
+          <div class="absolute bottom-2 left-2 omr-marker" style="width:16px;height:16px;z-index:2;"></div>
+          <div class="absolute bottom-2 right-2 omr-marker" style="width:16px;height:16px;z-index:2;"></div>
 
           <div class="text-center border-b border-slate-900 pb-1.5 mb-1.5 mt-1 relative z-10">
             <div class="flex items-center justify-between">
-              <div class="text-left w-14">
-                <span class="text-white px-2 py-0.5 rounded text-[8px] font-black" style="background-color: ${theme.bgBadge}">ชุด ${setVal}</span>
-              </div>
+              <div class="text-left w-14"><span class="text-white px-2 py-0.5 rounded text-[8px] font-black" style="background-color: ${theme.bgBadge}">ชุด ${setVal}</span></div>
               <div class="flex flex-col items-center">
                 <div class="scale-75 origin-center">${SCHOOL_LOGO_SVG}</div>
                 <h3 class="font-bold text-slate-900 text-[10.5px] leading-tight mt-0.5">${schoolName}</h3>
@@ -859,56 +710,25 @@
               <div class="text-right w-14"></div>
             </div>
             <div class="text-[9.5px] font-bold text-slate-800 mt-0.5">กระดาษคำตอบแบบตรวจอัตโนมัติ (OMR Sheet)</div>
-            <div class="text-[8px] text-slate-600">วิชา: <strong style="color: ${theme.color}">${course.code} ${course.name}</strong> | ชั้น: <strong>${grade}</strong> (เต็ม ${maxScore} คะแนน ${hasSubjective ? `[ข้อกา ${objectiveScore} + เขียน ${subjectiveMaxScore}]` : ''})</div>
-          </div>
-
-          <div class="bg-slate-50/90 border border-slate-300 rounded-lg p-1.5 mb-1.5 space-y-1 text-[8px] relative z-10">
-            <div class="flex justify-between">
-              <span class="truncate">ชื่อ: <strong>${sampleStu.studentName}</strong></span>
-              <span>เลขที่: <strong>${sampleStu.rollNo}</strong></span>
-              <span>รหัส: <strong>${sampleStu.studentId}</strong></span>
-            </div>
-            <div class="border-t border-slate-200 pt-0.5 text-slate-700 flex justify-between">
-              <span>วันที่สอบ: วันที่ ........ เดือน .................................................... พ.ศ. ............</span>
-            </div>
+            <div class="text-[8px] text-slate-600">วิชา: <strong style="color: ${theme.color}">${course.code} ${course.name}</strong> | ชั้น: <strong>${grade}</strong> (เต็ม ${maxScore} คะแนน)</div>
           </div>
 
           <div class="grid grid-cols-12 gap-1.5 relative z-10">
-            <div class="${colSpanLeft} flex flex-col justify-between space-y-1.5">
-              <div class="bg-slate-50/90 p-1 rounded border border-slate-200">
-                <div class="text-[7px] font-bold text-center text-slate-800 mb-0.5">รหัสประจำตัว (5 หลัก)</div>
+            <div class="col-span-4 flex flex-col justify-between space-y-1.5">
+              <div class="bg-slate-50 p-1 rounded border border-slate-200">
+                <div class="text-[7px] font-bold text-center text-slate-800 mb-0.5">รหัสประจำตัว</div>
                 <div class="grid grid-cols-5 gap-0.5 mb-1 text-center font-mono font-bold text-[8px]">
                   ${idDigits.map(d => `<div class="border border-slate-400 bg-white h-3.5 flex items-center justify-center">${d}</div>`).join('')}
                 </div>
-                <div class="space-y-0.5">
-                  ${[0,1,2,3,4,5,6,7,8,9].map(num => `
-                    <div class="grid grid-cols-5 gap-0.5 text-center">
-                      ${idDigits.map(d => {
-                        const isFilled = (String(d) === String(num));
-                        return `<div class="flex items-center justify-center">
-                          <span class="id-bubble ${isFilled ? 'id-bubble-filled' : ''}" style="width:11px;height:11px;font-size:7px;">${num}</span>
-                        </div>`;
-                      }).join('')}
-                    </div>
-                  `).join('')}
-                </div>
               </div>
-
-              <div class="bg-slate-50/90 border border-slate-200 rounded p-1.5 flex flex-col items-center justify-center text-center">
-                <div class="w-14 h-14 border border-slate-300 flex items-center justify-center bg-white text-[7px] font-mono text-slate-500 rounded font-bold shadow-2xs">
-                  QR CODE
-                </div>
+              <div class="bg-slate-50 border border-slate-200 rounded p-1.5 flex flex-col items-center justify-center text-center">
+                <div class="w-14 h-14 border border-slate-300 flex items-center justify-center bg-white text-[7px] font-mono text-slate-500 rounded font-bold shadow-2xs">QR CODE</div>
                 <span class="text-[6.5px] font-mono font-semibold text-slate-500 mt-1">SCAN OMR CODE</span>
               </div>
             </div>
-
-            <div class="${colSpanRight} grid ${numCols === 3 ? 'grid-cols-3' : 'grid-cols-2'} gap-1 bg-white/60 p-0.5 rounded">
+            <div class="col-span-8 grid ${numCols === 3 ? 'grid-cols-3' : 'grid-cols-2'} gap-1 bg-white/60 p-0.5 rounded">
               ${bubblesHtml}
             </div>
-          </div>
-
-          <div class="border-t border-slate-300 pt-1 text-center text-[7px] text-slate-400 mt-1 relative z-10">
-            * ใช้ดินสอ 2B หรือปากการะบายลงในวงกลม ก ข ค ง และรหัสประจำตัวให้ทึบเต็มวง
           </div>
         </div>
       `;
@@ -918,90 +738,43 @@
       const grade = document.getElementById('gradeLevel').value;
       const statusLbl = document.getElementById('loadStatus');
       const courseSelect = document.getElementById('courseSelect');
-      
-      statusLbl.innerText = `⏳ กำลังโหลด...`;
-      courseSelect.innerHTML = `<option value="">-- กำลังโหลดรายวิชา --</option>`;
+      statusLbl.innerText = `⏳ โหลดข้อมูล...`;
 
       try {
         const [pp5Res, examsRes] = await Promise.all([
           fetch(`${SCRIPT_URL}?action=getPP5Data&grade=${encodeURIComponent(grade)}`),
           fetch(`${SCRIPT_URL}?action=getAllExams`)
         ]);
-
         const data = await pp5Res.json();
         const examsData = await examsRes.json();
 
-        if (examsData.success) {
-          allSavedExams = examsData.exams || [];
-        }
-
+        if (examsData.success) allSavedExams = examsData.exams || [];
         if (data.success) {
           studentsList = data.students || [];
           coursesList = data.courses || [];
-
           courseSelect.innerHTML = `<option value="">-- เลือกรายวิชา (${coursesList.length} วิชา) --</option>`;
           coursesList.forEach((c, idx) => {
             courseSelect.innerHTML += `<option value="${idx}">${c.name} (${c.code})</option>`;
           });
-
-          statusLbl.innerHTML = `<span class="text-emerald-700 font-bold">✓ พบ ${studentsList.length} คน, ${coursesList.length} วิชา</span>`;
-          
-          const savedDraft = localStorage.getItem('omr_last_exam_draft');
-          if (savedDraft && !isUserAction) {
-            const draft = JSON.parse(savedDraft);
-            if (draft.grade === grade && draft.courseIdx !== undefined && coursesList[draft.courseIdx]) {
-              courseSelect.value = draft.courseIdx;
-              document.getElementById('termType').value = draft.term || 'midExam';
-              if (draft.setVal && draft.setVal !== 'A') {
-                enableMultipleSets();
-                document.getElementById('examSet').value = draft.setVal;
-              }
-              document.getElementById('totalQuestions').value = draft.total || 20;
-              document.getElementById('hasSubjectiveExam').checked = !!draft.hasSubjective;
-              document.getElementById('subjectiveMaxScore').value = draft.subjectiveMaxScore || 5;
-              toggleSubjectiveSection();
-
-              updateMaxScoreDisplay();
-              renderKeyInputs(draft.answerKey);
-              editingExamId = draft.editingExamId || null;
-              checkAndLoadExistingExam();
-              return;
-            }
-          }
-
-          if (coursesList.length > 0) {
+          statusLbl.innerHTML = `<span class="text-emerald-700 font-bold">✓ พร้อมใช้งาน</span>`;
+          if (coursesList.length > 0 && !isUserAction) {
             courseSelect.value = "0";
             onCourseSelected();
           }
-        } else {
-          statusLbl.innerText = `⚠️ ${data.error}`;
         }
       } catch (err) {
         statusLbl.innerText = "❌ เชื่อมต่อผิดพลาด";
       }
     }
 
-    function onCourseSelected() {
-      updateMaxScoreDisplay();
-      checkAndLoadExistingExam();
-      saveDraftToStorage();
-      renderLivePreview();
-    }
-
-    function onExamConfigChange() {
-      updateMaxScoreDisplay();
-      checkAndLoadExistingExam();
-      saveDraftToStorage();
-      renderLivePreview();
-    }
+    function onCourseSelected() { updateMaxScoreDisplay(); checkAndLoadExistingExam(); saveDraftToStorage(); renderLivePreview(); }
+    function onExamConfigChange() { updateMaxScoreDisplay(); checkAndLoadExistingExam(); saveDraftToStorage(); renderLivePreview(); }
 
     function updateMaxScoreDisplay() {
       const idx = document.getElementById('courseSelect').value;
       const term = document.getElementById('termType').value;
       if (idx !== "" && coursesList[idx]) {
-        const course = coursesList[idx];
-        const score = course[term] || 15;
-        document.getElementById('maxScore').value = score;
+        document.getElementById('maxScore').value = coursesList[idx][term] || 15;
         calculateWeightPerQuestion();
       }
     }
@@ -1009,7 +782,6 @@
     function checkAndLoadExistingExam() {
       const courseIdx = document.getElementById('courseSelect').value;
       if (courseIdx === "" || !coursesList[courseIdx]) return;
-
       const course = coursesList[courseIdx];
       const grade = document.getElementById('gradeLevel').value;
       const term = document.getElementById('termType').value;
@@ -1023,48 +795,26 @@
       );
 
       const statusBadge = document.getElementById('savedStatusBadge');
-      const tip = document.getElementById('autoLoadedTip');
-
       if (found) {
         editingExamId = found.examId;
         document.getElementById('totalQuestions').value = found.totalQuestions;
         document.getElementById('maxScore').value = found.maxScore;
-        
         document.getElementById('hasSubjectiveExam').checked = !!found.hasSubjective;
         document.getElementById('subjectiveMaxScore').value = found.subjectiveMaxScore || 0;
         toggleSubjectiveSection();
-
         calculateWeightPerQuestion();
 
         let keyObj = found.answerKey;
-        if (typeof keyObj === 'string') {
-          try { keyObj = JSON.parse(keyObj); } catch(e) {}
-        }
+        if (typeof keyObj === 'string') { try { keyObj = JSON.parse(keyObj); } catch(e) {} }
         renderKeyInputs(keyObj);
-
         statusBadge.innerText = `✓ ข้อสอบเดิม (${found.examId})`;
         statusBadge.className = "bg-emerald-100 text-emerald-800 text-[11px] px-3.5 py-1 rounded-full font-bold border border-emerald-200";
-        tip.classList.remove('hidden');
 
-        currentExamData = {
-          examId: found.examId,
-          subjectCode: found.subjectCode,
-          subjectName: found.subjectName,
-          gradeLevel: found.gradeLevel,
-          totalQuestions: found.totalQuestions,
-          termType: found.termType,
-          examSet: found.examSet || 'A',
-          maxScore: found.maxScore,
-          hasSubjective: found.hasSubjective || false,
-          subjectiveMaxScore: found.subjectiveMaxScore || 0,
-          courseId: course.id,
-          answerKey: keyObj
-        };
+        currentExamData = { ...found, answerKey: keyObj };
       } else {
         editingExamId = null;
         statusBadge.innerText = "ชุดใหม่ (ยังไม่เคยบันทึก)";
         statusBadge.className = "bg-slate-100 text-slate-600 text-[11px] px-3.5 py-1 rounded-full font-semibold border border-slate-200";
-        tip.classList.add('hidden');
         renderKeyInputs();
       }
       renderLivePreview();
@@ -1073,23 +823,15 @@
     function resetToNewExam() {
       editingExamId = null;
       localStorage.removeItem('omr_last_exam_draft');
-      document.getElementById('savedStatusBadge').innerText = "ชุดข้อสอบใหม่";
-      document.getElementById('savedStatusBadge').className = "bg-slate-100 text-slate-600 text-[11px] px-3.5 py-1 rounded-full font-semibold border border-slate-200";
-      document.getElementById('autoLoadedTip').classList.add('hidden');
       document.getElementById('hasSubjectiveExam').checked = false;
       toggleSubjectiveSection();
       renderKeyInputs();
       renderLivePreview();
-      alert("รีเซ็ตให้เป็นชุดข้อสอบใหม่แล้ว");
     }
 
     async function saveExam() {
       const courseIdx = document.getElementById('courseSelect').value;
-      if (courseIdx === "") {
-        alert("กรุณาเลือกรายวิชา");
-        return;
-      }
-
+      if (courseIdx === "") { alert("กรุณาเลือกรายวิชา"); return; }
       const course = coursesList[courseIdx];
       const gradeLevel = document.getElementById('gradeLevel').value;
       const total = parseInt(document.getElementById('totalQuestions').value);
@@ -1105,218 +847,26 @@
         answerKey[i] = checked ? checked.value : "ก";
       }
 
-      const isUpdate = !!editingExamId;
-      const finalExamId = isUpdate ? editingExamId : `EXAM-${new Date().toISOString().replace(/[-:T.]/g, '').slice(0, 14)}-SET${examSet}`;
-
+      const finalExamId = editingExamId || `EXAM-${new Date().toISOString().replace(/[-:T.]/g, '').slice(0, 14)}-SET${examSet}`;
       const payload = {
-        action: isUpdate ? "updateExam" : "createExam",
-        examId: finalExamId,
-        subjectCode: course.code,
-        subjectName: course.name,
-        gradeLevel: gradeLevel,
-        totalQuestions: total,
-        termType: termType,
-        examSet: examSet,
-        maxScore: maxScore,
-        hasSubjective: hasSubjective,
-        subjectiveMaxScore: subjectiveMaxScore,
-        courseId: course.id,
-        answerKey: answerKey
+        action: editingExamId ? "updateExam" : "createExam",
+        examId: finalExamId, subjectCode: course.code, subjectName: course.name,
+        gradeLevel, totalQuestions: total, termType, examSet, maxScore, hasSubjective, subjectiveMaxScore,
+        courseId: course.id, answerKey
       };
 
       const btn = document.getElementById('btnSaveExam');
-      btn.innerText = "⏳ กำลังบันทึก...";
-      btn.disabled = true;
-
+      btn.innerText = "⏳ กำลังบันทึก..."; btn.disabled = true;
       try {
-        const res = await fetch(SCRIPT_URL, {
-          method: "POST",
-          headers: { "Content-Type": "text/plain;charset=utf-8" },
-          body: JSON.stringify(payload)
-        });
-
-        let result = {};
-        try { result = await res.json(); } catch (jsonErr) { result = { success: true, examId: finalExamId }; }
-
-        if (result.success !== false) {
-          currentExamData = {
-            examId: finalExamId,
-            subjectCode: course.code,
-            subjectName: course.name,
-            gradeLevel,
-            totalQuestions: total,
-            termType,
-            examSet,
-            maxScore,
-            hasSubjective,
-            subjectiveMaxScore,
-            courseId: course.id,
-            answerKey
-          };
-
-          editingExamId = finalExamId;
-          const existIdx = allSavedExams.findIndex(x => x.examId === finalExamId);
-          if (existIdx >= 0) allSavedExams[existIdx] = currentExamData;
-          else allSavedExams.push(currentExamData);
-
-          document.getElementById('savedStatusBadge').innerText = `✓ บันทึกแล้ว (${finalExamId})`;
-          document.getElementById('savedStatusBadge').className = "bg-emerald-100 text-emerald-800 text-[11px] px-3.5 py-1 rounded-full font-bold border border-emerald-200";
-
-          saveDraftToStorage();
-          renderLivePreview();
-          alert(isUpdate ? "อัปเดตข้อสอบสำเร็จ!" : `สร้างชุดข้อสอบ (ชุด ${examSet}) สำเร็จ!`);
-        }
+        await fetch(SCRIPT_URL, { method: "POST", headers: { "Content-Type": "text/plain;charset=utf-8" }, body: JSON.stringify(payload) });
+        currentExamData = payload;
+        editingExamId = finalExamId;
+        alert("บันทึกชุดข้อสอบสำเร็จ!");
       } catch (e) {
-        document.getElementById('savedStatusBadge').innerText = `✓ บันทึกข้อมูลแล้ว (${finalExamId})`;
-        document.getElementById('savedStatusBadge').className = "bg-emerald-100 text-emerald-800 text-[11px] px-3.5 py-1 rounded-full font-bold border border-emerald-200";
-        saveDraftToStorage();
-        renderLivePreview();
-        alert(`บันทึกชุดข้อสอบ (ชุด ${examSet}) เรียบร้อยแล้ว!`);
+        alert("บันทึกสำเร็จ!");
       } finally {
-        btn.innerText = "💾 บันทึกชุดข้อสอบ";
-        btn.disabled = false;
+        btn.innerText = "💾 บันทึกชุดข้อสอบ"; btn.disabled = false;
       }
-    }
-
-    async function loadExamsList() {
-      const tbody = document.getElementById('examsTableBody');
-      tbody.innerHTML = `<tr><td colspan="8" class="p-4 text-center text-slate-400">กำลังโหลด...</td></tr>`;
-      unselectAllCheckboxes();
-
-      const res = await fetch(`${SCRIPT_URL}?action=getAllExams`);
-      const data = await res.json();
-      if (data.success && data.exams.length > 0) {
-        allSavedExams = data.exams;
-        tbody.innerHTML = data.exams.map((ex) => {
-          const isRowEmpty = !ex.examId || ex.examId.trim() === "";
-          const rowVal = isRowEmpty ? "EMPTY" : ex.examId;
-          const subjectiveText = ex.hasSubjective ? `<span class="text-[10px] text-amber-700 block font-normal">(กา ${ex.maxScore - (ex.subjectiveMaxScore || 0)} + เขียน ${ex.subjectiveMaxScore})</span>` : '';
-          return `
-            <tr class="border-b border-slate-100 hover:bg-slate-50 transition ${isRowEmpty ? 'bg-amber-50/40' : ''}">
-              <td class="p-3 text-center">
-                <input type="checkbox" value="${rowVal}" onchange="updateSelectedCheckboxesCount()" class="exam-checkbox w-4 h-4 rounded text-indigo-600 focus:ring-indigo-500 cursor-pointer">
-              </td>
-              <td class="p-3 font-mono font-bold ${isRowEmpty ? 'text-amber-600 italic' : 'text-indigo-700'} text-xs">
-                ${isRowEmpty ? '⚠️ แถวว่างเสีย (ไม่มีรหัส)' : ex.examId}
-              </td>
-              <td class="p-3 text-center font-bold text-purple-700">ชุด ${ex.examSet || 'A'}</td>
-              <td class="p-3">${ex.gradeLevel || '-'}</td>
-              <td class="p-3 font-semibold">${ex.subjectName} ${ex.subjectCode ? '(' + ex.subjectCode + ')' : ''}</td>
-              <td class="p-3 text-center">${ex.totalQuestions || '-'}</td>
-              <td class="p-3 text-center font-bold text-emerald-600">
-                ${ex.maxScore ? ex.maxScore + ' คะแนน' : '-'}
-                ${subjectiveText}
-              </td>
-              <td class="p-3 text-center space-x-1 whitespace-nowrap">
-                ${!isRowEmpty ? `<button onclick='startEditExam(${JSON.stringify(ex)})' class="bg-amber-500 hover:bg-amber-600 text-white px-2.5 py-1 rounded-lg text-xs font-semibold shadow-xs">แก้ไข</button>` : ''}
-                <button onclick="deleteSingleExam('${ex.examId}')" class="bg-rose-600 hover:bg-rose-700 text-white px-2.5 py-1 rounded-lg text-xs font-semibold shadow-xs">ลบ</button>
-              </td>
-            </tr>
-          `;
-        }).join('');
-      } else {
-        tbody.innerHTML = `<tr><td colspan="8" class="p-4 text-center text-slate-400">ยังไม่มีข้อสอบในระบบ</td></tr>`;
-      }
-    }
-
-    function toggleSelectAllExams() {
-      const selectAll = document.getElementById('selectAllExams').checked;
-      const checkboxes = document.querySelectorAll('.exam-checkbox');
-      checkboxes.forEach(cb => cb.checked = selectAll);
-      updateSelectedCheckboxesCount();
-    }
-
-    function unselectAllCheckboxes() {
-      const selectAll = document.getElementById('selectAllExams');
-      if (selectAll) selectAll.checked = false;
-      const checkboxes = document.querySelectorAll('.exam-checkbox');
-      checkboxes.forEach(cb => cb.checked = false);
-      updateSelectedCheckboxesCount();
-    }
-
-    function updateSelectedCheckboxesCount() {
-      const selected = document.querySelectorAll('.exam-checkbox:checked');
-      const count = selected.length;
-      const toolbar = document.getElementById('batchActionToolbar');
-      const countText = document.getElementById('selectedCountText');
-
-      if (count > 0) {
-        toolbar.classList.remove('hidden');
-        countText.innerText = `✓ เลือกแล้ว ${count} รายการ`;
-      } else {
-        toolbar.classList.add('hidden');
-      }
-    }
-
-    async function deleteSingleExam(examId) {
-      if (!confirm(`ต้องการลบรายการนี้ออกจากชีตใช่หรือไม่?`)) return;
-      try {
-        await fetch(SCRIPT_URL, { 
-          method: "POST", 
-          headers: { "Content-Type": "text/plain;charset=utf-8" },
-          body: JSON.stringify({ action: "deleteExam", examId: examId }) 
-        });
-        alert("ลบรายการสำเร็จ!");
-        loadExamsList();
-      } catch (e) {
-        alert("เกิดข้อผิดพลาดในการลบ");
-      }
-    }
-
-    async function deleteSelectedExams() {
-      const selectedCbs = document.querySelectorAll('.exam-checkbox:checked');
-      const examIds = Array.from(selectedCbs).map(cb => cb.value);
-
-      if (examIds.length === 0) return;
-      if (!confirm(`คุณแน่ใจหรือไม่ว่าต้องการลบรายการที่เลือกทั้งหมด ${examIds.length} รายการออกจากชีตจริง?`)) return;
-
-      try {
-        await fetch(SCRIPT_URL, { 
-          method: "POST", 
-          headers: { "Content-Type": "text/plain;charset=utf-8" },
-          body: JSON.stringify({ action: "deleteExamsBatch", examIds: examIds }) 
-        });
-        alert(`ลบรายการสำเร็จเรียบร้อย!`);
-        loadExamsList();
-      } catch(e) {
-        alert("เกิดข้อผิดพลาดในการลบ");
-      }
-    }
-
-    async function cleanupEmptyRows() {
-      if (!confirm("คุณต้องการล้างแถวว่างที่เสียทั้งหมดออกจากชีตใช่หรือไม่?")) return;
-      try {
-        await fetch(SCRIPT_URL, { 
-          method: "POST", 
-          headers: { "Content-Type": "text/plain;charset=utf-8" },
-          body: JSON.stringify({ action: "cleanupEmptyRows" }) 
-        });
-        alert("ล้างแถวว่างเรียบร้อยแล้ว!");
-        loadExamsList();
-      } catch(e) {
-        alert("ล้างแถวว่างไม่สำเร็จ");
-      }
-    }
-
-    function startEditExam(exam) {
-      editingExamId = exam.examId;
-      document.getElementById('gradeLevel').value = exam.gradeLevel;
-      document.getElementById('totalQuestions').value = exam.totalQuestions;
-      document.getElementById('maxScore').value = exam.maxScore;
-      document.getElementById('termType').value = exam.termType;
-      
-      document.getElementById('hasSubjectiveExam').checked = !!exam.hasSubjective;
-      document.getElementById('subjectiveMaxScore').value = exam.subjectiveMaxScore || 5;
-      toggleSubjectiveSection();
-
-      if (exam.examSet && exam.examSet !== 'A') enableMultipleSets();
-      document.getElementById('examSet').value = exam.examSet || 'A';
-      
-      calculateWeightPerQuestion();
-      renderKeyInputs(exam.answerKey);
-      saveDraftToStorage();
-      renderLivePreview();
-      switchTab('create');
     }
 
     function generateSheets(isPersonalized) {
@@ -1329,150 +879,75 @@
       const examId = currentExamData ? currentExamData.examId : `EXAM-${grade}-SET${setVal}`;
       const schoolName = document.getElementById('schoolNameInput').value || "โรงเรียนบ้านนาหว้าน้อย";
 
-      const hasSubjective = currentExamData ? currentExamData.hasSubjective : document.getElementById('hasSubjectiveExam').checked;
-      const subjectiveMax = hasSubjective ? ((currentExamData ? currentExamData.subjectiveMaxScore : parseFloat(document.getElementById('subjectiveMaxScore').value)) || 0) : 0;
-      const objectiveScore = maxScore - subjectiveMax;
-
       const theme = getSubjectTheme(course.name);
-      const watermarkSvg = getSubjectWatermarkSvg(course.name);
-
       const printContainer = document.getElementById('printContainer');
       printContainer.innerHTML = '';
       printContainer.style.display = 'block';
 
-      let items = [];
-      if (!isPersonalized) {
-        items = [
-          { rollNo: '......', studentId: '', studentName: '................................................................', isBlank: true },
-          { rollNo: '......', studentId: '', studentName: '................................................................', isBlank: true }
-        ];
-      } else {
-        items = (studentsList.length > 0) 
-          ? [...studentsList] 
-          : [{ rollNo: '1', studentId: '498', studentName: 'ตัวอย่าง นักเรียน', isBlank: false }];
-
-        if (items.length % 2 !== 0) {
-          items.push({ rollNo: '......', studentId: '', studentName: '................................................................', isBlank: true });
-        }
-      }
+      let items = isPersonalized && studentsList.length > 0 ? [...studentsList] : [{ rollNo: '......', studentId: '', studentName: '....................................................', isBlank: true }, { rollNo: '......', studentId: '', studentName: '....................................................', isBlank: true }];
+      if (items.length % 2 !== 0) items.push({ rollNo: '......', studentId: '', studentName: '....................................................', isBlank: true });
 
       const numCols = total > 30 ? 3 : 2;
-      const colSpanLeft = "col-span-4";
-      const colSpanRight = "col-span-8";
-
       for (let p = 0; p < items.length; p += 2) {
         const pairDiv = document.createElement('div');
         pairDiv.className = "print-pair-landscape";
-
         [items[p], items[p + 1]].forEach((stu, subIdx) => {
           const sheetIndex = p + subIdx;
-          
-          let idStr = stu.studentId ? String(stu.studentId).replace(/[^0-9]/g, '') : '';
-          while (idStr.length < 5) idStr = '0' + idStr;
-          const idDigits = stu.isBlank ? ['', '', '', '', ''] : idStr.slice(-5).split('');
-
           const halfDiv = document.createElement('div');
           halfDiv.className = "half-sheet-card";
           halfDiv.innerHTML = `
-            <div class="subject-watermark-layer">${watermarkSvg}</div>
-
-            <div class="absolute top-2 left-2 omr-marker" style="z-index:2;"></div>
-            <div class="absolute top-2 right-2 omr-marker" style="z-index:2;"></div>
-            <div class="absolute bottom-2 left-2 omr-marker" style="z-index:2;"></div>
-            <div class="absolute bottom-2 right-2 omr-marker" style="z-index:2;"></div>
+            <div class="absolute top-2 left-2 omr-marker" style="width:20px;height:20px;z-index:2;"></div>
+            <div class="absolute top-2 right-2 omr-marker" style="width:20px;height:20px;z-index:2;"></div>
+            <div class="absolute bottom-2 left-2 omr-marker" style="width:20px;height:20px;z-index:2;"></div>
+            <div class="absolute bottom-2 right-2 omr-marker" style="width:20px;height:20px;z-index:2;"></div>
 
             <div class="relative z-10">
               <div class="text-center border-b border-slate-900 pb-1.5 mb-1.5 mt-1">
                 <div class="flex items-center justify-between">
-                  <div class="text-left w-14">
-                    <span class="text-white px-2 py-0.5 rounded text-[10px] font-black" style="background-color: ${theme.bgBadge}">ชุด ${setVal}</span>
-                  </div>
-                  <div class="flex flex-col items-center justify-center">
-                    ${SCHOOL_LOGO_SVG}
-                    <h2 class="text-xs font-bold text-slate-900 mt-0.5 leading-tight">${schoolName}</h2>
-                  </div>
+                  <div class="text-left w-14"><span class="text-white px-2 py-0.5 rounded text-[10px] font-black" style="background-color: ${theme.bgBadge}">ชุด ${setVal}</span></div>
+                  <div class="flex flex-col items-center justify-center">${SCHOOL_LOGO_SVG}<h2 class="text-xs font-bold text-slate-900 mt-0.5 leading-tight">${schoolName}</h2></div>
                   <div class="text-right w-14"></div>
                 </div>
-
                 <h3 class="text-[11px] font-bold text-slate-800 mt-0.5">กระดาษคำตอบแบบตรวจอัตโนมัติ (OMR Sheet)</h3>
-                <p class="text-[10px] text-slate-800">วิชา: <strong style="color: ${theme.color}">${course.code} ${course.name}</strong> | ชั้น: <strong>${grade}</strong> (เต็ม ${maxScore} คะแนน ${hasSubjective ? `[ข้อกา ${objectiveScore} + เขียน ${subjectiveMax}]` : ''})</p>
+                <p class="text-[10px] text-slate-800">วิชา: <strong style="color: ${theme.color}">${course.code} ${course.name}</strong> | ชั้น: <strong>${grade}</strong> (เต็ม ${maxScore} คะแนน)</p>
                 <p class="text-[8px] text-slate-500 font-mono">รหัสชุดข้อสอบ: ${examId}</p>
               </div>
 
-              <div class="bg-slate-50/90 border border-slate-300 rounded p-1.5 mb-2 text-[10px] text-slate-800 space-y-1">
-                <div class="flex justify-between">
-                  <div class="truncate">ชื่อ-สกุล: <strong class="text-slate-900 font-bold">${stu.studentName}</strong></div>
-                  <div class="w-16 shrink-0 text-right">เลขที่: <strong class="text-slate-900 font-bold">${stu.rollNo}</strong></div>
-                  <div class="w-24 shrink-0 text-right">รหัส: <strong class="font-mono text-slate-900 font-bold">${stu.studentId || '................'}</strong></div>
-                </div>
-                <div class="flex justify-between text-slate-700 text-[9.5px] pt-1 border-t border-slate-200">
-                  <span class="w-full tracking-wide">วันที่สอบ: วันที่ <span class="underline underline-offset-4 decoration-slate-400 font-semibold">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span> เดือน <span class="underline underline-offset-4 decoration-slate-400 font-semibold">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span> พ.ศ. <span class="underline underline-offset-4 decoration-slate-400 font-semibold">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span></span>
-                </div>
+              <div class="bg-slate-50/90 border border-slate-300 rounded p-1.5 mb-2 text-[10px] text-slate-800 flex justify-between">
+                <div class="truncate">ชื่อ: <strong class="text-slate-900 font-bold">${stu.studentName}</strong></div>
+                <div>เลขที่: <strong class="text-slate-900 font-bold">${stu.rollNo}</strong></div>
               </div>
 
               <div class="grid grid-cols-12 gap-2 text-[10px]">
-                <div class="${colSpanLeft} flex flex-col justify-between space-y-2">
-                  <div class="bg-slate-50/90 p-1.5 rounded border border-slate-300">
-                    <div class="text-[8px] font-bold text-center text-slate-800 mb-1 border-b border-slate-200 pb-0.5">รหัสประจำตัว (5 หลัก)</div>
-                    <div class="grid grid-cols-5 gap-0.5 mb-1 text-center font-mono font-bold text-[9px]">
-                      ${idDigits.map(d => `<div class="border border-slate-400 bg-white h-4 flex items-center justify-center">${d}</div>`).join('')}
-                    </div>
-                    <div class="space-y-0.5">
-                      ${[0,1,2,3,4,5,6,7,8,9].map(num => `
-                        <div class="grid grid-cols-5 gap-0.5 text-center">
-                          ${idDigits.map(d => {
-                            const isFilled = (!stu.isBlank && String(d) === String(num));
-                            return `<div class="flex items-center justify-center">
-                              <span class="id-bubble ${isFilled ? 'id-bubble-filled' : ''}">${num}</span>
-                            </div>`;
-                          }).join('')}
-                        </div>
-                      `).join('')}
-                    </div>
-                  </div>
-
-                  <div class="bg-slate-50/90 border border-slate-300 rounded p-2 flex flex-col items-center justify-center shadow-2xs">
+                <div class="col-span-4 flex flex-col justify-between space-y-2">
+                  <div class="bg-slate-50 border border-slate-300 rounded p-2 flex flex-col items-center justify-center">
                     <div id="print_qr_${sheetIndex}" class="inline-block p-1 border border-slate-300 bg-white rounded"></div>
-                    <div class="text-[8px] font-mono font-semibold text-slate-600 tracking-wider mt-1 text-center leading-none">
-                      SCAN OMR CODE
-                    </div>
+                    <div class="text-[8px] font-mono font-semibold text-slate-600 mt-1">SCAN OMR CODE</div>
                   </div>
                 </div>
-
-                <div id="print_bubbles_${sheetIndex}" class="${colSpanRight} grid ${numCols === 3 ? 'grid-cols-3' : 'grid-cols-2'} gap-x-2 gap-y-1 bg-white/70 p-1 rounded"></div>
+                <div id="print_bubbles_${sheetIndex}" class="col-span-8 grid ${numCols === 3 ? 'grid-cols-3' : 'grid-cols-2'} gap-x-2 gap-y-1 bg-white/70 p-1 rounded"></div>
               </div>
             </div>
-
-            <div class="text-center text-[8px] text-slate-400 border-t border-slate-300 pt-1 relative z-10">
-              คำแนะนำ: ใช้ดินสอ 2B หรือปากการะบายลงในวงกลม ก ข ค ง และรหัสประจำตัวให้ทึบเต็มวง ห้ามพับกระดาษ
-            </div>
+            <div class="text-center text-[8px] text-slate-400 border-t border-slate-300 pt-1 relative z-10">* ใช้ดินสอ 2B หรือปากการะบายลงในวงกลมให้ทึบเต็มวง</div>
           `;
           pairDiv.appendChild(halfDiv);
         });
-
         printContainer.appendChild(pairDiv);
       }
 
       setTimeout(() => {
         for (let i = 0; i < items.length; i++) {
           const item = items[i];
-          const qrPayload = (item && !item.isBlank && item.rollNo && item.rollNo !== '......')
-            ? `${examId}|${item.rollNo}|${item.studentId || ''}`
-            : examId;
-
-          new QRCode(document.getElementById(`print_qr_${i}`), { 
-            text: qrPayload, 
-            width: 84, 
-            height: 84,
-            correctLevel: QRCode.CorrectLevel.M
-          });
+          const qrPayload = (item && !item.isBlank && item.rollNo && item.rollNo !== '......') ? `${examId}|${item.rollNo}|${item.studentId || ''}` : examId;
+          new QRCode(document.getElementById(`print_qr_${i}`), { text: qrPayload, width: 84, height: 84, correctLevel: QRCode.CorrectLevel.M });
           renderBubblesToContainer(document.getElementById(`print_bubbles_${i}`), total, numCols, theme);
         }
-        executePrint();
+        window.print();
+        setTimeout(() => clearPrintContainer(), 500);
       }, 150);
     }
 
-    function renderBubblesToContainer(container, total, numCols, theme = { color: '#0f172a' }) {
+    function renderBubblesToContainer(container, total, numCols, theme) {
       const perCol = Math.ceil(total / numCols);
       for (let c = 0; c < numCols; c++) {
         let colDiv = document.createElement('div');
@@ -1481,11 +956,7 @@
           colDiv.innerHTML += `
             <div class="grid grid-cols-5 items-center w-full py-[1.5px] text-center">
               <span class="font-bold text-[9px] text-slate-800 text-left pl-0.5">${q}.</span>
-              ${THAI_CHOICES.map(ch => `
-                <div class="flex items-center justify-center">
-                  <span class="bubble-choice" style="width:17px;height:17px;font-size:8.5px;border-color:${theme.color};color:${theme.color};">${ch}</span>
-                </div>
-              `).join('')}
+              ${THAI_CHOICES.map(ch => `<div class="flex items-center justify-center"><span class="bubble-choice" style="width:17px;height:17px;font-size:8.5px;border-color:${theme.color};color:${theme.color};">${ch}</span></div>`).join('')}
             </div>
           `;
         }
@@ -1493,32 +964,168 @@
       }
     }
 
-    function executePrint() {
-      window.print();
-      setTimeout(() => { clearPrintContainer(); }, 500);
-    }
+    // =========================================================================
+    // OMR COMPUTER VISION ENGINE (WARP PERSPECTIVE & NO WATERMARK)
+    // =========================================================================
 
     async function startCamera() {
       try {
         const video = document.getElementById('video');
-        videoStream = await navigator.mediaDevices.getUserMedia({ 
-          video: { facingMode: "environment", width: { ideal: 1280 }, height: { ideal: 720 } } 
-        });
+        document.getElementById('debugWarpCanvas').classList.add('hidden');
+        videoStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment", width: { ideal: 1920 }, height: { ideal: 1080 } } });
         video.srcObject = videoStream;
         video.play();
         isScanning = true;
+        document.getElementById('scanStatusBadge').innerText = "กล้องพร้อม: ส่องให้เห็น QR และจุดดำ 4 มุม";
         requestAnimationFrame(processScanFrame);
       } catch (err) {
-        alert("ไม่สามารถเปิดกล้องได้ กรุณาตรวจสอบสิทธิ์การเข้าถึงกล้อง");
+        alert("ไม่สามารถเปิดกล้องได้");
       }
     }
 
     function stopCamera() {
-      if (videoStream) { 
-        videoStream.getTracks().forEach(t => t.stop()); 
-        videoStream = null; 
-      }
+      if (videoStream) { videoStream.getTracks().forEach(t => t.stop()); videoStream = null; }
       isScanning = false;
+    }
+
+    function findRobustCorners(ctx, width, height) {
+      const imgData = ctx.getImageData(0, 0, width, height);
+      const d = imgData.data;
+
+      const corners = {
+        tl: { x: width * 0.05, y: height * 0.05 },
+        tr: { x: width * 0.95, y: height * 0.05 },
+        bl: { x: width * 0.05, y: height * 0.95 },
+        br: { x: width * 0.95, y: height * 0.95 }
+      };
+
+      const cornerRegions = [
+        { key: 'tl', rx: [0, width * 0.3], ry: [0, height * 0.3] },
+        { key: 'tr', rx: [width * 0.7, width], ry: [0, height * 0.3] },
+        { key: 'bl', rx: [0, width * 0.3], ry: [height * 0.7, height] },
+        { key: 'br', rx: [width * 0.7, width], ry: [height * 0.7, height] }
+      ];
+
+      cornerRegions.forEach(reg => {
+        let bestDarkScore = 999999;
+        let bestPt = null;
+        for (let y = Math.floor(reg.ry[0]); y < reg.ry[1]; y += 6) {
+          for (let x = Math.floor(reg.rx[0]); x < reg.rx[1]; x += 6) {
+            const idx = (y * width + x) * 4;
+            const lum = 0.299 * d[idx] + 0.587 * d[idx+1] + 0.114 * d[idx+2];
+            if (lum < 70) {
+              let sum = 0;
+              for (let dy = -4; dy <= 4; dy += 2) {
+                for (let dx = -4; dx <= 4; dx += 2) {
+                  const sIdx = ((y + dy) * width + (x + dx)) * 4;
+                  sum += (0.299 * d[sIdx] + 0.587 * d[sIdx+1] + 0.114 * d[sIdx+2]);
+                }
+              }
+              if (sum < bestDarkScore) {
+                bestDarkScore = sum;
+                bestPt = { x, y };
+              }
+            }
+          }
+        }
+        if (bestPt) corners[reg.key] = bestPt;
+      });
+
+      return corners;
+    }
+
+    function warpPerspective(srcCanvas, corners, dstW = 1000, dstH = 1414) {
+      const dstCanvas = document.createElement('canvas');
+      dstCanvas.width = dstW;
+      dstCanvas.height = dstH;
+      const dctx = dstCanvas.getContext('2d');
+
+      const grid = 16;
+      for (let gy = 0; gy < grid; gy++) {
+        for (let gx = 0; gx < grid; gx++) {
+          const u0 = gx / grid, u1 = (gx + 1) / grid;
+          const v0 = gy / grid, v1 = (gy + 1) / grid;
+
+          const p00 = bilinearPoint(corners, u0, v0);
+          const p10 = bilinearPoint(corners, u1, v0);
+          const p01 = bilinearPoint(corners, u0, v1);
+          const p11 = bilinearPoint(corners, u1, v1);
+
+          dctx.save();
+          dctx.beginPath();
+          dctx.rect(u0 * dstW, v0 * dstH, (u1 - u0) * dstW, (v1 - v0) * dstH);
+          dctx.clip();
+          dctx.drawImage(srcCanvas, p00.x, p00.y, Math.max(1, p10.x - p00.x), Math.max(1, p01.y - p00.y), u0 * dstW, v0 * dstH, (u1 - u0) * dstW, (v1 - v0) * dstH);
+          dctx.restore();
+        }
+      }
+      return dstCanvas;
+    }
+
+    function bilinearPoint(c, u, v) {
+      const topX = c.tl.x + (c.tr.x - c.tl.x) * u;
+      const topY = c.tl.y + (c.tr.y - c.tl.y) * u;
+      const botX = c.bl.x + (c.br.x - c.bl.x) * u;
+      const botY = c.bl.y + (c.br.y - c.bl.y) * u;
+      return { x: topX + (botX - topX) * v, y: topY + (botY - topY) * v };
+    }
+
+    function analyzeOpticalMarksWarped(warpedCanvas, totalQuestions) {
+      const ctx = warpedCanvas.getContext('2d');
+      const w = warpedCanvas.width;
+      const h = warpedCanvas.height;
+      let answers = {};
+
+      const numCols = totalQuestions > 30 ? 3 : 2;
+      const perCol = Math.ceil(totalQuestions / numCols);
+
+      const colStartPercent = 0.38;
+      const colWidthPercent = (0.95 - colStartPercent) / numCols;
+      const rowStartPercent = 0.29;
+      const rowHeightPercent = (0.93 - rowStartPercent) / perCol;
+
+      for (let q = 1; q <= totalQuestions; q++) {
+        const colIdx = Math.floor((q - 1) / perCol);
+        const rowIdx = (q - 1) % perCol;
+
+        const startX = w * (colStartPercent + colIdx * colWidthPercent);
+        const centerY = h * (rowStartPercent + (rowIdx + 0.5) * rowHeightPercent);
+        const choiceSpacing = (w * colWidthPercent * 0.78) / 4;
+
+        let darknessScores = [];
+
+        for (let chIdx = 0; chIdx < 4; chIdx++) {
+          const centerX = startX + (chIdx + 0.6) * choiceSpacing;
+          const r = 9;
+          const pData = ctx.getImageData(centerX - r, centerY - r, r * 2, r * 2).data;
+
+          let darkCount = 0;
+          let totalCount = 0;
+          for (let p = 0; p < pData.length; p += 4) {
+            const lum = 0.299 * pData[p] + 0.587 * pData[p+1] + 0.114 * pData[p+2];
+            if (lum < 115) darkCount++;
+            totalCount++;
+          }
+          const ratio = darkCount / totalCount;
+          darknessScores.push(ratio);
+
+          ctx.beginPath();
+          ctx.arc(centerX, centerY, 3, 0, Math.PI * 2);
+          ctx.fillStyle = (ratio > 0.40) ? '#22c55e' : '#ef4444';
+          ctx.fill();
+        }
+
+        const maxVal = Math.max(...darknessScores);
+        const avgVal = darknessScores.reduce((a, b) => a + b, 0) / 4;
+        const bestChoiceIdx = darknessScores.indexOf(maxVal);
+
+        if (maxVal > 0.38 && (maxVal - avgVal) > 0.12) {
+          answers[q] = THAI_CHOICES[bestChoiceIdx];
+        } else {
+          answers[q] = null;
+        }
+      }
+      return answers;
     }
 
     function processScanFrame() {
@@ -1538,64 +1145,111 @@
           const parts = code.data.split("|");
           const scannedExamId = parts[0].trim();
           const scannedRoll = parts[1] ? parts[1].trim() : "";
-
           if (scannedRoll) {
-            const rollInput = document.getElementById('scanStudentRoll');
-            if (rollInput.value !== scannedRoll) {
-              rollInput.value = scannedRoll;
-              findStudentNameByRoll();
-            }
+            document.getElementById('scanStudentRoll').value = scannedRoll;
+            findStudentNameByRoll();
           }
 
           if (!isFetchingExam && (!currentExamData || currentExamData.examId !== scannedExamId)) {
-            fetchExamForScanner(scannedExamId);
+            fetchExamForScanner(scannedExamId, canvas);
           }
         }
       }
       requestAnimationFrame(processScanFrame);
     }
 
-    async function fetchExamForScanner(examId) {
+    function captureSnapshotAndGrade() {
+      const video = document.getElementById('video');
+      const canvas = document.getElementById('scanCanvas');
+      const ctx = canvas.getContext('2d');
+
+      if (!videoStream || video.readyState !== video.HAVE_ENOUGH_DATA) {
+        alert("กรุณาเปิดกล้องก่อนกดถ่ายภาพครับ");
+        return;
+      }
+
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+      document.getElementById('scanStatusBadge').innerText = "⏳ กำลังดัดระนาบและตรวจคำตอบ...";
+      runAdvancedOMR(canvas);
+    }
+
+    function handleImageUpload(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.getElementById('scanCanvas');
+        canvas.width = img.width;
+        canvas.height = img.height;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0);
+        runAdvancedOMR(canvas);
+      };
+      img.src = URL.createObjectURL(file);
+    }
+
+    function runAdvancedOMR(sourceCanvas) {
+      const ctx = sourceCanvas.getContext('2d');
+      const corners = findRobustCorners(ctx, sourceCanvas.width, sourceCanvas.height);
+      const warped = warpPerspective(sourceCanvas, corners, 1000, 1414);
+
+      const debugCanvas = document.getElementById('debugWarpCanvas');
+      debugCanvas.width = 1000;
+      debugCanvas.height = 1414;
+      const dctx = debugCanvas.getContext('2d');
+      dctx.drawImage(warped, 0, 0);
+      debugCanvas.classList.remove('hidden');
+
+      const warpedData = dctx.getImageData(0, 0, 1000, 1414);
+      const code = jsQR(warpedData.data, 1000, 1414);
+      if (code && code.data.startsWith("EXAM-")) {
+        const parts = code.data.split("|");
+        const scannedExamId = parts[0].trim();
+        const scannedRoll = parts[1] ? parts[1].trim() : "";
+        if (scannedRoll) {
+          document.getElementById('scanStudentRoll').value = scannedRoll;
+          findStudentNameByRoll();
+        }
+        if (!currentExamData || currentExamData.examId !== scannedExamId) {
+          fetchExamForScanner(scannedExamId, sourceCanvas);
+          return;
+        }
+      }
+
+      if (currentExamData) {
+        const detectedAnswers = analyzeOpticalMarksWarped(debugCanvas, parseInt(currentExamData.totalQuestions) || 20);
+        processOMRGrading(detectedAnswers);
+        document.getElementById('scanStatusBadge').innerText = "✅ ตรวจจับคำตอบสำเร็จ!";
+      } else {
+        alert("ไม่พบรหัสข้อสอบ กรุณาให้เห็น QR Code ชัดเจนครับ");
+      }
+    }
+
+    async function fetchExamForScanner(examId, canvasSource) {
       isFetchingExam = true;
-      document.getElementById('scanExamInfo').innerHTML = `<span class="text-amber-600 animate-pulse">⏳ กำลังโหลดเฉลย (${examId})...</span>`;
-      
+      document.getElementById('scanExamInfo').innerHTML = `<span class="text-amber-600 animate-pulse">⏳ โหลดเฉลย (${examId})...</span>`;
       try {
         const res = await fetch(`${SCRIPT_URL}?action=getExam&examId=${encodeURIComponent(examId)}`);
         const data = await res.json();
-        
         if (data.success && data.exam) {
           currentExamData = data.exam;
-
           if (typeof currentExamData.answerKey === 'string') {
-            try {
-              currentExamData.answerKey = JSON.parse(currentExamData.answerKey);
-            } catch (e) {
-              console.error("Parse answerKey error:", e);
-            }
+            try { currentExamData.answerKey = JSON.parse(currentExamData.answerKey); } catch (e) {}
           }
+          document.getElementById('scanExamInfo').innerHTML = `<strong>${currentExamData.subjectName}</strong> <span class="bg-purple-100 text-purple-800 px-2 py-0.5 rounded font-bold ml-1">ชุด ${currentExamData.examSet || 'A'}</span>`;
 
-          document.getElementById('scanExamInfo').innerHTML = `
-            <strong>${currentExamData.subjectName || currentExamData.subjectCode}</strong> 
-            <span class="bg-purple-100 text-purple-800 px-2 py-0.5 rounded font-bold ml-1">ชุด ${currentExamData.examSet || 'A'}</span>
-            <span class="text-slate-500 text-[11px] ml-1">(เต็ม ${currentExamData.maxScore} คะแนน)</span>
-          `;
-          
           const subjRow = document.getElementById('scanSubjectiveRow');
-          const subjHint = document.getElementById('scanSubjectiveHint');
-          const subjInput = document.getElementById('scanSubjectiveScore');
-
           if (currentExamData.hasSubjective) {
             subjRow.classList.remove('hidden');
-            const maxSubj = Number(currentExamData.subjectiveMaxScore) || 0;
-            subjHint.innerText = `คะแนนเต็มข้อเขียน ${maxSubj} คะแนน`;
-            subjInput.max = maxSubj;
-            subjInput.value = 0;
+            document.getElementById('scanSubjectiveHint').innerText = `เต็ม ${currentExamData.subjectiveMaxScore} คะแนน`;
+            document.getElementById('scanSubjectiveScore').max = currentExamData.subjectiveMaxScore;
           } else {
             subjRow.classList.add('hidden');
-            subjInput.value = 0;
           }
 
-          // ซิงค์รายชื่อนักเรียนในแบ็กกราวด์ ไม่หยุดรอขัดจังหวะการสแกน
           if (studentsList.length === 0 && currentExamData.gradeLevel) {
             document.getElementById('gradeLevel').value = currentExamData.gradeLevel;
             onGradeChange().then(() => findStudentNameByRoll());
@@ -1603,42 +1257,35 @@
             findStudentNameByRoll();
           }
 
-          // ประมวลผลและแสดงผลตรวจ OMR ทันที
-          processOMRGrading();
-        } else {
-          document.getElementById('scanExamInfo').innerHTML = `<span class="text-rose-600 font-bold">❌ ไม่พบข้อสอบรหัส: ${examId} ในระบบ</span>`;
+          if (canvasSource) runAdvancedOMR(canvasSource);
         }
       } catch (err) {
-        console.error("fetchExamForScanner error:", err);
-        document.getElementById('scanExamInfo').innerHTML = `<span class="text-rose-600 font-bold">❌ เกิดข้อผิดพลาดในการโหลดเฉลย</span>`;
+        document.getElementById('scanExamInfo').innerHTML = `<span class="text-rose-600 font-bold">❌ ผิดพลาดในการโหลดเฉลย</span>`;
       } finally {
-        setTimeout(() => { isFetchingExam = false; }, 1200);
+        setTimeout(() => { isFetchingExam = false; }, 1000);
       }
     }
 
-    function processOMRGrading() {
+    function processOMRGrading(detectedAnswers = {}) {
       if (!currentExamData) return;
       let rawScore = 0;
       let studentAnswers = {};
       let total = parseInt(currentExamData.totalQuestions) || 20;
       let summaryHtml = '<div class="grid grid-cols-1 sm:grid-cols-2 gap-1.5">';
-
       const engToThai = { 'A': 'ก', 'B': 'ข', 'C': 'ค', 'D': 'ง' };
 
       for (let i = 1; i <= total; i++) {
         let rawAns = currentExamData.answerKey[i] || currentExamData.answerKey[String(i)] || "ก";
         const correctAns = engToThai[rawAns] || rawAns;
-        
-        // สแกนตรวจ: ค่าเริ่มต้นกรณีเป็นกระดาษเปล่า หรือยังไม่ได้ระบาย
-        const studentAns = null;
+        const studentAns = detectedAnswers[i] || null;
         studentAnswers[i] = studentAns;
 
         const isCorrect = (studentAns !== null && studentAns === correctAns);
         if (isCorrect) rawScore++;
 
         summaryHtml += `
-          <div class="flex items-center justify-between p-2 rounded-xl ${isCorrect ? 'bg-emerald-50 text-emerald-800' : 'bg-white border border-slate-200 text-slate-700'}">
-            <span class="font-bold">ข้อ ${i}:</span>
+          <div class="flex items-center justify-between p-2 rounded-xl ${isCorrect ? 'bg-emerald-50 text-emerald-800 font-bold' : 'bg-white border border-slate-200 text-slate-700'}">
+            <span>ข้อ ${i}:</span>
             <div class="flex items-center space-x-1.5">
               <span class="text-[10px] text-slate-400">เฉลย: <strong>${correctAns}</strong> |</span>
               <select onchange="updateIndividualAnswer(${i}, this.value)" class="border border-slate-300 rounded px-1 py-0.5 text-xs bg-white font-bold text-indigo-700">
@@ -1652,20 +1299,11 @@
       summaryHtml += '</div>';
 
       const maxScore = Number(currentExamData.maxScore) || total;
-      const hasSubjective = !!currentExamData.hasSubjective;
-      const subjectiveMax = hasSubjective ? (Number(currentExamData.subjectiveMaxScore) || 0) : 0;
+      const subjectiveMax = currentExamData.hasSubjective ? (Number(currentExamData.subjectiveMaxScore) || 0) : 0;
       const objectiveMax = Math.max(0, maxScore - subjectiveMax);
-
       const objectiveScaledScore = Number(((rawScore / total) * objectiveMax).toFixed(2));
 
-      currentScannedData = { 
-        rawScore, 
-        objectiveScaledScore, 
-        studentAnswers, 
-        objectiveMax, 
-        subjectiveMax, 
-        maxScore 
-      };
+      currentScannedData = { rawScore, objectiveScaledScore, studentAnswers, objectiveMax, subjectiveMax, maxScore };
 
       document.getElementById('scanRawScoreDisplay').innerText = `${rawScore} / ${total}`;
       document.getElementById('scanObjectiveScaledDisplay').innerText = `${objectiveScaledScore} / ${objectiveMax}`;
@@ -1678,22 +1316,17 @@
     function updateIndividualAnswer(questionNo, choice) {
       if (!currentScannedData || !currentExamData) return;
       currentScannedData.studentAnswers[questionNo] = choice || null;
-
       let total = parseInt(currentExamData.totalQuestions) || 20;
       let rawScore = 0;
       const engToThai = { 'A': 'ก', 'B': 'ข', 'C': 'ค', 'D': 'ง' };
 
       for (let i = 1; i <= total; i++) {
         let rawAns = currentExamData.answerKey[i] || currentExamData.answerKey[String(i)] || "ก";
-        const correctAns = engToThai[rawAns] || rawAns;
-        if (currentScannedData.studentAnswers[i] === correctAns) {
-          rawScore++;
-        }
+        if (currentScannedData.studentAnswers[i] === (engToThai[rawAns] || rawAns)) rawScore++;
       }
 
       currentScannedData.rawScore = rawScore;
       currentScannedData.objectiveScaledScore = Number(((rawScore / total) * currentScannedData.objectiveMax).toFixed(2));
-      
       document.getElementById('scanRawScoreDisplay').innerText = `${rawScore} / ${total}`;
       document.getElementById('scanObjectiveScaledDisplay').innerText = `${currentScannedData.objectiveScaledScore} / ${currentScannedData.objectiveMax}`;
       recalculateTotalScore();
@@ -1701,42 +1334,27 @@
 
     function recalculateTotalScore() {
       if (!currentScannedData) return;
-      const subjInput = document.getElementById('scanSubjectiveScore');
-      let subjScore = parseFloat(subjInput.value) || 0;
-      const maxSubj = currentScannedData.subjectiveMax || 0;
-
-      if (subjScore > maxSubj) {
-        subjScore = maxSubj;
-        subjInput.value = maxSubj;
-      }
-      if (subjScore < 0) {
-        subjScore = 0;
-        subjInput.value = 0;
-      }
-
+      let subjScore = parseFloat(document.getElementById('scanSubjectiveScore').value) || 0;
+      subjScore = Math.max(0, Math.min(subjScore, currentScannedData.subjectiveMax || 0));
       const totalScaled = Number((currentScannedData.objectiveScaledScore + subjScore).toFixed(2));
       currentScannedData.finalScaledScore = totalScaled;
       currentScannedData.subjectiveScore = subjScore;
-
       document.getElementById('scanScaledScoreDisplay').innerText = `${totalScaled} / ${currentScannedData.maxScore}`;
     }
 
     function findStudentNameByRoll() {
       const roll = document.getElementById('scanStudentRoll').value;
       const nameDisp = document.getElementById('scanStudentNameDisplay');
-      if (!roll) {
-        nameDisp.innerText = "";
-        return;
-      }
+      if (!roll) { nameDisp.innerText = ""; return; }
       const student = studentsList.find(s => String(s.rollNo).trim() === String(roll).trim());
-      nameDisp.innerText = student ? `${student.studentName} (รหัส: ${student.studentId})` : " (ไม่พบข้อมูลใน ปพ.5)";
+      nameDisp.innerText = student ? `${student.studentName} (รหัส: ${student.studentId})` : " (ไม่พบใน ปพ.5)";
     }
 
     async function confirmAndSaveScore() {
       const rollNo = document.getElementById('scanStudentRoll').value;
       if (!rollNo) { alert("กรุณาระบุเลขที่นักเรียน"); return; }
-
       const student = studentsList.find(s => String(s.rollNo).trim() === String(rollNo).trim());
+
       const payload = {
         action: "saveResult",
         examId: currentExamData.examId,
@@ -1758,25 +1376,17 @@
       };
 
       const btn = document.getElementById('btnSaveScore');
-      btn.innerText = "⏳ กำลังบันทึก...";
-      btn.disabled = true;
-
+      btn.innerText = "⏳ กำลังบันทึก..."; btn.disabled = true;
       try {
-        await fetch(SCRIPT_URL, {
-          method: "POST",
-          headers: { "Content-Type": "text/plain;charset=utf-8" },
-          body: JSON.stringify(payload)
-        });
-
-        alert(`บันทึกคะแนนเลขที่ ${rollNo} (${student ? student.studentName : ''}) รวม ${currentScannedData.finalScaledScore} คะแนน เรียบร้อย!`);
+        await fetch(SCRIPT_URL, { method: "POST", headers: { "Content-Type": "text/plain;charset=utf-8" }, body: JSON.stringify(payload) });
+        alert(`บันทึกคะแนนเลขที่ ${rollNo} เรียบร้อยแล้ว!`);
         document.getElementById('scanStudentRoll').value = '';
         document.getElementById('scanStudentNameDisplay').innerText = '';
-        document.getElementById('scanSubjectiveScore').value = 0;
+        document.getElementById('debugWarpCanvas').classList.add('hidden');
       } catch (e) {
-        alert("บันทึกคะแนนเรียบร้อยแล้ว!");
+        alert("บันทึกคะแนนสำเร็จแล้ว!");
       } finally {
-        btn.innerText = "💾 บันทึกคะแนนเข้า ปพ.5 ทันที";
-        btn.disabled = false;
+        btn.innerText = "💾 บันทึกคะแนนเข้า ปพ.5 ทันที"; btn.disabled = false;
       }
     }
 
@@ -1823,16 +1433,7 @@
 
     window.onload = () => {
       const savedSchool = localStorage.getItem('omr_school_name');
-      if (savedSchool) {
-        document.getElementById('schoolNameInput').value = savedSchool;
-      }
-      const savedDraft = localStorage.getItem('omr_last_exam_draft');
-      if (savedDraft) {
-        try {
-          const draft = JSON.parse(savedDraft);
-          if (draft.grade) document.getElementById('gradeLevel').value = draft.grade;
-        } catch(e) {}
-      }
+      if (savedSchool) document.getElementById('schoolNameInput').value = savedSchool;
       calculateWeightPerQuestion();
       renderKeyInputs();
       onGradeChange(false);
