@@ -563,8 +563,13 @@
     const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwdNlLZw_5dT8pqAnxPSh7-TYuJe0s5sgaQ6BfYz_JLyWjoxyuOTggFI1WZhB1U9Gs/exec";
     const THAI_CHOICES = ['ก', 'ข', 'ค', 'ง'];
 
-   const SCHOOL_LOGO_IMG = `
-      <img src="IMG_4847.jpeg" class="w-10 h-10 object-contain inline-block" alt="โลโก้โรงเรียน" onerror="this.src='PP1.jpg'; this.onerror=null;" />
+    const SCHOOL_LOGO_SVG = `
+      <svg class="w-6 h-6 inline-block" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="50" cy="50" r="46" fill="#FEF3C7" stroke="#D97706" stroke-width="3"/>
+        <path d="M50 18L56 34H68L58 43L62 59L50 49L38 59L42 43L32 34H44L50 18Z" fill="#D97706"/>
+        <circle cx="50" cy="50" r="28" stroke="#B45309" stroke-width="1.5" stroke-dasharray="3 3"/>
+        <path d="M35 72C40 68 60 68 65 72" stroke="#B45309" stroke-width="2" stroke-linecap="round"/>
+      </svg>
     `;
 
     function getSubjectTheme(subjectName) {
