@@ -52,10 +52,36 @@
             padding: 15mm;
         }
 
+        /* ตารางพิมพ์เวลาเรียนแบบ ปพ.5 ดั้งเดิม */
+        .att-print-page {
+            width: 210mm;
+            min-height: 297mm;
+            box-sizing: border-box;
+            background: white;
+            padding: 12mm 10mm;
+            margin: 0 auto 20px auto;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            position: relative;
+            page-break-after: always;
+        }
+        .att-print-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 8.5pt;
+            color: black;
+        }
+        .att-print-table th, .att-print-table td {
+            border: 1px solid black;
+            text-align: center;
+            padding: 2px 1px;
+            height: 18px;
+            line-height: 1.1;
+        }
+
         @media print {
-            @page { size: A4 portrait; margin: 10mm; }
-            header, #tabsContainer, .no-print { display: none !important; }
-            body, html { background: white !important; margin: 0; padding: 0; }
+            @page { size: A4 portrait; margin: 8mm; }
+            header, #tabsContainer, .no-print, #musicControls, #musicToggleBtn { display: none !important; }
+            body, html { background: white !important; margin: 0 !important; padding: 0 !important; }
             #appWrapper, main, #contentArea { 
                 display: block !important; padding: 0 !important; margin: 0 !important; 
                 border: none !important; box-shadow: none !important; background: transparent !important;
@@ -73,6 +99,16 @@
                 transform-origin: top center; 
                 font-size: 10pt !important;
             }
+            .att-print-page {
+                width: 100% !important;
+                min-height: 0 !important;
+                height: auto !important;
+                margin: 0 !important;
+                padding: 0 !important;
+                box-shadow: none !important;
+                page-break-after: always !important;
+                break-after: page !important;
+            }
             .a4-preview table { margin-bottom: 8px !important; }
             .a4-preview td, .a4-preview th { padding: 2px 4px !important; line-height: 1.1 !important; }
             .a4-preview .p-8 { padding: 4mm !important; }
@@ -82,7 +118,6 @@
             .a4-preview .space-y-4 > :not([hidden]) ~ :not([hidden]) { margin-top: 6px !important; }
             .a4-preview h1 { font-size: 1.1rem !important; margin-bottom: 2px !important; }
             .a4-preview h2 { font-size: 1rem !important; margin-bottom: 4px !important; }
-            .print-flex-wrap { flex-wrap: wrap; }
         }
     </style>
 </head>
@@ -275,33 +310,26 @@
             }
         }
 
-        // =========================================================================
-        // SSO & PERMISSION INTEGRATION (ตรวจสอบสิทธิ์จากพอร์ทัลหลักอัตโนมัติ)
-        // =========================================================================
-       window.onload = () => {
+        window.onload = () => {
             const urlParams = new URLSearchParams(window.location.search);
             const user = urlParams.get('user');
             const gradesParam = urlParams.get('grades');
-            const roleParam = urlParams.get('role'); // <-- 1. เพิ่มบรรทัดนี้เพื่อรับค่า role
+            const roleParam = urlParams.get('role');
 
             if (user && gradesParam) {
-                // <-- 2. แก้ตรงนี้: ถ้า username เป็น admin หรือส่ง role=admin มา ให้เป็น admin
                 if ((user && user.toLowerCase() === 'admin') || (roleParam && roleParam.toLowerCase() === 'admin')) {
                     window.currentUserRole = 'admin';
                 } else {
                     window.currentUserRole = 'teacher';
                 }
 
-                // 2. ซ่อนหน้าล็อกอิน และเปิดหน้าแอป
                 document.getElementById('loginScreen').classList.add('hidden');
                 document.getElementById('appWrapper').classList.remove('hidden');
                 document.getElementById('appWrapper').classList.add('flex');
 
-                // ซ่อนปุ่มออกจากระบบถ้าเปิดใน iframe พอร์ทัล
                 const logoutBtn = document.getElementById('logoutBtn');
                 if (logoutBtn) logoutBtn.classList.add('hidden');
 
-                // 3. กรองตัวเลือกห้องเรียนตามสิทธิ์จริง (เช่น 'p5,p6' -> 'ป.5', 'ป.6')
                 const gradeMap = {
                     'p1': 'ป.1', 'p2': 'ป.2', 'p3': 'ป.3',
                     'p4': 'ป.4', 'p5': 'ป.5', 'p6': 'ป.6'
@@ -313,11 +341,10 @@
                 if (classSelector) {
                     Array.from(classSelector.options).forEach(opt => {
                         if (!allowedClasses.includes(opt.value)) {
-                            opt.remove(); // ลบห้องที่ไม่มีสิทธิ์ออกทันที
+                            opt.remove();
                         }
                     });
 
-                    // เลือกห้องแรกที่มีสิทธิ์เริ่มต้น
                     if (classSelector.options.length > 0) {
                         classSelector.selectedIndex = 0;
                         window.state.selectedClass = classSelector.value;
@@ -326,7 +353,6 @@
 
                 loadDataFromCloud(window.state.selectedClass);
             } else {
-                // กรณีเปิดไฟล์เดี่ยวๆ ให้รอที่หน้าล็อกอินเดิม
                 loadDataFromCloud('ป.6');
             }
         };
@@ -413,6 +439,7 @@
             yearDates.forEach(d => {
                 const def = (d.isWeekend || d.isHoliday) ? 'หยุด' : 'มา';
                 const st = atts[d.id] || def;
+                // ถ้าเป็นวันหยุด จะไม่นำมาคำนวณวันเรียน
                 if (st !== 'หยุด' && st !== '') { 
                     total++; 
                     if (st === 'มา' || st === 'ลาป่วย' || st === 'ลากิจ') present++; 
@@ -475,6 +502,7 @@
             if(window.state.activeTab === 'settings') container.innerHTML = htmlSettings();
             else if(window.state.activeTab === 'student_info') container.innerHTML = htmlStudentInfo();
             else if(window.state.activeTab === 'attendance') container.innerHTML = htmlAttendance();
+            else if(window.state.activeTab === 'print_attendance') container.innerHTML = htmlPrintAttendance();
             else if(window.state.activeTab === 'grading') container.innerHTML = htmlGrading();
             else if(window.state.activeTab === 'evaluations') container.innerHTML = htmlEvaluations();
             else if(window.state.activeTab === 'activities') container.innerHTML = htmlActivities();
@@ -678,14 +706,17 @@
 
             return `
                 <div class="flex flex-col sm:flex-row justify-between sm:items-center mb-4 gap-2 no-print">
-                    <div class="flex items-center gap-3">
+                    <div class="flex items-center gap-3 flex-wrap">
                         <h2 class="text-base sm:text-lg font-bold text-gray-800">เวลาเรียน ปีการศึกษา ${acYear}</h2>
                         <select id="monthFilter" class="p-1.5 border border-gray-300 rounded-md text-sm bg-white font-bold text-blue-700 outline-none cursor-pointer shadow-sm" onchange="window.changeAttMonth(this.value)">
                             <option value="all" ${filterVal === 'all' ? 'selected' : ''}>ตลอดปีการศึกษา (พ.ค. - มี.ค.)</option>
                             ${monthGroups.map(mg => `<option value="${mg.idx}" ${filterVal === mg.idx.toString() ? 'selected' : ''}>เฉพาะเดือน ${mg.name}</option>`).join('')}
                         </select>
                     </div>
-                    <div class="flex gap-2">
+                    <div class="flex gap-2 flex-wrap">
+                        <button onclick="window.setTab('print_attendance')" class="bg-indigo-600 hover:bg-indigo-700 text-white text-xs px-3.5 py-1.5 rounded-md shadow-sm font-bold flex items-center transition-colors">
+                            <i class="fa-solid fa-print mr-1.5"></i> พิมพ์เวลาเรียน (ตามแบบ ปพ.5)
+                        </button>
                         <span class="text-xs bg-blue-50 text-blue-700 px-3 py-1.5 rounded-full border border-blue-200">ต่ำกว่า 80% = (มส.)</span>
                     </div>
                 </div>
@@ -718,6 +749,7 @@
                                 displayDates.forEach(d => {
                                     const def = (d.isWeekend || d.isHoliday) ? 'หยุด' : 'มา';
                                     const st = atts[d.id] || def;
+                                    // ถ้าเป็นวันหยุด จะไม่นำมาคำนวณวันปกติและวันมาเรียน
                                     if (st !== 'หยุด') {
                                         totalWorkMonth++;
                                         if (st === 'มา' || st === 'ลาป่วย' || st === 'ลากิจ') presentMonth++;
@@ -762,6 +794,411 @@
                     <strong class="text-sm block mb-2"><i class="fa-solid fa-calendar-xmark"></i> หมายเหตุวันหยุดนักขัตฤกษ์และวันสำคัญ:</strong> 
                     <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
                         ${holidayDetails}
+                    </div>
+                </div>
+            `;
+        }
+
+        // =========================================================================
+        // TEMPLATE: พิมพ์แบบบันทึกเวลาเรียน ตาม PDF ปพ.5 (ฉบับสมบูรณ์)
+        // =========================================================================
+        function htmlPrintAttendance() {
+            const students = getStudents();
+            const cls = window.state.selectedClass;
+            const clsNum = cls.replace('ป.', '');
+            const acYear = window.state.academicYear || '2569';
+            const teacherName = (window.state.printConfigs && window.state.printConfigs[cls] && window.state.printConfigs[cls].teacherName) ? window.state.printConfigs[cls].teacherName : (window.state.teacherName || '');
+
+            const sem1Months = [4, 5, 6, 7, 8, 9]; // พ.ค. - ต.ค.
+            const sem2Months = [10, 11, 0, 1, 2, 3]; // พ.ย. - เม.ย.
+            const allMonths = [...sem1Months, ...sem2Months];
+            const courseAtt = window.state.attendance[window.state.selectedCourseId] || {};
+
+            function renderMonthTable(monthIdx) {
+                const bYearNum = Number(acYear) || 2569;
+                const monthYear = (monthIdx >= 0 && monthIdx <= 3) ? (bYearNum + 1) : bYearNum;
+                const mName = thaiMonthsFull[monthIdx];
+                const daysInM = new Date((monthYear - 543), monthIdx + 1, 0).getDate();
+                const mDates = yearDates.filter(d => d.monthIdx === monthIdx);
+
+                const maxRows = Math.max(35, students.length);
+                let rowsHtml = '';
+
+                // ตรวจสอบสถานะวันหยุดของแต่ละวัน (1-31)
+                // เป็นวันหยุดนักขัตฤกษ์ หรือกรณีครูระบุว่าทั้งห้อง "หยุด"
+                const holidayCols = {};
+                for (let day = 1; day <= 31; day++) {
+                    if (day <= daysInM) {
+                        const dObj = mDates.find(d => d.date === day);
+                        if (dObj) {
+                            if (dObj.isHoliday) {
+                                holidayCols[day] = dObj.holidayName;
+                            } else {
+                                // ตรวจสอบว่าในระบบครูระบุวันนั้นเป็น 'หยุด' ทั้งหมดหรือไม่
+                                let allCustomHoliday = students.length > 0;
+                                for (let s of students) {
+                                    const val = (courseAtt[s.id] || {})[dObj.id];
+                                    if (val !== 'หยุด') {
+                                        allCustomHoliday = false;
+                                        break;
+                                    }
+                                }
+                                if (allCustomHoliday && students.length > 0) {
+                                    holidayCols[day] = 'วันหยุด';
+                                }
+                            }
+                        }
+                    }
+                }
+
+                for (let r = 1; r <= maxRows; r++) {
+                    const s = students[r - 1];
+                    let cells = '';
+                    let cM = 0, cP = 0, cL = 0, cK = 0;
+
+                    for (let day = 1; day <= 31; day++) {
+                        if (day <= daysInM) {
+                            const dObj = mDates.find(d => d.date === day);
+                            const holidayText = holidayCols[day];
+
+                            // ถ้าเป็นวันหยุด ให้ทำ Rowspan รวมทั้งคอลัมน์ในแถวแรก
+                            if (holidayText) {
+                                if (r === 1) {
+                                    cells += `
+                                        <td rowspan="${maxRows}" style="background-color: #fff1f2; color: #dc2626; font-size: 8pt; font-weight: bold; vertical-align: middle; text-align: center; padding: 2px;">
+                                            <div style="writing-mode: vertical-rl; text-orientation: mixed; transform: rotate(180deg); margin: 0 auto; letter-spacing: 1px; white-space: nowrap;">
+                                                ${holidayText}
+                                            </div>
+                                        </td>
+                                    `;
+                                }
+                                // r > 1 จะไม่ render เซลล์นี้เนื่องจากติด rowspan
+                            } else {
+                                if (s && dObj) {
+                                    const def = (dObj.isWeekend || dObj.isHoliday) ? 'หยุด' : 'มา';
+                                    const val = (courseAtt[s.id] || {})[dObj.id] || def;
+
+                                    if (val === 'มา') {
+                                        cells += `<td>1</td>`;
+                                        cM++;
+                                    } else if (val === 'ลาป่วย') {
+                                        cells += `<td>ป</td>`;
+                                        cP++;
+                                    } else if (val === 'ลากิจ') {
+                                        cells += `<td>ล</td>`;
+                                        cL++;
+                                    } else if (val === 'ขาด') {
+                                        cells += `<td>ข</td>`;
+                                        cK++;
+                                    } else {
+                                        cells += `<td>-</td>`; // วันหยุด / ไม่ได้มาเรียน
+                                    }
+                                } else {
+                                    cells += `<td>-</td>`;
+                                }
+                            }
+                        } else {
+                            cells += `<td style="background-color: #f9fafb; color: #9ca3af;">-</td>`;
+                        }
+                    }
+
+                    const mVal = s ? (cM > 0 ? cM : '-') : '-';
+                    const pVal = s ? (cP > 0 ? cP : '-') : '-';
+                    const lVal = s ? (cL > 0 ? cL : '-') : '-';
+                    const kVal = s ? (cK > 0 ? cK : '-') : '-';
+
+                    rowsHtml += `
+                        <tr>
+                            <td class="font-bold">${r}</td>
+                            ${cells}
+                            <td>${mVal}</td>
+                            <td>${pVal}</td>
+                            <td>${lVal}</td>
+                            <td>${kVal}</td>
+                        </tr>
+                    `;
+                }
+
+                return `
+                    <div class="att-print-page">
+                        <div class="flex justify-between items-center mb-1 text-[11pt] font-bold">
+                            <div>เวลาเรียน ชั้นประถมศึกษาปีที่ ${clsNum} ปีการศึกษา ${acYear}</div>
+                        </div>
+                        <div class="flex justify-between items-center mb-2 text-[10pt] font-bold">
+                            <div>เดือน <span class="px-2">${mName}</span></div>
+                            <div>พ.ศ. <span class="px-2">${monthYear}</span></div>
+                        </div>
+
+                        <table class="att-print-table">
+                            <thead>
+                                <tr>
+                                    <th style="width: 32px;" rowspan="2">วันที่</th>
+                                    ${Array.from({length: 31}, (_, i) => `<th style="width: 17px;">${i+1}</th>`).join('')}
+                                    <th style="width: 22px;">ม</th>
+                                    <th style="width: 22px;">ป</th>
+                                    <th style="width: 22px;">ล</th>
+                                    <th style="width: 22px;">ข</th>
+                                </tr>
+                                <tr>
+                                    ${Array.from({length: 31}, () => `<th></th>`).join('')}
+                                    <th></th>
+                                    <th></th>
+                                    <th></th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${rowsHtml}
+                            </tbody>
+                        </table>
+
+                        <div class="mt-6 flex justify-end text-[10pt]">
+                            <div class="w-64 text-center">
+                                <div>ลงชื่อ............................................................ครูประจำชั้น/ครูประจำวิชา</div>
+                                <div class="mt-1">(${teacherName || '............................................................'})</div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+
+            // คำนวณสรุปเวลาเรียนสำหรับนักเรียนแต่ละคน (อิงตามระบบจริง ไม่นำวันที่ครูกำหนดเป็นหยุดมาคิด)
+            function getStudentMonthStats(s, mIdx) {
+                const mDates = yearDates.filter(d => d.monthIdx === mIdx);
+                let present = 0, totalWork = 0;
+                mDates.forEach(dObj => {
+                    const def = (dObj.isWeekend || dObj.isHoliday) ? 'หยุด' : 'มา';
+                    const val = (courseAtt[s.id] || {})[dObj.id] || def;
+                    if (val !== 'หยุด') {
+                        totalWork++;
+                        if (val === 'มา' || val === 'ลาป่วย' || val === 'ลากิจ') present++;
+                    }
+                });
+                return { present, totalWork };
+            }
+
+            function getGeneralMonthWorkDays(mIdx) {
+                const mDates = yearDates.filter(d => d.monthIdx === mIdx);
+                let total = 0;
+                mDates.forEach(dObj => {
+                    if (!dObj.isWeekend && !dObj.isHoliday) {
+                        let isAllCustomHoliday = students.length > 0;
+                        for (let s of students) {
+                            if (((courseAtt[s.id] || {})[dObj.id]) !== 'หยุด') {
+                                isAllCustomHoliday = false;
+                                break;
+                            }
+                        }
+                        if (!isAllCustomHoliday) total++;
+                    }
+                });
+                return total;
+            }
+
+            // 1. สรุปภาคเรียนที่ 1
+            const sem1DefaultTotalDays = sem1Months.reduce((sum, m) => sum + getGeneralMonthWorkDays(m), 0);
+            let sem1Rows = '';
+            for (let r = 1; r <= Math.max(35, students.length); r++) {
+                const s = students[r - 1];
+                if (s) {
+                    let studentPresentSum = 0;
+                    let studentTotalWorkSum = 0;
+                    const mCells = sem1Months.map(m => {
+                        const res = getStudentMonthStats(s, m);
+                        studentPresentSum += res.present;
+                        studentTotalWorkSum += res.totalWork;
+                        return `<td>${res.present > 0 ? res.present : '-'}</td>`;
+                    }).join('');
+
+                    const totalDays = studentTotalWorkSum || sem1DefaultTotalDays;
+                    const pct = totalDays > 0 ? ((studentPresentSum / totalDays) * 100).toFixed(2) : '100.00';
+
+                    sem1Rows += `
+                        <tr>
+                            <td class="font-bold">${s.no}</td>
+                            ${mCells}
+                            <td>${totalDays || '-'}</td>
+                            <td>${studentPresentSum > 0 ? studentPresentSum : '-'}</td>
+                            <td>${pct}</td>
+                        </tr>
+                    `;
+                } else {
+                    sem1Rows += `<tr><td class="font-bold">${r}</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td></tr>`;
+                }
+            }
+
+            // 2. สรุปภาคเรียนที่ 2
+            const sem2DefaultTotalDays = sem2Months.reduce((sum, m) => sum + getGeneralMonthWorkDays(m), 0);
+            let sem2Rows = '';
+            for (let r = 1; r <= Math.max(35, students.length); r++) {
+                const s = students[r - 1];
+                if (s) {
+                    let studentPresentSum = 0;
+                    let studentTotalWorkSum = 0;
+                    const mCells = sem2Months.map(m => {
+                        const res = getStudentMonthStats(s, m);
+                        studentPresentSum += res.present;
+                        studentTotalWorkSum += res.totalWork;
+                        return `<td>${res.present > 0 ? res.present : '-'}</td>`;
+                    }).join('');
+
+                    const totalDays = studentTotalWorkSum || sem2DefaultTotalDays;
+                    const pct = totalDays > 0 ? ((studentPresentSum / totalDays) * 100).toFixed(2) : '100.00';
+
+                    sem2Rows += `
+                        <tr>
+                            <td class="font-bold">${s.no}</td>
+                            ${mCells}
+                            <td>${totalDays || '-'}</td>
+                            <td>${studentPresentSum > 0 ? studentPresentSum : '-'}</td>
+                            <td>${pct}</td>
+                        </tr>
+                    `;
+                } else {
+                    sem2Rows += `<tr><td class="font-bold">${r}</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td></tr>`;
+                }
+            }
+
+            // 3. สรุปตลอดปีการศึกษา
+            const yearDefaultTotalDays = sem1DefaultTotalDays + sem2DefaultTotalDays;
+            let yearRows = '';
+            for (let r = 1; r <= Math.max(35, students.length); r++) {
+                const s = students[r - 1];
+                if (s) {
+                    let studentPresentSum = 0;
+                    let studentTotalWorkSum = 0;
+                    const mCells = allMonths.map(m => {
+                        const res = getStudentMonthStats(s, m);
+                        studentPresentSum += res.present;
+                        studentTotalWorkSum += res.totalWork;
+                        return `<td>${res.present > 0 ? res.present : '-'}</td>`;
+                    }).join('');
+
+                    const totalDays = studentTotalWorkSum || yearDefaultTotalDays;
+                    const pct = totalDays > 0 ? ((studentPresentSum / totalDays) * 100).toFixed(2) : '100.00';
+
+                    yearRows += `
+                        <tr>
+                            <td class="font-bold">${s.no}</td>
+                            ${mCells}
+                            <td>${totalDays || '-'}</td>
+                            <td>${studentPresentSum > 0 ? studentPresentSum : '-'}</td>
+                            <td>${pct}</td>
+                        </tr>
+                    `;
+                } else {
+                    yearRows += `<tr><td class="font-bold">${r}</td>${Array.from({length: 15}, () => `<td>-</td>`).join('')}</tr>`;
+                }
+            }
+
+            return `
+                <div class="flex flex-col sm:flex-row justify-between sm:items-center mb-4 gap-2 no-print">
+                    <div class="flex items-center gap-2">
+                        <button onclick="window.setTab('attendance')" class="bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-1.5 rounded-lg text-sm font-bold">
+                            <i class="fa-solid fa-arrow-left mr-1"></i> ย้อนกลับ
+                        </button>
+                        <h2 class="text-base sm:text-lg font-bold text-gray-800">ตัวอย่างก่อนพิมพ์: แบบบันทึกเวลาเรียน (ปพ.5)</h2>
+                    </div>
+                    <button onclick="window.print()" class="px-4 py-2 bg-blue-600 text-white rounded-lg shadow hover:bg-blue-700 font-bold text-sm">
+                        <i class="fa-solid fa-print mr-1.5"></i> สั่งพิมพ์ / บันทึกเป็น PDF
+                    </button>
+                </div>
+
+                <div class="overflow-x-auto py-2 flex flex-col items-center custom-scrollbar">
+                    ${allMonths.map(mIdx => renderMonthTable(mIdx)).join('')}
+
+                    <!-- สรุปภาคเรียนที่ 1 -->
+                    <div class="att-print-page">
+                        <div class="mb-3 text-[11pt] font-bold text-center">
+                            สรุปเวลาเรียน ชั้นประถมศึกษาปีที่ ${clsNum} ภาคเรียนที่ 1 ปีการศึกษา ${acYear}
+                        </div>
+                        <table class="att-print-table">
+                            <thead>
+                                <tr>
+                                    <th rowspan="2" style="width: 40px;">เลขที่</th>
+                                    <th>พ.ค.</th><th>มิ.ย.</th><th>ก.ค.</th><th>ส.ค.</th><th>ก.ย.</th><th>ต.ค.</th>
+                                    <th rowspan="2" style="width: 45px;">เต็ม</th>
+                                    <th colspan="2">ภาคเรียนที่ 1</th>
+                                </tr>
+                                <tr>
+                                    <th></th><th></th><th></th><th></th><th></th><th></th>
+                                    <th style="width: 45px;">มา</th>
+                                    <th style="width: 60px;">ร้อยละ</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${sem1Rows}
+                            </tbody>
+                        </table>
+                        <div class="mt-6 flex justify-end text-[10pt]">
+                            <div class="w-64 text-center">
+                                <div>ลงชื่อ............................................................ครูประจำชั้น/ครูประจำวิชา</div>
+                                <div class="mt-1">(${teacherName || '............................................................'})</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- สรุปภาคเรียนที่ 2 -->
+                    <div class="att-print-page">
+                        <div class="mb-3 text-[11pt] font-bold text-center">
+                            สรุปเวลาเรียน ชั้นประถมศึกษาปีที่ ${clsNum} ภาคเรียนที่ 2 ปีการศึกษา ${acYear}
+                        </div>
+                        <table class="att-print-table">
+                            <thead>
+                                <tr>
+                                    <th rowspan="2" style="width: 40px;">เลขที่</th>
+                                    <th>พ.ย.</th><th>ธ.ค.</th><th>ม.ค.</th><th>ก.พ.</th><th>มี.ค.</th><th>เม.ย.</th>
+                                    <th rowspan="2" style="width: 45px;">เต็ม</th>
+                                    <th colspan="2">ภาคเรียนที่ 2</th>
+                                </tr>
+                                <tr>
+                                    <th></th><th></th><th></th><th></th><th></th><th></th>
+                                    <th style="width: 45px;">มา</th>
+                                    <th style="width: 60px;">ร้อยละ</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${sem2Rows}
+                            </tbody>
+                        </table>
+                        <div class="mt-6 flex justify-end text-[10pt]">
+                            <div class="w-64 text-center">
+                                <div>ลงชื่อ............................................................ครูประจำชั้น/ครูประจำวิชา</div>
+                                <div class="mt-1">(${teacherName || '............................................................'})</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- สรุปตลอดปีการศึกษา -->
+                    <div class="att-print-page">
+                        <div class="mb-3 text-[11pt] font-bold text-center">
+                            สรุปเวลาเรียน ชั้นประถมศึกษาปีที่ ${clsNum} ปีการศึกษา ${acYear}
+                        </div>
+                        <table class="att-print-table">
+                            <thead>
+                                <tr>
+                                    <th rowspan="2" style="width: 35px;">เลขที่</th>
+                                    <th>พ.ค.</th><th>มิ.ย.</th><th>ก.ค.</th><th>ส.ค.</th><th>ก.ย.</th><th>ต.ค.</th>
+                                    <th>พ.ย.</th><th>ธ.ค.</th><th>ม.ค.</th><th>ก.พ.</th><th>มี.ค.</th><th>เม.ย.</th>
+                                    <th colspan="3">ตลอดปีการศึกษา</th>
+                                </tr>
+                                <tr>
+                                    ${Array.from({length: 12}, () => `<th></th>`).join('')}
+                                    <th style="width: 40px;">เต็ม</th>
+                                    <th style="width: 40px;">มา</th>
+                                    <th style="width: 55px;">ร้อยละ</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${yearRows}
+                            </tbody>
+                        </table>
+                        <div class="mt-6 flex justify-end text-[10pt]">
+                            <div class="w-64 text-center">
+                                <div>ลงชื่อ............................................................ครูประจำชั้น/ครูประจำวิชา</div>
+                                <div class="mt-1">(${teacherName || '............................................................'})</div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             `;
@@ -1092,9 +1529,8 @@
                                     else if (i === 5) rightHtml = `<td class="border border-black p-1 bg-gray-100"></td><td class="border border-black p-1 bg-gray-100"></td><td class="border border-black p-1 bg-gray-100" colspan="2"></td>`;
                                     else if (i === 6) rightHtml = `<td class="border border-black p-1 text-left px-2">จำนวนนักเรียนบัญชี</td><td class="border border-black p-1">${mCount||'-'}</td><td class="border border-black p-1">${fCount||'-'}</td><td class="border border-black p-1" colspan="2">${totalStudents||'-'}</td>`;
                                     else if (i === 7) rightHtml = `<td class="border border-black p-1 text-left px-2">เข้าเรียนระหว่างปี</td><td class="border border-black p-1">-</td><td class="border border-black p-1">-</td><td class="border border-black p-1" colspan="2">-</td>`;
-                                    else if (i === 8) rightHtml = `<td class="border border-black p-1 text-left px-2">ออกระหว่างปี</td><td class="border border-black p-1">-</td><td class="border border-black p-1">-</td><td class="border border-black p-1" colspan="2">-</td>`;
-                                    else if (i === 9) rightHtml = `<td class="border border-black p-1 text-left px-2">ตัดสินให้ซ้ำชั้น</td><td class="border border-black p-1">-</td><td class="border border-black p-1">-</td><td class="border border-black p-1" colspan="2">-</td>`;
-                                    else if (i === 10) rightHtml = `<td class="border border-black p-1 text-left px-2">ตัดสินเลื่อนชั้นปลายปี</td><td class="border border-black p-1">${mCount||'-'}</td><td class="border border-black p-1">${fCount||'-'}</td><td class="border border-black p-1" colspan="2">${totalStudents||'-'}</td>`;
+                                    else if (i === 8) rightHtml = `<td class="border border-black p-1 text-left px-2">ตัดสินให้ซ้ำชั้น</td><td class="border border-black p-1">-</td><td class="border border-black p-1">-</td><td class="border border-black p-1" colspan="2">-</td>`;
+                                    else if (i === 9) rightHtml = `<td class="border border-black p-1 text-left px-2">ตัดสินเลื่อนชั้นปลายปี</td><td class="border border-black p-1">${mCount||'-'}</td><td class="border border-black p-1">${fCount||'-'}</td><td class="border border-black p-1" colspan="2">${totalStudents||'-'}</td>`;
                                     else rightHtml = `<td class="border border-black p-1"></td><td class="border border-black p-1"></td><td class="border border-black p-1"></td><td class="border border-black p-1"></td><td class="border border-black p-1"></td>`;
 
                                     return `
