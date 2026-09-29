@@ -41,7 +41,6 @@
         .sticky-name-col { position: sticky; left: 0; z-index: 10; background-color: white; border-right: 2px solid #9ca3af !important; box-shadow: 2px 0 5px -2px rgba(0,0,0,0.1); }
         .sticky-name-header { position: sticky; left: 0; top: 0; z-index: 40; background-color: #f3f4f6; border-right: 2px solid #9ca3af !important; box-shadow: 2px 0 5px -2px rgba(0,0,0,0.1); }
         
-        /* สไตล์สำหรับตรึงหัวเดือนและวันที่ไม่ให้เลื่อนหายไป */
         .sticky-month-header { position: sticky; top: 0; z-index: 30; }
         .sticky-date-header { position: sticky; top: 29px; z-index: 25; }
 
@@ -57,7 +56,6 @@
             padding: 15mm;
         }
 
-        /* ตารางพิมพ์เวลาเรียนแบบ ปพ.5 ดั้งเดิม */
         .att-print-page {
             width: 210mm;
             min-height: 297mm;
@@ -203,7 +201,8 @@
         <!-- Main Content Area -->
         <main class="flex-1 overflow-y-auto bg-gray-100">
             <div class="max-w-7xl mx-auto px-2 sm:px-4 py-4">
-                <div class="bg-white rounded-t-lg shadow-sm border-b border-gray-200 flex overflow-x-auto custom-scrollbar" id="tabsContainer"></div>
+                <!-- แถบเมนูแท็บที่ปรับให้ sticky ตรึงอยู่ด้านบนตลอดเวลาที่เลื่อนลง -->
+                <div class="bg-white rounded-t-lg shadow-sm border-b border-gray-200 flex overflow-x-auto custom-scrollbar sticky top-0 z-30" id="tabsContainer"></div>
                 <div class="bg-white shadow-sm rounded-b-lg p-3 sm:p-6 min-h-[70vh] relative" id="contentArea"></div>
             </div>
 
@@ -438,7 +437,6 @@
         const getCoursesForClass = () => window.state.courses[window.state.selectedClass] || [];
         const getCourse = () => getCoursesForClass().find(c => c.id === window.state.selectedCourseId) || getCoursesForClass()[0] || { id: '', code: '', name: '', credit: '', midCollect: '', midExam: '', finalCollect: '', finalExam: '', indicators: [] };
 
-        // ปรับแก้: นับเฉพาะ "มา" เท่านั้น ถ้าเป็น "ลาป่วย" หรือ "ลากิจ" จะไม่นับเป็นวันมาเรียน (หักวันมา)
         function calcAtt(studentId) {
             const atts = (window.state.attendance[window.state.selectedCourseId] || {})[studentId] || {};
             let present = 0, total = 0;
@@ -768,7 +766,6 @@
                                     const st = atts[d.id] || def;
                                     if (st !== 'หยุด') {
                                         totalWorkMonth++;
-                                        // นับเฉพาะ "มา" เท่านั้น ถ้าเป็น ลาป่วย/ลากิจ จะไม่นับเป็นวันมา (แต่จะถูกคิดรวมในขาด/ลา)
                                         if (st === 'มา') {
                                             presentMonth++;
                                         } else if (st === 'ขาด' || st === 'ลาป่วย' || st === 'ลากิจ') {
@@ -844,7 +841,6 @@
                 const maxRows = Math.max(35, students.length);
                 let rowsHtml = '';
 
-                // ตรวจสอบวันหยุดทั้งหมดของเดือน
                 const holidayCols = {};
                 for (let day = 1; day <= 31; day++) {
                     if (day <= daysInM) {
@@ -980,7 +976,6 @@
                 `;
             }
 
-            // คำนวณสรุปเวลาเรียนสำหรับนักเรียนแต่ละคน (นับเฉพาะ "มา" เป็นวันมาเรียน)
             function getStudentMonthStats(s, mIdx) {
                 const mDates = yearDates.filter(d => d.monthIdx === mIdx);
                 let present = 0, totalWork = 0;
@@ -989,7 +984,7 @@
                     const val = (courseAtt[s.id] || {})[dObj.id] || def;
                     if (val !== 'หยุด') {
                         totalWork++;
-                        if (val === 'มา') present++; // ลบวันมาเมื่อเป็น ลาป่วย/ลากิจ
+                        if (val === 'มา') present++;
                     }
                 });
                 return { present, totalWork };
