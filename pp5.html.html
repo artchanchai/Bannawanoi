@@ -39,9 +39,14 @@
         .attendance-table th:first-child, .attendance-table td:first-child { border-left: 1px solid #e5e7eb; }
         
         .sticky-name-col { position: sticky; left: 0; z-index: 10; background-color: white; border-right: 2px solid #9ca3af !important; box-shadow: 2px 0 5px -2px rgba(0,0,0,0.1); }
-        .sticky-name-header { position: sticky; left: 0; z-index: 20; background-color: #f3f4f6; border-right: 2px solid #9ca3af !important; box-shadow: 2px 0 5px -2px rgba(0,0,0,0.1); }
+        .sticky-name-header { position: sticky; left: 0; top: 0; z-index: 40; background-color: #f3f4f6; border-right: 2px solid #9ca3af !important; box-shadow: 2px 0 5px -2px rgba(0,0,0,0.1); }
+        
+        /* สไตล์สำหรับตรึงหัวเดือนและวันที่ไม่ให้เลื่อนหายไป */
+        .sticky-month-header { position: sticky; top: 0; z-index: 30; }
+        .sticky-date-header { position: sticky; top: 29px; z-index: 25; }
+
         .sticky-pct-col { position: sticky; right: 0; z-index: 10; background-color: white; border-left: 2px solid #9ca3af !important; box-shadow: -2px 0 5px -2px rgba(0,0,0,0.1); }
-        .sticky-pct-header { position: sticky; right: 0; z-index: 20; background-color: #f3f4f6; border-left: 2px solid #9ca3af !important; box-shadow: -2px 0 5px -2px rgba(0,0,0,0.1); }
+        .sticky-pct-header { position: sticky; right: 0; top: 0; z-index: 40; background-color: #f3f4f6; border-left: 2px solid #9ca3af !important; box-shadow: -2px 0 5px -2px rgba(0,0,0,0.1); }
 
         .a4-preview {
             width: 210mm;
@@ -433,16 +438,16 @@
         const getCoursesForClass = () => window.state.courses[window.state.selectedClass] || [];
         const getCourse = () => getCoursesForClass().find(c => c.id === window.state.selectedCourseId) || getCoursesForClass()[0] || { id: '', code: '', name: '', credit: '', midCollect: '', midExam: '', finalCollect: '', finalExam: '', indicators: [] };
 
+        // ปรับแก้: นับเฉพาะ "มา" เท่านั้น ถ้าเป็น "ลาป่วย" หรือ "ลากิจ" จะไม่นับเป็นวันมาเรียน (หักวันมา)
         function calcAtt(studentId) {
             const atts = (window.state.attendance[window.state.selectedCourseId] || {})[studentId] || {};
             let present = 0, total = 0;
             yearDates.forEach(d => {
                 const def = (d.isWeekend || d.isHoliday) ? 'หยุด' : 'มา';
                 const st = atts[d.id] || def;
-                // ถ้าเป็นวันหยุด จะไม่นำมาคำนวณวันเรียน
                 if (st !== 'หยุด' && st !== '') { 
                     total++; 
-                    if (st === 'มา' || st === 'ลาป่วย' || st === 'ลากิจ') present++; 
+                    if (st === 'มา') present++; 
                 }
             });
             return { p: present, t: total, pct: total === 0 ? 100 : Math.round((present/total)*100) };
@@ -700,9 +705,11 @@
             const students = getStudents();
             const holidayDetails = yearDates.filter(d => d.isHoliday).map(d => `<span class="text-red-600 font-bold">*</span> วันที่ ${d.date} ${thaiMonthsFull[d.monthIdx]} (${d.dayNameFull}): <span class="font-bold">${d.holidayName}</span>`).join('<br>');
             const filterVal = window.state.attMonthFilter || 'all';
-            const displayDates = filterVal === 'all' ? yearDates : yearDates.filter(d => d.monthIdx.toString() === filterVal);
-            const displayMonths = filterVal === 'all' ? monthGroups : monthGroups.filter(mg => mg.idx.toString() === filterVal);
+            const isSingleMonth = filterVal !== 'all';
+            const displayDates = isSingleMonth ? yearDates.filter(d => d.monthIdx.toString() === filterVal) : yearDates;
+            const displayMonths = isSingleMonth ? monthGroups.filter(mg => mg.idx.toString() === filterVal) : monthGroups;
             const acYear = window.state.academicYear || '2569';
+            const singleMonthName = isSingleMonth && displayMonths.length > 0 ? displayMonths[0].name : '';
 
             return `
                 <div class="flex flex-col sm:flex-row justify-between sm:items-center mb-4 gap-2 no-print">
@@ -725,16 +732,26 @@
                     <table class="text-xs text-center attendance-table whitespace-nowrap min-w-max">
                         <thead>
                             <tr>
-                                <th rowSpan="2" class="sticky-name-header p-2 min-w-[150px] sm:min-w-[200px] text-left text-gray-800">ชื่อ - สกุล</th>
-                                ${displayMonths.map(mg => `<th colSpan="${mg.count}" class="p-1 sm:p-2 bg-month-${mg.idx} font-bold text-gray-800 border-r-2 border-gray-400">${mg.name}</th>`).join('')}
-                                <th rowSpan="2" class="p-1 bg-green-50 text-green-800 border-l-2 border-gray-400 text-[11px]" style="position: sticky; right: 340px; z-index: 20; width: 60px;">มา<br>(วัน)</th>
-                                <th rowSpan="2" class="p-1 bg-red-50 text-red-800 text-[11px]" style="position: sticky; right: 280px; z-index: 20; width: 60px;">ขาด/ลา<br>(วัน)</th>
-                                <th rowSpan="2" class="p-1 bg-gray-100 text-gray-800 text-[11px]" style="position: sticky; right: 210px; z-index: 20; width: 70px;">รวมวันปกติ<br>(วัน)</th>
-                                <th rowSpan="2" class="p-1 bg-blue-50 text-blue-800 text-[11px]" style="position: sticky; right: 100px; z-index: 20; width: 110px;">ร้อยละการมาเรียน<br>${filterVal === 'all' ? 'ตลอดปี' : 'ในเดือน'}</th>
-                                <th rowSpan="2" class="p-1 bg-purple-100 text-purple-900 border-l-2 border-gray-400 text-[11px]" style="position: sticky; right: 0px; z-index: 20; width: 100px;">ร้อยละตลอดปี</th>
+                                <th rowSpan="2" class="sticky-name-header p-2 min-w-[150px] sm:min-w-[200px] text-left text-gray-800" style="position: sticky; left: 0; top: 0; z-index: 50;">ชื่อ - สกุล</th>
+                                
+                                ${isSingleMonth ? `
+                                    <th colSpan="${displayDates.length}" class="p-1.5 bg-month-${displayMonths[0].idx} font-bold text-gray-800 border-r-2 border-gray-400 text-left pl-3" style="position: sticky; top: 0; z-index: 30;">
+                                        <div style="position: sticky; left: 210px; display: inline-flex; align-items: center; gap: 6px;" class="font-bold text-sm text-gray-800 bg-white/70 backdrop-blur-sm px-3 py-0.5 rounded shadow-sm border border-gray-300">
+                                            <i class="fa-solid fa-calendar-days text-blue-600"></i> เดือน${singleMonthName}
+                                        </div>
+                                    </th>
+                                ` : `
+                                    ${displayMonths.map(mg => `<th colSpan="${mg.count}" class="p-1 sm:p-2 bg-month-${mg.idx} font-bold text-gray-800 border-r-2 border-gray-400" style="position: sticky; top: 0; z-index: 30;">${mg.name}</th>`).join('')}
+                                `}
+
+                                <th rowSpan="2" class="p-1 bg-green-50 text-green-800 border-l-2 border-gray-400 text-[11px]" style="position: sticky; right: 340px; top: 0; z-index: 40; width: 60px;">มา<br>(วัน)</th>
+                                <th rowSpan="2" class="p-1 bg-red-50 text-red-800 text-[11px]" style="position: sticky; right: 280px; top: 0; z-index: 40; width: 60px;">ขาด/ลา<br>(วัน)</th>
+                                <th rowSpan="2" class="p-1 bg-gray-100 text-gray-800 text-[11px]" style="position: sticky; right: 210px; top: 0; z-index: 40; width: 70px;">รวมวันปกติ<br>(วัน)</th>
+                                <th rowSpan="2" class="p-1 bg-blue-50 text-blue-800 text-[11px]" style="position: sticky; right: 100px; top: 0; z-index: 40; width: 110px;">ร้อยละการมาเรียน<br>${isSingleMonth ? 'ในเดือน' : 'ตลอดปี'}</th>
+                                <th rowSpan="2" class="p-1 bg-purple-100 text-purple-900 border-l-2 border-gray-400 text-[11px]" style="position: sticky; right: 0px; top: 0; z-index: 40; width: 100px;">ร้อยละตลอดปี</th>
                             </tr>
                             <tr>
-                                ${displayDates.map(d => `<th class="p-1 border-r ${d.isEndOfMonth?'border-r-2 border-gray-400':''} ${d.isHoliday?'holiday-header':d.isWeekend?'bg-gray-200 text-gray-500':'bg-month-'+d.monthIdx}" title="${d.holidayName}"> 
+                                ${displayDates.map(d => `<th class="p-1 border-r ${d.isEndOfMonth?'border-r-2 border-gray-400':''} ${d.isHoliday?'holiday-header':d.isWeekend?'bg-gray-200 text-gray-500':'bg-month-'+d.monthIdx}" style="position: sticky; top: 32px; z-index: 25;" title="${d.holidayName}"> 
                                     ${d.isHoliday?'<div class="text-white font-black text-sm leading-none">*</div>':''}
                                     <div class="text-[9px] sm:text-[10px] font-medium leading-tight">${d.dayName}</div>
                                     <div class="font-bold text-xs">${d.date}</div>
@@ -749,11 +766,14 @@
                                 displayDates.forEach(d => {
                                     const def = (d.isWeekend || d.isHoliday) ? 'หยุด' : 'มา';
                                     const st = atts[d.id] || def;
-                                    // ถ้าเป็นวันหยุด จะไม่นำมาคำนวณวันปกติและวันมาเรียน
                                     if (st !== 'หยุด') {
                                         totalWorkMonth++;
-                                        if (st === 'มา' || st === 'ลาป่วย' || st === 'ลากิจ') presentMonth++;
-                                        if (st === 'ขาด') absentMonth++;
+                                        // นับเฉพาะ "มา" เท่านั้น ถ้าเป็น ลาป่วย/ลากิจ จะไม่นับเป็นวันมา (แต่จะถูกคิดรวมในขาด/ลา)
+                                        if (st === 'มา') {
+                                            presentMonth++;
+                                        } else if (st === 'ขาด' || st === 'ลาป่วย' || st === 'ลากิจ') {
+                                            absentMonth++;
+                                        }
                                     }
                                 });
                                 
@@ -800,7 +820,7 @@
         }
 
         // =========================================================================
-        // TEMPLATE: พิมพ์แบบบันทึกเวลาเรียน ตาม PDF ปพ.5 (ฉบับสมบูรณ์)
+        // TEMPLATE: พิมพ์แบบบันทึกเวลาเรียน ตาม PDF ปพ.5
         // =========================================================================
         function htmlPrintAttendance() {
             const students = getStudents();
@@ -824,8 +844,7 @@
                 const maxRows = Math.max(35, students.length);
                 let rowsHtml = '';
 
-                // ตรวจสอบสถานะวันหยุดของแต่ละวัน (1-31)
-                // เป็นวันหยุดนักขัตฤกษ์ หรือกรณีครูระบุว่าทั้งห้อง "หยุด"
+                // ตรวจสอบวันหยุดทั้งหมดของเดือน
                 const holidayCols = {};
                 for (let day = 1; day <= 31; day++) {
                     if (day <= daysInM) {
@@ -833,8 +852,9 @@
                         if (dObj) {
                             if (dObj.isHoliday) {
                                 holidayCols[day] = dObj.holidayName;
+                            } else if (dObj.isWeekend) {
+                                holidayCols[day] = dObj.dayNameFull === 'เสาร์' ? 'วันเสาร์' : 'วันอาทิตย์';
                             } else {
-                                // ตรวจสอบว่าในระบบครูระบุวันนั้นเป็น 'หยุด' ทั้งหมดหรือไม่
                                 let allCustomHoliday = students.length > 0;
                                 for (let s of students) {
                                     const val = (courseAtt[s.id] || {})[dObj.id];
@@ -861,7 +881,6 @@
                             const dObj = mDates.find(d => d.date === day);
                             const holidayText = holidayCols[day];
 
-                            // ถ้าเป็นวันหยุด ให้ทำ Rowspan รวมทั้งคอลัมน์ในแถวแรก
                             if (holidayText) {
                                 if (r === 1) {
                                     cells += `
@@ -872,7 +891,6 @@
                                         </td>
                                     `;
                                 }
-                                // r > 1 จะไม่ render เซลล์นี้เนื่องจากติด rowspan
                             } else {
                                 if (s && dObj) {
                                     const def = (dObj.isWeekend || dObj.isHoliday) ? 'หยุด' : 'มา';
@@ -891,7 +909,7 @@
                                         cells += `<td>ข</td>`;
                                         cK++;
                                     } else {
-                                        cells += `<td>-</td>`; // วันหยุด / ไม่ได้มาเรียน
+                                        cells += `<td>-</td>`;
                                     }
                                 } else {
                                     cells += `<td>-</td>`;
@@ -962,7 +980,7 @@
                 `;
             }
 
-            // คำนวณสรุปเวลาเรียนสำหรับนักเรียนแต่ละคน (อิงตามระบบจริง ไม่นำวันที่ครูกำหนดเป็นหยุดมาคิด)
+            // คำนวณสรุปเวลาเรียนสำหรับนักเรียนแต่ละคน (นับเฉพาะ "มา" เป็นวันมาเรียน)
             function getStudentMonthStats(s, mIdx) {
                 const mDates = yearDates.filter(d => d.monthIdx === mIdx);
                 let present = 0, totalWork = 0;
@@ -971,7 +989,7 @@
                     const val = (courseAtt[s.id] || {})[dObj.id] || def;
                     if (val !== 'หยุด') {
                         totalWork++;
-                        if (val === 'มา' || val === 'ลาป่วย' || val === 'ลากิจ') present++;
+                        if (val === 'มา') present++; // ลบวันมาเมื่อเป็น ลาป่วย/ลากิจ
                     }
                 });
                 return { present, totalWork };
