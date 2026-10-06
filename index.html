@@ -170,7 +170,7 @@
             <div class="w-11 h-11 rounded-2xl bg-amber-50 text-amber-500 flex items-center justify-center text-lg"><i class="fa-solid fa-award"></i></div>
           </div>
 
-          <!-- การ์ด 2: เกม & สื่อ (พร้อมปุ่มแก้ไขสำหรับ Admin) -->
+          <!-- การ์ด 2: เกม & สื่อ -->
           <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm flex items-center justify-between relative group">
             <div>
               <div class="flex items-center gap-1.5">
@@ -181,13 +181,13 @@
               </div>
               <h3 class="text-2xl font-bold text-slate-800 mt-1" id="stat-game-count">--</h3>
               <span class="text-[11px] text-[#0066cc] font-normal inline-flex items-center gap-1 mt-1">
-                <i class="fa-solid fa-gamepad text-[10px]"></i> เล่นแบบเต็มจอ 100%
+                <i class="fa-solid fa-gamepad text-[10px]"></i> เล่นแบบเต็มจอ
               </span>
             </div>
             <div class="w-11 h-11 rounded-2xl bg-indigo-50 text-indigo-500 flex items-center justify-center text-lg"><i class="fa-solid fa-gamepad"></i></div>
           </div>
 
-          <!-- การ์ด 3: นักเรียนทั้งหมด (พร้อมปุ่มแก้ไขสำหรับ Admin) -->
+          <!-- การ์ด 3: นักเรียนทั้งหมด -->
           <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm flex items-center justify-between relative group">
             <div>
               <div class="flex items-center gap-1.5">
@@ -297,46 +297,6 @@
                     <p class="text-[11px] text-slate-500">ดูแลระบบออนไลน์และ ปพ.5</p>
                   </div>
                 </div>
-
-                       <div class="flex items-center gap-3.5 p-3 rounded-2xl bg-slate-50 border border-slate-100">
-                  <div class="w-12 h-12 rounded-xl bg-emerald-100 overflow-hidden shrink-0 border border-white shadow-sm">
-                    <img src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=150&q=80" alt="หัวหน้าฝ่ายวิชาการ" class="w-full h-full object-cover">
-                  </div>
-                  <div class="min-w-0">
-                    <p class="text-xs font-semibold text-slate-900 truncate">หัวหน้าฝ่ายวิชาการ</p>
-                    <p class="text-[11px] text-slate-500">บริหารหลักสูตรและการวัดผล</p>
-                  </div>
-                </div>
-
-
-                       <div class="flex items-center gap-3.5 p-3 rounded-2xl bg-slate-50 border border-slate-100">
-                  <div class="w-12 h-12 rounded-xl bg-emerald-100 overflow-hidden shrink-0 border border-white shadow-sm">
-                    <img src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=150&q=80" alt="หัวหน้าฝ่ายวิชาการ" class="w-full h-full object-cover">
-                  </div>
-                  <div class="min-w-0">
-                    <p class="text-xs font-semibold text-slate-900 truncate">หัวหน้าฝ่ายวิชาการ</p>
-                    <p class="text-[11px] text-slate-500">บริหารหลักสูตรและการวัดผล</p>
-                  </div>
-                </div>
-
-
-
-                       <div class="flex items-center gap-3.5 p-3 rounded-2xl bg-slate-50 border border-slate-100">
-                  <div class="w-12 h-12 rounded-xl bg-emerald-100 overflow-hidden shrink-0 border border-white shadow-sm">
-                    <img src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=150&q=80" alt="หัวหน้าฝ่ายวิชาการ" class="w-full h-full object-cover">
-                  </div>
-                  <div class="min-w-0">
-                    <p class="text-xs font-semibold text-slate-900 truncate">หัวหน้าฝ่ายวิชาการ</p>
-                    <p class="text-[11px] text-slate-500">บริหารหลักสูตรและการวัดผล</p>
-                  </div>
-                </div>
-
-
-
-
-
-
-                
               </div>
             </div>
 
@@ -348,7 +308,7 @@
 
       </div>
 
-      <!-- VIEW 2: ระบบงานทั่วไป (แก้ไขเพิ่ม allow-modals และ allow-downloads แล้ว) -->
+      <!-- VIEW 2: ระบบงานทั่วไปและคลังเกม (เปิดผ่านกรอบนี้ทั้งหมด ไม่มีปุ่มดำลอยมาบัง) -->
       <div id="standard-workspace" class="hidden absolute inset-0 bg-white flex flex-col z-10">
         <div class="h-10 bg-slate-100 border-b border-slate-200 px-4 flex items-center justify-between shrink-0">
           <div class="flex items-center gap-2">
@@ -368,19 +328,10 @@
             </button>
           </div>
         </div>
-        <iframe id="standard-frame" src="" class="w-full flex-1 border-0" sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-modals allow-downloads"></iframe>
+        <iframe id="standard-frame" src="" class="w-full flex-1 border-0" allow="camera; microphone; fullscreen; accelerometer; gyroscope" sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-modals allow-downloads"></iframe>
       </div>
 
     </div>
-  </div>
-
-  <!-- VIEW 3: เฉพาะระบบเกม (Cinema Mode เต็มจอ 100% ไร้ขอบ) -->
-  <div id="game-fullscreen-workspace" class="hidden fixed inset-0 w-screen h-screen bg-slate-900 z-50 m-0 p-0 border-none outline-none">
-    <button onclick="closeAppFrame()" class="absolute top-4 left-4 z-[60] px-4 py-2 rounded-2xl bg-slate-900/80 hover:bg-slate-950 text-white text-xs font-medium backdrop-blur-md shadow-2xl transition items-center gap-2 border border-white/20 hover:scale-105 active:scale-95">
-      <i class="fa-solid fa-house text-amber-400"></i>
-      <span>ออกจากเกมกลับหน้าหลัก</span>
-    </button>
-    <iframe id="game-frame" src="" class="w-full h-full border-0 m-0 p-0 block bg-white" sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-modals allow-downloads"></iframe>
   </div>
 
   <!-- ================= 4. โมดอลเข้าสู่ระบบคุณครู ================= -->
@@ -465,12 +416,12 @@
         type: 'standard'
       },
       'game-app': {
-        name: 'คลังเกมการเรียนรู้ ',
+        name: 'คลังเกมการเรียนรู้',
         icon: 'fa-solid fa-gamepad',
         color: 'text-indigo-500 bg-indigo-50',
         url: 'games.html',
         category: 'public',
-        type: 'game'
+        type: 'standard' // ปรับเป็น standard เพื่อไม่ให้มีปุ่มลอยสีดำไปบังหน้าเกม
       },
       'doc-app': {
         name: 'ระบบธนาคารออมเงินนักเรียน',
@@ -599,7 +550,6 @@
               <i class="${app.icon}"></i>
             </div>
             <span class="truncate">${app.name}</span>
-            ${app.type === 'game' ? '<span class="ml-auto text-[10px] px-1.5 py-0.5 rounded bg-indigo-50 text-indigo-600 font-normal">เต็มจอ</span>' : ''}
           `;
           container.appendChild(button);
         }
@@ -659,7 +609,6 @@
       document.getElementById('btn-logout').classList.remove('hidden');
       document.getElementById('btn-logout').classList.add('flex');
 
-      // ตรวจสอบสิทธิ์ Admin (ถ้า username คือ admin หรือ role มีคำว่า admin ให้เปิดปุ่มแก้สถิติ)
       const isAdmin = currentUser.username.toLowerCase() === 'admin' || (currentUser.role && currentUser.role.toLowerCase().includes('admin'));
       document.querySelectorAll('.admin-edit-btn').forEach(btn => {
         if (isAdmin) btn.classList.remove('hidden');
@@ -713,28 +662,20 @@
 
       currentAppUrl = finalUrl;
 
-      if (app.type === 'game') {
-        const gameFrame = document.getElementById('game-frame');
-        const gameWorkspace = document.getElementById('game-fullscreen-workspace');
-        gameFrame.src = finalUrl;
-        gameWorkspace.classList.remove('hidden');
-      } else {
-        const standardFrame = document.getElementById('standard-frame');
-        const standardWorkspace = document.getElementById('standard-workspace');
-        standardFrame.src = finalUrl;
-        document.getElementById('active-app-indicator').textContent = app.name;
-        document.getElementById('dashboard-scroll-view').classList.add('hidden');
-        standardWorkspace.classList.remove('hidden');
-      }
+      // เปิดทุกระบบผ่าน standard workspace
+      const standardFrame = document.getElementById('standard-frame');
+      const standardWorkspace = document.getElementById('standard-workspace');
+      standardFrame.src = finalUrl;
+      document.getElementById('active-app-indicator').textContent = app.name;
+      document.getElementById('dashboard-scroll-view').classList.add('hidden');
+      standardWorkspace.classList.remove('hidden');
 
       if (window.innerWidth < 1024) toggleSidebar();
     }
 
     function closeAppFrame() {
-      document.getElementById('game-frame').src = '';
       document.getElementById('standard-frame').src = '';
       currentAppUrl = '';
-      document.getElementById('game-fullscreen-workspace').classList.add('hidden');
       document.getElementById('standard-workspace').classList.add('hidden');
       document.getElementById('dashboard-scroll-view').classList.remove('hidden');
     }
@@ -756,7 +697,7 @@
 
     const feedSlides = [
       {
-        title: " ฝึกอบรมและซ้อมแผนป้องกันและบรรเทาสาธารณภัย",
+        title: "ฝึกอบรมและซ้อมแผนป้องกันและบรรเทาสาธารณภัย",
         img: "photo/PH1.jpg"
       },
       {
@@ -764,7 +705,7 @@
         img: "photo/PH2.jpg"
       },
       {
-        title: "กิจกรรมเดินรณรงค์วันต่อต้านยาเสพติด ",
+        title: "กิจกรรมเดินรณรงค์วันต่อต้านยาเสพติด",
         img: "photo/PH3.jpg"
       }
     ];
