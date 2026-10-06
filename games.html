@@ -25,17 +25,16 @@
 
   <!-- มุมมองที่ 1: หน้ารายการเลือกเกม (Game Lobby) -->
   <div id="gameLobby" class="flex-1 max-w-6xl mx-auto w-full p-4 sm:p-6">
-    <div class="flex flex-col sm:flex-row justify-between sm:items-center gap-2 mb-6 border-b pb-4">
-      <div>
-        <h1 class="text-xl sm:text-2xl font-bold text-slate-800 flex items-center gap-2">
-          <i class="fa-solid fa-gamepad text-indigo-600"></i> ศูนย์รวมเกมการเรียนรู้
-        </h1>
-        <p class="text-xs sm:text-sm text-slate-500 mt-1">เลือกเกมที่ต้องการเล่นเพื่อเริ่มกิจกรรม</p>
-      </div>
-      <span class="text-xs bg-indigo-50 text-indigo-700 px-3 py-1.5 rounded-full border border-indigo-200 font-semibold w-fit">
-        Active Learning & Gamification
-      </span>
-    </div>
+    <!-- แถบหัวข้อจัดกึ่งกลาง -->
+<div class="flex flex-col items-center text-center gap-2 mb-6 border-b pb-4">
+  <span class="text-xs bg-indigo-50 text-indigo-700 px-3 py-1 rounded-full border border-indigo-200 font-semibold">
+    Active Learning & Gamification
+  </span>
+  <h1 class="text-xl sm:text-3xl font-bold text-slate-800 flex items-center justify-center gap-2">
+    <i class="fa-solid fa-gamepad text-indigo-600"></i> ศูนย์รวมเกมการเรียนรู้
+  </h1>
+  <p class="text-xs sm:text-sm text-slate-500">เลือกเกมที่ต้องการเล่นเพื่อเริ่มกิจกรรม</p>
+</div>
 
     <!-- กริดแสดงการ์ดเกม -->
     <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
@@ -70,6 +69,25 @@
           <span class="text-[11px] font-bold bg-emerald-50 text-emerald-700 px-2.5 py-1 rounded-md">รวมกลุ่มสาระ</span>
           <h3 class="text-base sm:text-lg font-bold text-slate-800 mt-2 group-hover:text-indigo-600 transition-colors">เกม PictureMysteryGame</h3>
           <p class="text-xs text-slate-500 mt-1 leading-relaxed">เรียนรู้คำศัพท์ ทายภาพปริศนา พร้อมสะกดคำเพื่อตอบคำถาม</p>
+        </div>
+        <button class="mt-4 w-full py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-semibold shadow transition flex items-center justify-center gap-1.5">
+          <i class="fa-solid fa-play"></i> เริ่มเล่นเกม
+        </button>
+      </div>
+
+
+      <!-- เกมที่ 3 -->
+      <div onclick="launchGame('Game/ColorRelayMemory.html', 'เกม PictureMysteryGame')" class="game-card bg-white rounded-2xl p-5 shadow-sm hover:shadow-md border border-slate-200 cursor-pointer flex flex-col justify-between group">
+        <div>
+          <!-- (แก้ไขจุดนี้) เปลี่ยนจากไอคอนเป็นรูปภาพ -->
+          <div class="h-36 bg-slate-200 rounded-xl flex items-center justify-center mb-4 shadow-inner overflow-hidden">
+            <!-- ใส่ที่อยู่รูปภาพของคุณที่นี่ -->
+            <img src="Game/ColorRelayMemory.jpg" alt="ตัวอย่างเกม ColorRelayMemory" class="game-thumbnail">
+          </div>
+
+          <span class="text-[11px] font-bold bg-emerald-50 text-emerald-700 px-2.5 py-1 rounded-md">ความจำเล่นได้ทุกกลุ่มสาระ</span>
+          <h3 class="text-base sm:text-lg font-bold text-slate-800 mt-2 group-hover:text-indigo-600 transition-colors">เกมตารางสีประลองความจำ ColorRelayMemory</h3>
+          <p class="text-xs text-slate-500 mt-1 leading-relaxed">Color Relay Memory Game • วิ่งผลัดจดจำสี พัฒนาสมาธิและความจำตำแหน่ง</p>
         </div>
         <button class="mt-4 w-full py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-semibold shadow transition flex items-center justify-center gap-1.5">
           <i class="fa-solid fa-play"></i> เริ่มเล่นเกม
