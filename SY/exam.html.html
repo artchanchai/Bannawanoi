@@ -5,7 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>ระบบพิมพ์กระดาษคำตอบ OMR 40 ข้อ & ตรวจคะแนนอัตโนมัติ</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
+  <!-- เปลี่ยนจาก jsQR เป็น ZXing เพื่อรองรับการสแกน Code 128 บาร์โค้ดแท่งบนทุกอุปกรณ์ -->
+  <script src="https://unpkg.com/@zxing/library@0.21.3/umd/index.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
   <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&family=Sarabun:wght@300;400;600;700&display=swap" rel="stylesheet">
   
@@ -446,7 +447,6 @@
         <!-- หน้าจอแสดงภาพ + Canvas วาดจุดตรวจจับจริง -->
         <div class="relative bg-black rounded-3xl overflow-hidden flex flex-col items-center justify-center min-h-[420px] shadow-inner">
           <video id="video" playsinline class="w-full h-full object-cover"></video>
-          <!-- Canvas สำหรับวาดภาพและมาร์กจุดตรวจจับจริงให้เห็น -->
           <canvas id="scanCanvas" class="w-full h-full object-contain"></canvas>
 
           <div id="cameraGuideOverlay" class="absolute inset-0 border-2 border-dashed border-emerald-400/80 m-6 rounded-2xl pointer-events-none flex items-center justify-center">
@@ -967,12 +967,12 @@
         const data = await pp5Res.json();
         const examsData = await examsRes.json();
 
-        if (examsData.success) {
+        if (examsData && examsData.success) {
           allSavedExams = examsData.exams || [];
           updateScannerGradeFilter();
         }
 
-        if (data.success) {
+        if (data && data.success) {
           studentsList = data.students || [];
           coursesList = data.courses || [];
 
@@ -1012,9 +1012,10 @@
             onCourseSelected();
           }
         } else {
-          statusLbl.innerText = `⚠️ ${data.error}`;
+          statusLbl.innerText = `⚠️ ${data.error || 'ไม่พบข้อมูล'}`;
         }
       } catch (err) {
+        console.error("onGradeChange Error:", err);
         statusLbl.innerText = "❌ เชื่อมต่อผิดพลาด";
       }
     }
@@ -1122,6 +1123,7 @@
       alert("รีเซ็ตให้เป็นชุดข้อสอบใหม่แล้ว");
     }
 
+    // 🔴 แก้ไข: การจัดการ Response และ Error handling ใน saveExam
     async function saveExam() {
       const courseIdx = document.getElementById('courseSelect').value;
       if (courseIdx === "") {
@@ -1174,10 +1176,9 @@
           body: JSON.stringify(payload)
         });
 
-        let result = {};
-        try { result = await res.json(); } catch (jsonErr) { result = { success: true, examId: finalExamId }; }
+        const result = await res.json();
 
-        if (result.success !== false) {
+        if (result && result.success !== false) {
           currentExamData = {
             examId: finalExamId,
             subjectCode: course.code,
@@ -1205,59 +1206,73 @@
           renderLivePreview();
           updateScannerGradeFilter();
           alert(isUpdate ? "อัปเดตข้อสอบสำเร็จ!" : `สร้างชุดข้อสอบ (${total} ข้อ) สำเร็จ!`);
+        } else {
+          throw new Error(result.error || "ไม่สามารถบันทึกข้อมูลได้");
         }
       } catch (e) {
-        document.getElementById('savedStatusBadge').innerText = `✓ บันทึกข้อมูลแล้ว (${finalExamId})`;
-        document.getElementById('savedStatusBadge').className = "bg-emerald-100 text-emerald-800 text-[11px] px-3.5 py-1 rounded-full font-bold border border-emerald-200";
-        saveDraftToStorage();
-        renderLivePreview();
-        updateScannerGradeFilter();
-        alert(`บันทึกชุดข้อสอบเรียบร้อยแล้ว!`);
+        console.error("Save exam error:", e);
+        alert(`❌ เกิดข้อผิดพลาดในการบันทึกข้อสอบ: ${e.message || e}`);
       } finally {
         btn.innerText = "💾 บันทึกชุดข้อสอบ";
         btn.disabled = false;
       }
     }
 
+    // 🔴 แก้ไข: ส่งผ่าน examId แทน JSON String ใน loadExamsList
     async function loadExamsList() {
       const tbody = document.getElementById('examsTableBody');
       tbody.innerHTML = `<tr><td colspan="8" class="p-4 text-center text-slate-400">กำลังโหลด...</td></tr>`;
       unselectAllCheckboxes();
 
-      const res = await fetch(`${SCRIPT_URL}?action=getAllExams`);
-      const data = await res.json();
-      if (data.success && data.exams.length > 0) {
-        allSavedExams = data.exams;
-        updateScannerGradeFilter();
-        tbody.innerHTML = data.exams.map((ex) => {
-          const isRowEmpty = !ex.examId || ex.examId.trim() === "";
-          const rowVal = isRowEmpty ? "EMPTY" : ex.examId;
-          const subjectiveText = ex.hasSubjective ? `<span class="text-[10px] text-amber-700 block font-normal">(กา ${ex.maxScore - (ex.subjectiveMaxScore || 0)} + เขียน ${ex.subjectiveMaxScore})</span>` : '';
-          return `
-            <tr class="border-b border-slate-100 hover:bg-slate-50 transition ${isRowEmpty ? 'bg-amber-50/40' : ''}">
-              <td class="p-3 text-center">
-                <input type="checkbox" value="${rowVal}" onchange="updateSelectedCheckboxesCount()" class="exam-checkbox w-4 h-4 rounded text-indigo-600 focus:ring-indigo-500 cursor-pointer">
-              </td>
-              <td class="p-3 font-mono font-bold ${isRowEmpty ? 'text-amber-600 italic' : 'text-indigo-700'} text-xs">
-                ${isRowEmpty ? '⚠️ แถวว่างเสีย (ไม่มีรหัส)' : ex.examId}
-              </td>
-              <td class="p-3 text-center font-bold text-purple-700">ชุด ${ex.examSet || 'A'}</td>
-              <td class="p-3">${ex.gradeLevel || '-'}</td>
-              <td class="p-3 font-semibold">${ex.subjectName} ${ex.subjectCode ? '(' + ex.subjectCode + ')' : ''}</td>
-              <td class="p-3 text-center font-bold text-indigo-600">${ex.totalQuestions || '32'} ข้อ</td>
-              <td class="p-3 text-center font-bold text-emerald-600">
-                ${ex.maxScore ? ex.maxScore + ' คะแนน' : '-'}
-                ${subjectiveText}
-              </td>
-              <td class="p-3 text-center space-x-1 whitespace-nowrap">
-                ${!isRowEmpty ? `<button onclick='startEditExam(${JSON.stringify(ex)})' class="bg-amber-500 hover:bg-amber-600 text-white px-2.5 py-1 rounded-lg text-xs font-semibold shadow-xs">แก้ไข</button>` : ''}
-                <button onclick="deleteSingleExam('${ex.examId}')" class="bg-rose-600 hover:bg-rose-700 text-white px-2.5 py-1 rounded-lg text-xs font-semibold shadow-xs">ลบ</button>
-              </td>
-            </tr>
-          `;
-        }).join('');
+      try {
+        const res = await fetch(`${SCRIPT_URL}?action=getAllExams`);
+        const data = await res.json();
+        if (data.success && data.exams.length > 0) {
+          allSavedExams = data.exams;
+          updateScannerGradeFilter();
+          tbody.innerHTML = data.exams.map((ex) => {
+            const isRowEmpty = !ex.examId || ex.examId.trim() === "";
+            const rowVal = isRowEmpty ? "EMPTY" : ex.examId;
+            const subjectiveText = ex.hasSubjective ? `<span class="text-[10px] text-amber-700 block font-normal">(กา ${ex.maxScore - (ex.subjectiveMaxScore || 0)} + เขียน ${ex.subjectiveMaxScore})</span>` : '';
+            return `
+              <tr class="border-b border-slate-100 hover:bg-slate-50 transition ${isRowEmpty ? 'bg-amber-50/40' : ''}">
+                <td class="p-3 text-center">
+                  <input type="checkbox" value="${rowVal}" onchange="updateSelectedCheckboxesCount()" class="exam-checkbox w-4 h-4 rounded text-indigo-600 focus:ring-indigo-500 cursor-pointer">
+                </td>
+                <td class="p-3 font-mono font-bold ${isRowEmpty ? 'text-amber-600 italic' : 'text-indigo-700'} text-xs">
+                  ${isRowEmpty ? '⚠️ แถวว่างเสีย (ไม่มีรหัส)' : ex.examId}
+                </td>
+                <td class="p-3 text-center font-bold text-purple-700">ชุด ${ex.examSet || 'A'}</td>
+                <td class="p-3">${ex.gradeLevel || '-'}</td>
+                <td class="p-3 font-semibold">${ex.subjectName} ${ex.subjectCode ? '(' + ex.subjectCode + ')' : ''}</td>
+                <td class="p-3 text-center font-bold text-indigo-600">${ex.totalQuestions || '32'} ข้อ</td>
+                <td class="p-3 text-center font-bold text-emerald-600">
+                  ${ex.maxScore ? ex.maxScore + ' คะแนน' : '-'}
+                  ${subjectiveText}
+                </td>
+                <td class="p-3 text-center space-x-1 whitespace-nowrap">
+                  ${!isRowEmpty ? `<button onclick="startEditExamById('${ex.examId}')" class="bg-amber-500 hover:bg-amber-600 text-white px-2.5 py-1 rounded-lg text-xs font-semibold shadow-xs">แก้ไข</button>` : ''}
+                  <button onclick="deleteSingleExam('${ex.examId}')" class="bg-rose-600 hover:bg-rose-700 text-white px-2.5 py-1 rounded-lg text-xs font-semibold shadow-xs">ลบ</button>
+                </td>
+              </tr>
+            `;
+          }).join('');
+        } else {
+          tbody.innerHTML = `<tr><td colspan="8" class="p-4 text-center text-slate-400">ยังไม่มีข้อสอบในระบบ</td></tr>`;
+        }
+      } catch (err) {
+        console.error("Load exams error:", err);
+        tbody.innerHTML = `<tr><td colspan="8" class="p-4 text-center text-rose-500 font-bold">เกิดข้อผิดพลาดในการโหลดคลังข้อสอบ</td></tr>`;
+      }
+    }
+
+    // 🔴 แก้ไข: ฟังก์ชันค้นหาข้อมูลข้อสอบเพื่อแก้ไข
+    function startEditExamById(examId) {
+      const exam = allSavedExams.find(x => String(x.examId).trim() === String(examId).trim());
+      if (exam) {
+        startEditExam(exam);
       } else {
-        tbody.innerHTML = `<tr><td colspan="8" class="p-4 text-center text-slate-400">ยังไม่มีข้อสอบในระบบ</td></tr>`;
+        alert("ไม่พบข้อมูลข้อสอบรายการนี้");
       }
     }
 
@@ -1293,15 +1308,20 @@
     async function deleteSingleExam(examId) {
       if (!confirm(`ต้องการลบรายการนี้ออกจากชีตใช่หรือไม่?`)) return;
       try {
-        await fetch(SCRIPT_URL, { 
+        const res = await fetch(SCRIPT_URL, { 
           method: "POST", 
           headers: { "Content-Type": "text/plain;charset=utf-8" },
           body: JSON.stringify({ action: "deleteExam", examId: examId }) 
         });
-        alert("ลบรายการสำเร็จ!");
-        loadExamsList();
+        const result = await res.json();
+        if (result && result.success !== false) {
+          alert("ลบรายการสำเร็จ!");
+          loadExamsList();
+        } else {
+          throw new Error(result.error || "เกิดข้อผิดพลาด");
+        }
       } catch (e) {
-        alert("เกิดข้อผิดพลาดในการลบ");
+        alert("เกิดข้อผิดพลาดในการลบรายการ: " + (e.message || e));
       }
     }
 
@@ -1313,30 +1333,40 @@
       if (!confirm(`คุณแน่ใจหรือไม่ว่าต้องการลบรายการที่เลือกทั้งหมด ${examIds.length} รายการออกจากชีตจริง?`)) return;
 
       try {
-        await fetch(SCRIPT_URL, { 
+        const res = await fetch(SCRIPT_URL, { 
           method: "POST", 
           headers: { "Content-Type": "text/plain;charset=utf-8" },
           body: JSON.stringify({ action: "deleteExamsBatch", examIds: examIds }) 
         });
-        alert(`ลบรายการสำเร็จเรียบร้อย!`);
-        loadExamsList();
+        const result = await res.json();
+        if (result && result.success !== false) {
+          alert(`ลบรายการสำเร็จเรียบร้อย!`);
+          loadExamsList();
+        } else {
+          throw new Error(result.error || "เกิดข้อผิดพลาด");
+        }
       } catch(e) {
-        alert("เกิดข้อผิดพลาดในการลบ");
+        alert("เกิดข้อผิดพลาดในการลบรายการ: " + (e.message || e));
       }
     }
 
     async function cleanupEmptyRows() {
       if (!confirm("คุณต้องการล้างแถวว่างที่เสียทั้งหมดออกจากชีตใช่หรือไม่?")) return;
       try {
-        await fetch(SCRIPT_URL, { 
+        const res = await fetch(SCRIPT_URL, { 
           method: "POST", 
           headers: { "Content-Type": "text/plain;charset=utf-8" },
           body: JSON.stringify({ action: "cleanupEmptyRows" }) 
         });
-        alert("ล้างแถวว่างเรียบร้อยแล้ว!");
-        loadExamsList();
+        const result = await res.json();
+        if (result && result.success !== false) {
+          alert("ล้างแถวว่างเรียบร้อยแล้ว!");
+          loadExamsList();
+        } else {
+          throw new Error(result.error || "เกิดข้อผิดพลาด");
+        }
       } catch(e) {
-        alert("ล้างแถวว่างไม่สำเร็จ");
+        alert("ล้างแถวว่างไม่สำเร็จ: " + (e.message || e));
       }
     }
 
@@ -1466,7 +1496,7 @@
         fetch(`${SCRIPT_URL}?action=getPP5Data&grade=${encodeURIComponent(grade)}`)
           .then(res => res.json())
           .then(data => {
-            if (data.success) {
+            if (data && data.success) {
               studentsList = data.students || [];
               findStudentNameByRoll();
             }
@@ -1521,11 +1551,14 @@
     }
 
     // ================= ระบบวิเคราะห์ OMR + วาดจุดคำนวณลงบน CANVAS (VISUAL INSPECTION) =================
+    // 🟡 ปรับปรุง: ระบบคำนวณความเข้มข้นแบบ Local Adaptive
     function processOMRFromImage(canvas) {
       if (!currentExamData) {
         document.getElementById('answerSummary').innerHTML = `<span class="text-amber-600 font-bold">⚠️ กรุณาเลือกวิชาที่ต้องการเฉลยด้านบนก่อนตรวจ</span>`;
         return;
       }
+
+      if (!canvas || canvas.width === 0 || canvas.height === 0) return;
 
       const ctx = canvas.getContext('2d');
       const W = canvas.width;
@@ -1551,10 +1584,12 @@
 
       // 2. ตรวจหาขอบเขตของตัวกระดาษคำตอบจริง
       let minX = W, maxX = 0, minY = H, maxY = 0;
-      const step = 8;
+      const step = Math.max(4, Math.floor(Math.min(W, H) / 100));
+      const thresholdVal = Math.min(160, Math.max(80, avgBrightness * 1.05));
+
       for (let y = 0; y < H; y += step) {
         for (let x = 0; x < W; x += step) {
-          if (gray[y * W + x] > Math.min(140, avgBrightness * 1.1)) {
+          if (gray[y * W + x] > thresholdVal) {
             if (x < minX) minX = x;
             if (x > maxX) maxX = x;
             if (y < minY) minY = y;
@@ -1563,7 +1598,7 @@
         }
       }
 
-      if (maxX - minX < W * 0.4 || maxY - minY < H * 0.4) {
+      if (maxX - minX < W * 0.3 || maxY - minY < H * 0.3) {
         minX = 0; maxX = W;
         minY = 0; maxY = H;
       }
@@ -1573,7 +1608,7 @@
 
       // วาดกรอบสีเขียวแสดงขอบกระดาษที่ตรวจพบ
       ctx.strokeStyle = '#22c55e';
-      ctx.lineWidth = 3;
+      ctx.lineWidth = Math.max(2, Math.floor(sheetW * 0.005));
       ctx.strokeRect(minX, minY, sheetW, sheetH);
 
       detectStudentFromBarcode(canvas);
@@ -1585,7 +1620,7 @@
       const rowStartRatio = 0.27; 
       const rowEndRatio = 0.88;
       const rowHeight = (sheetH * (rowEndRatio - rowStartRatio)) / 20;
-      const radius = Math.max(3, Math.floor(sheetW * 0.015));
+      const radius = Math.max(3, Math.floor(sheetW * 0.014));
 
       for (let q = 1; q <= 40; q++) {
         const isCol1 = q <= 20;
@@ -1595,12 +1630,10 @@
         const colStartRatio = isCol1 ? 0.16 : 0.58;
         const choicePitch = sheetW * 0.058;
 
-        let darkestChoice = null;
-        let minBrightness = 255;
+        // คำนวณความสว่างพื้นหลังเฉพาะแถวนั้นๆ (Local Area Adaptive)
         let baselineBrightness = 0;
-
         let sampleCount = 0;
-        for (let dx = -10; dx <= 10; dx += 5) {
+        for (let dx = -15; dx <= 15; dx += 3) {
           const px = Math.floor(minX + sheetW * (colStartRatio - 0.04) + dx);
           if (px >= 0 && px < W && yCenter >= 0 && yCenter < H) {
             baselineBrightness += gray[yCenter * W + px];
@@ -1609,6 +1642,8 @@
         }
         baselineBrightness = sampleCount > 0 ? (baselineBrightness / sampleCount) : 200;
 
+        let darkestChoice = null;
+        let minAvgCircle = 255;
         let choicesMetrics = {};
 
         THAI_CHOICES.forEach((ch, idx) => {
@@ -1630,36 +1665,40 @@
           }
 
           const avgCircle = count > 0 ? (circleBrightness / count) : 255;
-          const isFilled = (avgCircle < baselineBrightness * 0.78);
+          // เช็กว่าฝนคำตอบหรือไม่ โดยเทียบกับค่าความสว่างพื้นหลังในโซนนั้น
+          const isFilled = (avgCircle < baselineBrightness * 0.82) && (avgCircle < 170);
+
           choicesMetrics[ch] = { xCenter, yCenter, avgCircle, isFilled };
 
-          // วาดวงกลมพิกัดจุดตรวจสอบลงบนภาพให้เห็นชัดเจน
-          ctx.beginPath();
-          ctx.arc(xCenter, yCenter, radius, 0, 2 * Math.PI);
-          if (isFilled) {
-            ctx.fillStyle = 'rgba(34, 197, 94, 0.4)'; // วงกลมระบายสีเขียวโปร่ง
-            ctx.fill();
-            ctx.strokeStyle = '#15803d'; // ขอบเขียวเข้ม
-            ctx.lineWidth = 2.5;
-            ctx.stroke();
-          } else {
-            ctx.strokeStyle = 'rgba(56, 189, 248, 0.5)'; // ขอบฟ้าโปร่งสำหรับวงที่ว่าง
-            ctx.lineWidth = 1;
-            ctx.stroke();
+          // วาดวงกลมพิกัดจุดตรวจสอบลงบนภาพ
+          if (q <= activeQuestions) {
+            ctx.beginPath();
+            ctx.arc(xCenter, yCenter, radius, 0, 2 * Math.PI);
+            if (isFilled) {
+              ctx.fillStyle = 'rgba(34, 197, 94, 0.45)'; // วงกลมระบายสีเขียวโปร่ง
+              ctx.fill();
+              ctx.strokeStyle = '#15803d'; // ขอบเขียวเข้ม
+              ctx.lineWidth = 2;
+              ctx.stroke();
+            } else {
+              ctx.strokeStyle = 'rgba(56, 189, 248, 0.4)'; // ขอบฟ้าโปร่ง
+              ctx.lineWidth = 1;
+              ctx.stroke();
+            }
           }
 
-          if (isFilled && avgCircle < minBrightness) {
-            minBrightness = avgCircle;
+          if (isFilled && avgCircle < minAvgCircle) {
+            minAvgCircle = avgCircle;
             darkestChoice = ch;
           }
         });
 
         // วาดเครื่องหมายถูกบนข้อที่ตรวจจับได้
-        if (darkestChoice && choicesMetrics[darkestChoice]) {
+        if (darkestChoice && choicesMetrics[darkestChoice] && q <= activeQuestions) {
           const best = choicesMetrics[darkestChoice];
           ctx.fillStyle = '#16a34a';
-          ctx.font = `bold ${Math.max(12, Math.floor(sheetW * 0.02))}px Prompt, sans-serif`;
-          ctx.fillText('✓', best.xCenter - 5, best.yCenter + 5);
+          ctx.font = `bold ${Math.max(10, Math.floor(sheetW * 0.018))}px Prompt, sans-serif`;
+          ctx.fillText('✓', best.xCenter - 4, best.yCenter + 4);
         }
 
         detectedAnswers[q] = darkestChoice;
@@ -1724,23 +1763,33 @@
       document.getElementById('scanStatusBadge').className = "bg-emerald-100 text-emerald-800 text-xs px-3 py-1 rounded-full font-bold";
     }
 
+    // 🔴 แก้ไข: ใช้ ZXing สแกนบาร์โค้ดแท่ง (Code 128) รองรับทุกอุปกรณ์
     async function detectStudentFromBarcode(canvas) {
       if ('BarcodeDetector' in window) {
         try {
-          const barcodeDetector = new BarcodeDetector({ formats: ['code_128', 'qr_code', 'ean_13'] });
+          const barcodeDetector = new BarcodeDetector({ formats: ['code_128', 'qr_code', 'ean_13', 'code_39'] });
           const barcodes = await barcodeDetector.detect(canvas);
-          if (barcodes.length > 0) {
+          if (barcodes.length > 0 && barcodes[0].rawValue) {
             applyStudentFromBarcode(barcodes[0].rawValue);
             return;
           }
         } catch (e) {}
       }
 
-      const ctx = canvas.getContext('2d');
-      const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-      const code = jsQR(imgData.data, imgData.width, imgData.height);
-      if (code && code.data) {
-        applyStudentFromBarcode(code.data);
+      // สแกนบาร์โค้ดด้วย ZXing Library
+      try {
+        if (window.ZXing) {
+          if (!window.zxingReader) {
+            window.zxingReader = new ZXing.BrowserMultiFormatReader();
+          }
+          const result = await window.zxingReader.decodeFromCanvas(canvas);
+          if (result && result.getText()) {
+            applyStudentFromBarcode(result.getText());
+            return;
+          }
+        }
+      } catch (e) {
+        // ไม่จบบาร์โค้ดในเฟรมนี้
       }
     }
 
@@ -1814,11 +1863,12 @@
       document.getElementById('scanStatusBadge').innerText = "ปิดกล้องแล้ว";
     }
 
+    // 🔴 แก้ไข: ตรวจเช็ก video.readyState และขนาดกว้างยาว ไม่ให้เกิด IndexSizeError
     function processScanFrame() {
       if (!isScanning) return;
       const video = document.getElementById('video');
       const canvas = document.getElementById('scanCanvas');
-      if (video.readyState === video.HAVE_ENOUGH_DATA) {
+      if (video && video.readyState === video.HAVE_ENOUGH_DATA && video.videoWidth > 0 && video.videoHeight > 0) {
         canvas.width = video.videoWidth;
         canvas.height = video.videoHeight;
         canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height);
@@ -1848,9 +1898,21 @@
       recalculateTotalScore();
     }
 
+    // 🔴 แก้ไข: บล็อกไม่ให้กรอกคะแนนอัตนัยเกินคะแนนเต็มหรือติดลบ
     function recalculateTotalScore() {
       if (!currentScannedData) return;
-      const subjScore = parseFloat(document.getElementById('scanSubjectiveScore').value) || 0;
+      const subjInput = document.getElementById('scanSubjectiveScore');
+      let subjScore = parseFloat(subjInput.value) || 0;
+      const maxSubj = Number(currentScannedData.subjectiveMax) || 0;
+
+      if (subjScore > maxSubj) {
+        subjScore = maxSubj;
+        subjInput.value = maxSubj;
+      } else if (subjScore < 0) {
+        subjScore = 0;
+        subjInput.value = 0;
+      }
+
       const totalScaled = Number((currentScannedData.objectiveScaledScore + subjScore).toFixed(2));
       currentScannedData.finalScaledScore = totalScaled;
       currentScannedData.subjectiveScore = subjScore;
@@ -1863,9 +1925,11 @@
       document.getElementById('scanStudentNameDisplay').innerText = student ? `${student.studentName} (รหัส: ${student.studentId})` : " (ไม่พบใน ปพ.5)";
     }
 
+    // 🔴 แก้ไข: ปรับปรุงการจัดการ Error และ Alert แจ้งเตือนเมื่อล้มเหลว
     async function confirmAndSaveScore() {
       const rollNo = document.getElementById('scanStudentRoll').value;
       if (!rollNo) { alert("กรุณาระบุเลขที่นักเรียน"); return; }
+      if (!currentScannedData || !currentExamData) { alert("ไม่พบข้อมูลผลการตรวจ"); return; }
 
       const student = studentsList.find(s => String(s.rollNo).trim() === String(rollNo).trim());
       const payload = {
@@ -1893,13 +1957,24 @@
       btn.disabled = true;
 
       try {
-        await fetch(SCRIPT_URL, { method: "POST", headers: { "Content-Type": "text/plain;charset=utf-8" }, body: JSON.stringify(payload) });
-        alert(`บันทึกคะแนนเลขที่ ${rollNo} รวม ${currentScannedData.finalScaledScore} คะแนน เรียบร้อย!`);
-        document.getElementById('scanStudentRoll').value = '';
-        document.getElementById('scanStudentNameDisplay').innerText = '';
-        document.getElementById('scanSubjectiveScore').value = 0;
+        const res = await fetch(SCRIPT_URL, { 
+          method: "POST", 
+          headers: { "Content-Type": "text/plain;charset=utf-8" }, 
+          body: JSON.stringify(payload) 
+        });
+        
+        const result = await res.json();
+        if (result && result.success !== false) {
+          alert(`บันทึกคะแนนเลขที่ ${rollNo} รวม ${currentScannedData.finalScaledScore} คะแนน เรียบร้อย!`);
+          document.getElementById('scanStudentRoll').value = '';
+          document.getElementById('scanStudentNameDisplay').innerText = '';
+          document.getElementById('scanSubjectiveScore').value = 0;
+        } else {
+          throw new Error(result.error || "ไม่สามารถบันทึกคะแนนได้");
+        }
       } catch (e) {
-        alert("บันทึกคะแนนเรียบร้อยแล้ว!");
+        console.error("Save score error:", e);
+        alert(`❌ ไม่สามารถบันทึกคะแนนได้: ${e.message || e}`);
       } finally {
         btn.innerText = "💾 บันทึกคะแนนเข้า ปพ.5 ทันที";
         btn.disabled = false;
@@ -1911,23 +1986,28 @@
       const tbody = document.getElementById('resultsTableBody');
       tbody.innerHTML = `<tr><td colspan="8" class="p-4 text-center text-slate-400">กำลังโหลด...</td></tr>`;
 
-      const res = await fetch(`${SCRIPT_URL}?action=getResults&examId=${examId}`);
-      const data = await res.json();
-      if (data.success && data.results.length > 0) {
-        tbody.innerHTML = data.results.map(r => `
-          <tr class="border-b border-slate-100 hover:bg-slate-50 transition">
-            <td class="p-3 font-bold">${r.rollNo}</td>
-            <td class="p-3">${r.studentName || '-'}</td>
-            <td class="p-3 font-mono text-xs text-slate-500">${r.examId}</td>
-            <td class="p-3 text-center font-bold text-purple-700">ชุด ${r.examSet || 'A'}</td>
-            <td class="p-3 text-center">${r.rawScore} / ${r.totalQuestions}</td>
-            <td class="p-3 text-center font-bold text-emerald-600">${r.scaledScore}</td>
-            <td class="p-3 text-center">${r.percentage}%</td>
-            <td class="p-3 text-xs text-slate-400">${new Date(r.scannedAt).toLocaleString('th-TH')}</td>
-          </tr>
-        `).join('');
-      } else {
-        tbody.innerHTML = `<tr><td colspan="8" class="p-4 text-center text-slate-400">ไม่พบข้อมูล</td></tr>`;
+      try {
+        const res = await fetch(`${SCRIPT_URL}?action=getResults&examId=${examId}`);
+        const data = await res.json();
+        if (data.success && data.results.length > 0) {
+          tbody.innerHTML = data.results.map(r => `
+            <tr class="border-b border-slate-100 hover:bg-slate-50 transition">
+              <td class="p-3 font-bold">${r.rollNo}</td>
+              <td class="p-3">${r.studentName || '-'}</td>
+              <td class="p-3 font-mono text-xs text-slate-500">${r.examId}</td>
+              <td class="p-3 text-center font-bold text-purple-700">ชุด ${r.examSet || 'A'}</td>
+              <td class="p-3 text-center">${r.rawScore} / ${r.totalQuestions}</td>
+              <td class="p-3 text-center font-bold text-emerald-600">${r.scaledScore}</td>
+              <td class="p-3 text-center">${r.percentage}%</td>
+              <td class="p-3 text-xs text-slate-400">${new Date(r.scannedAt).toLocaleString('th-TH')}</td>
+            </tr>
+          `).join('');
+        } else {
+          tbody.innerHTML = `<tr><td colspan="8" class="p-4 text-center text-slate-400">ไม่พบข้อมูล</td></tr>`;
+        }
+      } catch (err) {
+        console.error("Load results error:", err);
+        tbody.innerHTML = `<tr><td colspan="8" class="p-4 text-center text-rose-500 font-bold">เกิดข้อผิดพลาดในการโหลดรายงาน</td></tr>`;
       }
     }
 
