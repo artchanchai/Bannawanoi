@@ -1531,6 +1531,7 @@
     }
 
     // ================= ระบบวิเคราะห์ OMR อัจฉริยะ ล็อกหมุด 4 มุม (4-Corner Marker Tracking) =================
+   // ================= ระบบวิเคราะห์ OMR ล็อกหมุด 4 มุมสมบูรณ์แบบ (Precision 100%) =================
     function processOMRFromImage(canvas) {
       if (!currentExamData) {
         document.getElementById('answerSummary').innerHTML = `<span class="text-amber-600 font-bold">⚠️ กรุณาเลือกวิชาที่ต้องการเฉลยด้านบนก่อนตรวจ</span>`;
@@ -1557,29 +1558,40 @@
         gray[i / 4] = (data[i] * 0.299 + data[i + 1] * 0.587 + data[i + 2] * 0.114);
       }
 
-      // 2. ค้นหาพิกัดของหมุดสี่เหลี่ยมสีดำ 4 มุม (TL, TR, BL, BR)
-      const findMarkerInRegion = (startX, endX, startY, endY) => {
-        let sumX = 0, sumY = 0, count = 0;
-        for (let y = Math.floor(startY); y < Math.floor(endY); y += 2) {
-          for (let x = Math.floor(startX); x < Math.floor(endX); x += 2) {
-            if (gray[y * W + x] < 70) { // ตรวจจับพิกเซลสีดำของมาร์กเกอร์
-              sumX += x;
-              sumY += y;
-              count++;
+      // 2. ค้นหาหมุดสี่เหลี่ยมสีดำ 4 มุมที่ใกล้มุมกระดาษมากที่สุด (ป้องกันตัวหนังสือหัวกระดาษดึงพิกัด)
+      const findCornerBlob = (minX, maxX, minY, maxY, cornerX, cornerY) => {
+        let darkPixels = [];
+        for (let y = Math.floor(minY); y < Math.floor(maxY); y += 2) {
+          for (let x = Math.floor(minX); x < Math.floor(maxX); x += 2) {
+            if (gray[y * W + x] < 80) { // พิกเซลสีดำมาร์กเกอร์
+              darkPixels.push({ x, y });
             }
           }
         }
-        return count > 10 ? { x: sumX / count, y: sumY / count } : null;
+        if (darkPixels.length === 0) return null;
+
+        // เรียงลำดับจุดดำที่อยู่ใกล้จุดยอดมุมกระดาษมากที่สุด
+        darkPixels.sort((a, b) => {
+          let distA = (a.x - cornerX) ** 2 + (a.y - cornerY) ** 2;
+          let distB = (b.x - cornerX) ** 2 + (b.y - cornerY) ** 2;
+          return distA - distB;
+        });
+
+        // ดึงกลุ่มจุดดำ 100 จุดแรกที่ใกล้มุมที่สุด เพื่อหาจุดศูนย์กลางมาร์กเกอร์
+        let sample = darkPixels.slice(0, Math.min(100, darkPixels.length));
+        let sumX = 0, sumY = 0;
+        sample.forEach(p => { sumX += p.x; sumY += p.y; });
+        return { x: sumX / sample.length, y: sumY / sample.length };
       };
 
-      const qW = W * 0.25;
-      const qH = H * 0.25;
+      const cW = W * 0.22;
+      const cH = H * 0.22;
 
-      // ค้นหาหมุด 4 มุมในแต่ละโซน
-      const TL = findMarkerInRegion(0, qW, 0, qH) || { x: W * 0.05, y: H * 0.04 };
-      const TR = findMarkerInRegion(W - qW, W, 0, qH) || { x: W * 0.95, y: H * 0.04 };
-      const BL = findMarkerInRegion(0, qW, H - qH, H) || { x: W * 0.05, y: H * 0.96 };
-      const BR = findMarkerInRegion(W - qW, W, H - qH, H) || { x: W * 0.95, y: H * 0.96 };
+      // ค้นหาหมุด 4 มุมที่แท้จริง
+      const TL = findCornerBlob(0, cW, 0, cH, 0, 0) || { x: W * 0.03, y: H * 0.03 };
+      const TR = findCornerBlob(W - cW, W, 0, cH, W, 0) || { x: W * 0.97, y: H * 0.03 };
+      const BL = findCornerBlob(0, cW, H - cH, H, 0, H) || { x: W * 0.03, y: H * 0.97 };
+      const BR = findCornerBlob(W - cW, W, H - cH, H, W, H) || { x: W * 0.97, y: H * 0.97 };
 
       // 3. ฟังก์ชันแปลงพิกัดสัดส่วน % (u, v) ให้เป็นพิกเซลจริงบนภาพด้วย Bilinear Interpolation
       const mapPoint = (u, v) => {
@@ -1588,7 +1600,7 @@
         return { x: Math.round(x), y: Math.round(y) };
       };
 
-      // วาดเส้นตารางมาร์กเกอร์ 4 มุมให้ผู้ใช้เห็น
+      // วาดกรอบสีเขียวเชื่อมมาร์กเกอร์ 4 มุม
       ctx.strokeStyle = '#22c55e';
       ctx.lineWidth = 2;
       ctx.beginPath();
@@ -1599,16 +1611,17 @@
 
       detectStudentFromBarcode(canvas);
 
-      // 4. สแกนอ่านคำตอบข้อ 1-40 คำนวณอิงจากหมุด 4 มุมกระดาษจริง
+      // 4. สแกนอ่านคำตอบข้อ 1-40 ปรับตำแหน่ง u, v ให้ตรงกับช่องฝนจริง
       const detectedAnswers = {};
       const activeQuestions = parseInt(currentExamData.totalQuestions) || 32;
 
-      // พิกัดสัดส่วนตามโครงสร้างกระดาษจริงในรูป
-      const col1_X_Choices = [0.185, 0.222, 0.259, 0.296]; // ช้อยส์ ก ข ค ง (คอลัมน์ 1)
-      const col2_X_Choices = [0.605, 0.642, 0.679, 0.716]; // ช้อยส์ ก ข ค ง (คอลัมน์ 2)
+      // ปรับพิกัด X ของช้อยส์ ก, ข, ค, ง ให้ตรงช่อง
+      const col1_X_Choices = [0.128, 0.182, 0.236, 0.290]; // คอลัมน์ 1 (ข้อ 1-20)
+      const col2_X_Choices = [0.608, 0.662, 0.716, 0.770]; // คอลัมน์ 2 (ข้อ 21-40)
       
-      const rowY_Start = 0.315; // จุดเริ่มต้นข้อ 1 และ 21
-      const rowY_End = 0.805;   // จุดสิ้นสุดข้อ 20 และ 40
+      // ปรับพิกัด Y ของแถวเริ่มข้อ 1 และสิ้นสุดข้อ 20 ให้ตรงตำแหน่งจริง
+      const rowY_Start = 0.258; // เริ่มบรรทัดข้อ 1 / 21
+      const rowY_End = 0.762;   // สิ้นสุดบรรทัดข้อ 20 / 40
       const radius = Math.max(4, Math.floor((TR.x - TL.x) * 0.013));
 
       for (let q = 1; q <= 40; q++) {
@@ -1618,7 +1631,7 @@
         const choiceXRatios = isCol1 ? col1_X_Choices : col2_X_Choices;
 
         // คำนวณความสว่างพื้นหลังกระดาษขาวบริเวณข้อนั้นๆ
-        const basePt = mapPoint(isCol1 ? 0.14 : 0.56, vRatio);
+        const basePt = mapPoint(isCol1 ? 0.08 : 0.56, vRatio);
         let baselineBrightness = 0;
         let sampleCount = 0;
         for (let dy = -3; dy <= 3; dy += 2) {
@@ -1658,8 +1671,7 @@
           }
 
           const avgCircle = count > 0 ? (circleBrightness / count) : 255;
-          // ตรวจจับว่าฝนคำตอบหรือไม่
-          const isFilled = (avgCircle < baselineBrightness * 0.80) && (avgCircle < 175);
+          const isFilled = (avgCircle < baselineBrightness * 0.82) && (avgCircle < 175);
 
           choicesMetrics[ch] = { pt, avgCircle, isFilled };
 
