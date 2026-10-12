@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>ระบบพิมพ์กระดาษคำตอบ OMR 40 ข้อ & ตรวจคะแนนอัตโนมัติ</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <!-- เปลี่ยนจาก jsQR เป็น ZXing เพื่อรองรับการสแกน Code 128 บาร์โค้ดแท่งบนทุกอุปกรณ์ -->
+  <!-- ZXing Library สำหรับสแกน Barcode 1D (Code 128) -->
   <script src="https://unpkg.com/@zxing/library@0.21.3/umd/index.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
   <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&family=Sarabun:wght@300;400;600;700&display=swap" rel="stylesheet">
@@ -112,6 +112,7 @@
       opacity: 0;
     }
 
+    /* 🔴 ปรับแต่ง CSS การพิมพ์เป็น 1 แผ่น ต่อ 1 กระดาษ A4 (แนวตั้ง) */
     @media print {
       * {
         -webkit-print-color-adjust: exact !important;
@@ -126,23 +127,25 @@
         display: block !important; 
       }
 
-      .print-pair-landscape {
+      .print-single-portrait {
         page-break-after: always;
-        width: 297mm;
-        height: 208mm;
-        max-height: 208mm;
+        width: 210mm;
+        height: 295mm;
+        max-height: 295mm;
         display: flex !important;
-        flex-direction: row !important;
-        justify-content: space-between !important;
-        padding: 3mm 4mm !important;
+        flex-direction: column !important;
+        justify-content: center !important;
+        align-items: center !important;
+        padding: 8mm !important;
         box-sizing: border-box;
       }
-      .half-sheet-card {
-        width: 49% !important;
+      .single-sheet-card {
+        width: 100% !important;
+        max-width: 190mm !important;
         height: 100% !important;
-        max-height: 202mm !important;
-        border: 1px dashed #94a3b8 !important;
-        padding: 3.5mm 4.5mm !important;
+        max-height: 275mm !important;
+        border: 1.5px dashed #94a3b8 !important;
+        padding: 6mm 8mm !important;
         position: relative !important;
         box-sizing: border-box;
         display: flex !important;
@@ -151,7 +154,7 @@
         overflow: hidden !important;
         background: #ffffff !important;
       }
-      @page { size: A4 landscape; margin: 0; }
+      @page { size: A4 portrait; margin: 0; }
     }
   </style>
 </head>
@@ -302,8 +305,8 @@
                 <label class="block text-xs font-bold text-slate-800">
                   เฉลยคำตอบ (<span id="keyCountDisplay" class="text-indigo-600 font-bold">32</span> จาก 40 ข้อ):
                 </label>
+                <!-- 🔴 ลบปุ่มสุ่มเฉลยเรียบร้อยแล้ว -->
                 <div class="flex items-center space-x-2">
-                  <button type="button" onclick="randomizeAllAnswers()" class="text-[11px] text-indigo-600 hover:underline font-semibold">🎲 สุ่มเฉลย</button>
                   <span id="autoLoadedTip" class="hidden text-xs text-emerald-600 font-semibold">✓ ซิงค์เรียบร้อย</span>
                 </div>
               </div>
@@ -777,19 +780,6 @@
       renderLivePreview();
     }
 
-    function randomizeAllAnswers() {
-      const total = parseInt(document.getElementById('totalQuestions').value) || 32;
-      for (let i = 1; i <= total; i++) {
-        const randChoice = THAI_CHOICES[Math.floor(Math.random() * 4)];
-        const input = document.querySelector(`input[name="ans_${i}"][value="${randChoice}"]`);
-        if (input) {
-          input.checked = true;
-          input.dispatchEvent(new Event('change'));
-        }
-      }
-      saveDraftToStorage();
-    }
-
     function onAnswerSelected(questionNo, choice) {
       saveDraftToStorage();
     }
@@ -1123,7 +1113,6 @@
       alert("รีเซ็ตให้เป็นชุดข้อสอบใหม่แล้ว");
     }
 
-    // 🔴 แก้ไข: การจัดการ Response และ Error handling ใน saveExam
     async function saveExam() {
       const courseIdx = document.getElementById('courseSelect').value;
       if (courseIdx === "") {
@@ -1218,7 +1207,6 @@
       }
     }
 
-    // 🔴 แก้ไข: ส่งผ่าน examId แทน JSON String ใน loadExamsList
     async function loadExamsList() {
       const tbody = document.getElementById('examsTableBody');
       tbody.innerHTML = `<tr><td colspan="8" class="p-4 text-center text-slate-400">กำลังโหลด...</td></tr>`;
@@ -1266,7 +1254,6 @@
       }
     }
 
-    // 🔴 แก้ไข: ฟังก์ชันค้นหาข้อมูลข้อสอบเพื่อแก้ไข
     function startEditExamById(examId) {
       const exam = allSavedExams.find(x => String(x.examId).trim() === String(examId).trim());
       if (exam) {
@@ -1392,6 +1379,7 @@
       switchTab('create');
     }
 
+    // 🔴 ปรับแต่งระบบพิมพ์ใหม่เป็น 1 แผ่น ต่อ 1 กระดาษ A4 (แนวตั้ง)
     function generateSheets(isPersonalized) {
       const courseIdx = document.getElementById('courseSelect').value;
       const course = coursesList[courseIdx] || { code: 'วิชา', name: 'รายวิชา' };
@@ -1414,38 +1402,30 @@
       let items = [];
       if (!isPersonalized) {
         items = [
-          { rollNo: '......', studentId: '', studentName: '................................................................', isBlank: true },
           { rollNo: '......', studentId: '', studentName: '................................................................', isBlank: true }
         ];
       } else {
         items = (studentsList.length > 0) 
           ? [...studentsList] 
           : [{ rollNo: '1', studentId: '498', studentName: 'ด.ช.นพศัญรุตน์ ทุมทา', isBlank: false }];
-
-        if (items.length % 2 !== 0) {
-          items.push({ rollNo: '......', studentId: '', studentName: '................................................................', isBlank: true });
-        }
       }
 
-      for (let p = 0; p < items.length; p += 2) {
-        const pairDiv = document.createElement('div');
-        pairDiv.className = "print-pair-landscape";
+      for (let p = 0; p < items.length; p++) {
+        const stu = items[p];
+        const singleDiv = document.createElement('div');
+        singleDiv.className = "print-single-portrait";
 
-        [items[p], items[p + 1]].forEach((stu, subIdx) => {
-          const sheetIndex = p + subIdx;
-          const halfDiv = document.createElement('div');
-          halfDiv.className = "half-sheet-card";
-          
-          halfDiv.innerHTML = buildOMR40HTML({
-            schoolName, course, grade, setVal, maxScore, hasSubjective,
-            objectiveScore, subjectiveMaxScore, sampleStu: stu, examId,
-            theme, barcodeId: `print_barcode_${sheetIndex}`
-          });
-
-          pairDiv.appendChild(halfDiv);
+        const cardDiv = document.createElement('div');
+        cardDiv.className = "single-sheet-card";
+        
+        cardDiv.innerHTML = buildOMR40HTML({
+          schoolName, course, grade, setVal, maxScore, hasSubjective,
+          objectiveScore, subjectiveMaxScore, sampleStu: stu, examId,
+          theme, barcodeId: `print_barcode_${p}`
         });
 
-        printContainer.appendChild(pairDiv);
+        singleDiv.appendChild(cardDiv);
+        printContainer.appendChild(singleDiv);
       }
 
       setTimeout(() => {
@@ -1454,7 +1434,7 @@
           const barcodeVal = (!item.isBlank && item.studentId) ? `${item.studentId}-${item.rollNo}` : `BLANK-STUDENT`;
           try {
             JsBarcode(`#print_barcode_${i}`, barcodeVal, {
-              format: "CODE128", width: 1.6, height: 28, displayValue: false, margin: 0
+              format: "CODE128", width: 1.8, height: 32, displayValue: false, margin: 0
             });
           } catch(e) {}
         }
@@ -1550,8 +1530,6 @@
       }
     }
 
-    // ================= ระบบวิเคราะห์ OMR + วาดจุดคำนวณลงบน CANVAS (VISUAL INSPECTION) =================
-    // 🟡 ปรับปรุง: ระบบคำนวณความเข้มข้นแบบ Local Adaptive
     function processOMRFromImage(canvas) {
       if (!currentExamData) {
         document.getElementById('answerSummary').innerHTML = `<span class="text-amber-600 font-bold">⚠️ กรุณาเลือกวิชาที่ต้องการเฉลยด้านบนก่อนตรวจ</span>`;
@@ -1564,7 +1542,6 @@
       const W = canvas.width;
       const H = canvas.height;
 
-      // วาดภาพต้นฉบับกลับมาก่อนเพื่อไม่ให้จุดซ้อนทับรอบเก่า
       if (originalImageSource) {
         ctx.drawImage(originalImageSource, 0, 0, W, H);
       }
@@ -1572,7 +1549,6 @@
       const imgData = ctx.getImageData(0, 0, W, H);
       const data = imgData.data;
 
-      // 1. แปลงภาพเป็น Grayscale
       const gray = new Uint8Array(W * H);
       let totalBrightness = 0;
       for (let i = 0; i < data.length; i += 4) {
@@ -1582,7 +1558,6 @@
       }
       const avgBrightness = totalBrightness / (W * H);
 
-      // 2. ตรวจหาขอบเขตของตัวกระดาษคำตอบจริง
       let minX = W, maxX = 0, minY = H, maxY = 0;
       const step = Math.max(4, Math.floor(Math.min(W, H) / 100));
       const thresholdVal = Math.min(160, Math.max(80, avgBrightness * 1.05));
@@ -1606,14 +1581,12 @@
       const sheetW = maxX - minX;
       const sheetH = maxY - minY;
 
-      // วาดกรอบสีเขียวแสดงขอบกระดาษที่ตรวจพบ
       ctx.strokeStyle = '#22c55e';
       ctx.lineWidth = Math.max(2, Math.floor(sheetW * 0.005));
       ctx.strokeRect(minX, minY, sheetW, sheetH);
 
       detectStudentFromBarcode(canvas);
 
-      // 3. สแกนอ่านคำตอบข้อ 1-40 พร้อมบันทึกพิกัดและวาดจุดตรวจสอบ
       const detectedAnswers = {};
       const activeQuestions = parseInt(currentExamData.totalQuestions) || 32;
 
@@ -1630,7 +1603,6 @@
         const colStartRatio = isCol1 ? 0.16 : 0.58;
         const choicePitch = sheetW * 0.058;
 
-        // คำนวณความสว่างพื้นหลังเฉพาะแถวนั้นๆ (Local Area Adaptive)
         let baselineBrightness = 0;
         let sampleCount = 0;
         for (let dx = -15; dx <= 15; dx += 3) {
@@ -1665,23 +1637,21 @@
           }
 
           const avgCircle = count > 0 ? (circleBrightness / count) : 255;
-          // เช็กว่าฝนคำตอบหรือไม่ โดยเทียบกับค่าความสว่างพื้นหลังในโซนนั้น
           const isFilled = (avgCircle < baselineBrightness * 0.82) && (avgCircle < 170);
 
           choicesMetrics[ch] = { xCenter, yCenter, avgCircle, isFilled };
 
-          // วาดวงกลมพิกัดจุดตรวจสอบลงบนภาพ
           if (q <= activeQuestions) {
             ctx.beginPath();
             ctx.arc(xCenter, yCenter, radius, 0, 2 * Math.PI);
             if (isFilled) {
-              ctx.fillStyle = 'rgba(34, 197, 94, 0.45)'; // วงกลมระบายสีเขียวโปร่ง
+              ctx.fillStyle = 'rgba(34, 197, 94, 0.45)';
               ctx.fill();
-              ctx.strokeStyle = '#15803d'; // ขอบเขียวเข้ม
+              ctx.strokeStyle = '#15803d';
               ctx.lineWidth = 2;
               ctx.stroke();
             } else {
-              ctx.strokeStyle = 'rgba(56, 189, 248, 0.4)'; // ขอบฟ้าโปร่ง
+              ctx.strokeStyle = 'rgba(56, 189, 248, 0.4)';
               ctx.lineWidth = 1;
               ctx.stroke();
             }
@@ -1693,7 +1663,6 @@
           }
         });
 
-        // วาดเครื่องหมายถูกบนข้อที่ตรวจจับได้
         if (darkestChoice && choicesMetrics[darkestChoice] && q <= activeQuestions) {
           const best = choicesMetrics[darkestChoice];
           ctx.fillStyle = '#16a34a';
@@ -1763,7 +1732,6 @@
       document.getElementById('scanStatusBadge').className = "bg-emerald-100 text-emerald-800 text-xs px-3 py-1 rounded-full font-bold";
     }
 
-    // 🔴 แก้ไข: ใช้ ZXing สแกนบาร์โค้ดแท่ง (Code 128) รองรับทุกอุปกรณ์
     async function detectStudentFromBarcode(canvas) {
       if ('BarcodeDetector' in window) {
         try {
@@ -1776,7 +1744,6 @@
         } catch (e) {}
       }
 
-      // สแกนบาร์โค้ดด้วย ZXing Library
       try {
         if (window.ZXing) {
           if (!window.zxingReader) {
@@ -1788,9 +1755,7 @@
             return;
           }
         }
-      } catch (e) {
-        // ไม่จบบาร์โค้ดในเฟรมนี้
-      }
+      } catch (e) {}
     }
 
     function applyStudentFromBarcode(barcodeText) {
@@ -1830,7 +1795,6 @@
           const ctx = canvas.getContext('2d');
           ctx.drawImage(img, 0, 0);
 
-          // วิเคราะห์พิกัดและวาดจุดตรวจสอบ Visual Inspection
           processOMRFromImage(canvas);
         };
         img.src = event.target.result;
@@ -1863,7 +1827,6 @@
       document.getElementById('scanStatusBadge').innerText = "ปิดกล้องแล้ว";
     }
 
-    // 🔴 แก้ไข: ตรวจเช็ก video.readyState และขนาดกว้างยาว ไม่ให้เกิด IndexSizeError
     function processScanFrame() {
       if (!isScanning) return;
       const video = document.getElementById('video');
@@ -1898,7 +1861,6 @@
       recalculateTotalScore();
     }
 
-    // 🔴 แก้ไข: บล็อกไม่ให้กรอกคะแนนอัตนัยเกินคะแนนเต็มหรือติดลบ
     function recalculateTotalScore() {
       if (!currentScannedData) return;
       const subjInput = document.getElementById('scanSubjectiveScore');
@@ -1925,7 +1887,6 @@
       document.getElementById('scanStudentNameDisplay').innerText = student ? `${student.studentName} (รหัส: ${student.studentId})` : " (ไม่พบใน ปพ.5)";
     }
 
-    // 🔴 แก้ไข: ปรับปรุงการจัดการ Error และ Alert แจ้งเตือนเมื่อล้มเหลว
     async function confirmAndSaveScore() {
       const rollNo = document.getElementById('scanStudentRoll').value;
       if (!rollNo) { alert("กรุณาระบุเลขที่นักเรียน"); return; }
