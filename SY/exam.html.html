@@ -1530,6 +1530,7 @@
       }
     }
 
+    // ================= ระบบวิเคราะห์ OMR อัจฉริยะ ล็อกหมุด 4 มุม (4-Corner Marker Tracking) =================
     function processOMRFromImage(canvas) {
       if (!currentExamData) {
         document.getElementById('answerSummary').innerHTML = `<span class="text-amber-600 font-bold">⚠️ กรุณาเลือกวิชาที่ต้องการเฉลยด้านบนก่อนตรวจ</span>`;
@@ -1542,6 +1543,7 @@
       const W = canvas.width;
       const H = canvas.height;
 
+      // วาดภาพต้นฉบับกลับมาก่อน
       if (originalImageSource) {
         ctx.drawImage(originalImageSource, 0, 0, W, H);
       }
@@ -1549,85 +1551,104 @@
       const imgData = ctx.getImageData(0, 0, W, H);
       const data = imgData.data;
 
+      // 1. แปลงภาพเป็น Grayscale
       const gray = new Uint8Array(W * H);
-      let totalBrightness = 0;
       for (let i = 0; i < data.length; i += 4) {
-        const val = (data[i] * 0.299 + data[i + 1] * 0.587 + data[i + 2] * 0.114);
-        gray[i / 4] = val;
-        totalBrightness += val;
+        gray[i / 4] = (data[i] * 0.299 + data[i + 1] * 0.587 + data[i + 2] * 0.114);
       }
-      const avgBrightness = totalBrightness / (W * H);
 
-      let minX = W, maxX = 0, minY = H, maxY = 0;
-      const step = Math.max(4, Math.floor(Math.min(W, H) / 100));
-      const thresholdVal = Math.min(160, Math.max(80, avgBrightness * 1.05));
-
-      for (let y = 0; y < H; y += step) {
-        for (let x = 0; x < W; x += step) {
-          if (gray[y * W + x] > thresholdVal) {
-            if (x < minX) minX = x;
-            if (x > maxX) maxX = x;
-            if (y < minY) minY = y;
-            if (y > maxY) maxY = y;
+      // 2. ค้นหาพิกัดของหมุดสี่เหลี่ยมสีดำ 4 มุม (TL, TR, BL, BR)
+      const findMarkerInRegion = (startX, endX, startY, endY) => {
+        let sumX = 0, sumY = 0, count = 0;
+        for (let y = Math.floor(startY); y < Math.floor(endY); y += 2) {
+          for (let x = Math.floor(startX); x < Math.floor(endX); x += 2) {
+            if (gray[y * W + x] < 70) { // ตรวจจับพิกเซลสีดำของมาร์กเกอร์
+              sumX += x;
+              sumY += y;
+              count++;
+            }
           }
         }
-      }
+        return count > 10 ? { x: sumX / count, y: sumY / count } : null;
+      };
 
-      if (maxX - minX < W * 0.3 || maxY - minY < H * 0.3) {
-        minX = 0; maxX = W;
-        minY = 0; maxY = H;
-      }
+      const qW = W * 0.25;
+      const qH = H * 0.25;
 
-      const sheetW = maxX - minX;
-      const sheetH = maxY - minY;
+      // ค้นหาหมุด 4 มุมในแต่ละโซน
+      const TL = findMarkerInRegion(0, qW, 0, qH) || { x: W * 0.05, y: H * 0.04 };
+      const TR = findMarkerInRegion(W - qW, W, 0, qH) || { x: W * 0.95, y: H * 0.04 };
+      const BL = findMarkerInRegion(0, qW, H - qH, H) || { x: W * 0.05, y: H * 0.96 };
+      const BR = findMarkerInRegion(W - qW, W, H - qH, H) || { x: W * 0.95, y: H * 0.96 };
 
+      // 3. ฟังก์ชันแปลงพิกัดสัดส่วน % (u, v) ให้เป็นพิกเซลจริงบนภาพด้วย Bilinear Interpolation
+      const mapPoint = (u, v) => {
+        const x = (1 - u) * (1 - v) * TL.x + u * (1 - v) * TR.x + (1 - u) * v * BL.x + u * v * BR.x;
+        const y = (1 - u) * (1 - v) * TL.y + u * (1 - v) * TR.y + (1 - u) * v * BL.y + u * v * BR.y;
+        return { x: Math.round(x), y: Math.round(y) };
+      };
+
+      // วาดเส้นตารางมาร์กเกอร์ 4 มุมให้ผู้ใช้เห็น
       ctx.strokeStyle = '#22c55e';
-      ctx.lineWidth = Math.max(2, Math.floor(sheetW * 0.005));
-      ctx.strokeRect(minX, minY, sheetW, sheetH);
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(TL.x, TL.y); ctx.lineTo(TR.x, TR.y);
+      ctx.lineTo(BR.x, BR.y); ctx.lineTo(BL.x, BL.y);
+      ctx.closePath();
+      ctx.stroke();
 
       detectStudentFromBarcode(canvas);
 
+      // 4. สแกนอ่านคำตอบข้อ 1-40 คำนวณอิงจากหมุด 4 มุมกระดาษจริง
       const detectedAnswers = {};
       const activeQuestions = parseInt(currentExamData.totalQuestions) || 32;
 
-      const rowStartRatio = 0.27; 
-      const rowEndRatio = 0.88;
-      const rowHeight = (sheetH * (rowEndRatio - rowStartRatio)) / 20;
-      const radius = Math.max(3, Math.floor(sheetW * 0.014));
+      // พิกัดสัดส่วนตามโครงสร้างกระดาษจริงในรูป
+      const col1_X_Choices = [0.185, 0.222, 0.259, 0.296]; // ช้อยส์ ก ข ค ง (คอลัมน์ 1)
+      const col2_X_Choices = [0.605, 0.642, 0.679, 0.716]; // ช้อยส์ ก ข ค ง (คอลัมน์ 2)
+      
+      const rowY_Start = 0.315; // จุดเริ่มต้นข้อ 1 และ 21
+      const rowY_End = 0.805;   // จุดสิ้นสุดข้อ 20 และ 40
+      const radius = Math.max(4, Math.floor((TR.x - TL.x) * 0.013));
 
       for (let q = 1; q <= 40; q++) {
         const isCol1 = q <= 20;
         const rowIndex = isCol1 ? (q - 1) : (q - 21);
-        const yCenter = Math.floor(minY + sheetH * rowStartRatio + (rowIndex + 0.5) * rowHeight);
+        const vRatio = rowY_Start + (rowIndex / 19) * (rowY_End - rowY_Start);
+        const choiceXRatios = isCol1 ? col1_X_Choices : col2_X_Choices;
 
-        const colStartRatio = isCol1 ? 0.16 : 0.58;
-        const choicePitch = sheetW * 0.058;
-
+        // คำนวณความสว่างพื้นหลังกระดาษขาวบริเวณข้อนั้นๆ
+        const basePt = mapPoint(isCol1 ? 0.14 : 0.56, vRatio);
         let baselineBrightness = 0;
         let sampleCount = 0;
-        for (let dx = -15; dx <= 15; dx += 3) {
-          const px = Math.floor(minX + sheetW * (colStartRatio - 0.04) + dx);
-          if (px >= 0 && px < W && yCenter >= 0 && yCenter < H) {
-            baselineBrightness += gray[yCenter * W + px];
-            sampleCount++;
+        for (let dy = -3; dy <= 3; dy += 2) {
+          for (let dx = -3; dx <= 3; dx += 2) {
+            const px = basePt.x + dx;
+            const py = basePt.y + dy;
+            if (px >= 0 && px < W && py >= 0 && py < H) {
+              baselineBrightness += gray[py * W + px];
+              sampleCount++;
+            }
           }
         }
-        baselineBrightness = sampleCount > 0 ? (baselineBrightness / sampleCount) : 200;
+        baselineBrightness = sampleCount > 0 ? (baselineBrightness / sampleCount) : 210;
 
         let darkestChoice = null;
         let minAvgCircle = 255;
         let choicesMetrics = {};
 
         THAI_CHOICES.forEach((ch, idx) => {
-          const xCenter = Math.floor(minX + sheetW * colStartRatio + idx * choicePitch);
+          const uRatio = choiceXRatios[idx];
+          const pt = mapPoint(uRatio, vRatio);
+
           let circleBrightness = 0;
           let count = 0;
 
           for (let dy = -radius; dy <= radius; dy += 2) {
             for (let dx = -radius; dx <= radius; dx += 2) {
               if (dx * dx + dy * dy <= radius * radius) {
-                const px = xCenter + dx;
-                const py = yCenter + dy;
+                const px = pt.x + dx;
+                const py = pt.y + dy;
                 if (px >= 0 && px < W && py >= 0 && py < H) {
                   circleBrightness += gray[py * W + px];
                   count++;
@@ -1637,21 +1658,22 @@
           }
 
           const avgCircle = count > 0 ? (circleBrightness / count) : 255;
-          const isFilled = (avgCircle < baselineBrightness * 0.82) && (avgCircle < 170);
+          // ตรวจจับว่าฝนคำตอบหรือไม่
+          const isFilled = (avgCircle < baselineBrightness * 0.80) && (avgCircle < 175);
 
-          choicesMetrics[ch] = { xCenter, yCenter, avgCircle, isFilled };
+          choicesMetrics[ch] = { pt, avgCircle, isFilled };
 
           if (q <= activeQuestions) {
             ctx.beginPath();
-            ctx.arc(xCenter, yCenter, radius, 0, 2 * Math.PI);
+            ctx.arc(pt.x, pt.y, radius, 0, 2 * Math.PI);
             if (isFilled) {
-              ctx.fillStyle = 'rgba(34, 197, 94, 0.45)';
+              ctx.fillStyle = 'rgba(34, 197, 94, 0.5)'; // เขียวโปร่ง
               ctx.fill();
               ctx.strokeStyle = '#15803d';
               ctx.lineWidth = 2;
               ctx.stroke();
             } else {
-              ctx.strokeStyle = 'rgba(56, 189, 248, 0.4)';
+              ctx.strokeStyle = 'rgba(56, 189, 248, 0.4)'; // ฟ้าโปร่ง
               ctx.lineWidth = 1;
               ctx.stroke();
             }
@@ -1666,8 +1688,8 @@
         if (darkestChoice && choicesMetrics[darkestChoice] && q <= activeQuestions) {
           const best = choicesMetrics[darkestChoice];
           ctx.fillStyle = '#16a34a';
-          ctx.font = `bold ${Math.max(10, Math.floor(sheetW * 0.018))}px Prompt, sans-serif`;
-          ctx.fillText('✓', best.xCenter - 4, best.yCenter + 4);
+          ctx.font = `bold ${Math.max(10, Math.floor((TR.x - TL.x) * 0.018))}px Prompt, sans-serif`;
+          ctx.fillText('✓', best.pt.x - 4, best.pt.y + 4);
         }
 
         detectedAnswers[q] = darkestChoice;
