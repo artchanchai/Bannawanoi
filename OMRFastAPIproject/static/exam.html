@@ -446,8 +446,12 @@
     const THAI_CHOICES = ['ก', 'ข', 'ค', 'ง'];
     const SCHOOL_LOGO_SVG = `<img src="https://raw.githubusercontent.com/artchanchai/Bannawanoi/main/IMG_4847.jpeg" class="w-12 h-12 inline-block object-contain" alt="School Logo">`;
 
-    // 🟢 รหัสผู้ใช้งานปัจจุบัน (สามารถปรับให้ดึงจากระบบ Login หรือ LocalStorage)
-    const currentUserId = localStorage.getItem('omr_user_id') || "USER01";
+    // 🟢 อ่านค่า Parameter ที่ส่งมาจากหน้า Login/Index หรือ LocalStorage (แบบเดียวกับ pp5.html)
+    const urlParams = new URLSearchParams(window.location.search);
+    const userParam = urlParams.get('user');
+    const gradesParam = urlParams.get('grades'); // เช่น "p3,p4" หรือ "ป.3,ป.4"
+    const roleParam = urlParams.get('role');
+    const currentUserId = userParam || localStorage.getItem('omr_user_id') || "USER01";
 
     function getSubjectTheme(subjectName) {
       if (!subjectName) return { color: '#059669', bgBadge: '#059669' };
@@ -467,46 +471,67 @@
     let editingExamId = null;
 
     /**
-     * 🟢 ฟังก์ชันดึงสิทธิ์และสร้างตัวเลือกชั้นเรียนตามสิทธิ์ผู้เข้าใช้งาน (P1, P2...)
+     * 🟢 ฟังก์ชันดึงและกรองสิทธิ์ระดับชั้นเรียนตาม URL Parameters หรือ Apps Script
      */
     async function applyUserPermissions() {
-      try {
-        const res = await fetch(`${SCRIPT_URL}?action=getUserPermissions&userId=${encodeURIComponent(currentUserId)}`);
-        const data = await res.json();
-        
-        if (data && data.success && Array.isArray(data.permissions) && data.permissions.length > 0) {
-          const allowed = data.permissions; // เช่น ["ป.1", "ป.2"]
+      let allowedGrades = [];
 
-          const allGrades = [
-            { val: "ป.1", text: "ชั้นประถมศึกษาปีที่ 1" },
-            { val: "ป.2", text: "ชั้นประถมศึกษาปีที่ 2" },
-            { val: "ป.3", text: "ชั้นประถมศึกษาปีที่ 3" },
-            { val: "ป.4", text: "ชั้นประถมศึกษาปีที่ 4" },
-            { val: "ป.5", text: "ชั้นประถมศึกษาปีที่ 5" },
-            { val: "ป.6", text: "ชั้นประถมศึกษาปีที่ 6" }
-          ];
-
-          const filtered = allGrades.filter(g => allowed.includes(g.val));
-
-          if (filtered.length > 0) {
-            const gradeSelect = document.getElementById('gradeLevel');
-            const scannerGradeSelect = document.getElementById('scannerGradeFilter');
-
-            if (gradeSelect) {
-              gradeSelect.innerHTML = filtered.map((g, idx) => 
-                `<option value="${g.val}" ${idx === 0 ? 'selected' : ''}>${g.text}</option>`
-              ).join('');
-            }
-
-            if (scannerGradeSelect) {
-              scannerGradeSelect.innerHTML = filtered.map((g, idx) => 
-                `<option value="${g.val}" ${idx === 0 ? 'selected' : ''}>ชั้น ${g.val}</option>`
-              ).join('');
-            }
+      // กรณีที่ 1: มีการส่งค่า grades มาทาง URL (แบบเดียวกับ pp5.html)
+      if (gradesParam) {
+        const gradeMap = {
+          'p1': 'ป.1', 'p2': 'ป.2', 'p3': 'ป.3',
+          'p4': 'ป.4', 'p5': 'ป.5', 'p6': 'ป.6'
+        };
+        allowedGrades = gradesParam.split(',').map(g => {
+          const key = g.trim().toLowerCase();
+          return gradeMap[key] || g.trim();
+        });
+      } 
+      // กรณีที่ 2: ดึงสิทธิ์จาก Google Apps Script ผ่าน userId
+      else {
+        try {
+          const res = await fetch(`${SCRIPT_URL}?action=getUserPermissions&userId=${encodeURIComponent(currentUserId)}`);
+          const data = await res.json();
+          if (data && data.success && Array.isArray(data.permissions)) {
+            allowedGrades = data.permissions;
           }
+        } catch (err) {
+          console.warn("Permission loading error:", err);
         }
-      } catch (err) {
-        console.warn("Permission loading fallback to defaults:", err);
+      }
+
+      // ถ้าเป็น Admin หรือ roleParam เป็น admin หรือไม่ระบุสิทธิ์ ให้ปลดล็อกแสดงทุกชั้นเรียน
+      if (currentUserId.toLowerCase() === 'admin' || (roleParam && roleParam.toLowerCase() === 'admin') || allowedGrades.length === 0) {
+        return; // ใช้ตัวเลือก ป.1 - ป.6 ตามปกติ
+      }
+
+      // ทำการกรอง Dropdown ให้เหลือเฉพาะชั้นเรียนที่คุณครูได้รับสิทธิ์
+      const allGrades = [
+        { val: "ป.1", text: "ชั้นประถมศึกษาปีที่ 1" },
+        { val: "ป.2", text: "ชั้นประถมศึกษาปีที่ 2" },
+        { val: "ป.3", text: "ชั้นประถมศึกษาปีที่ 3" },
+        { val: "ป.4", text: "ชั้นประถมศึกษาปีที่ 4" },
+        { val: "ป.5", text: "ชั้นประถมศึกษาปีที่ 5" },
+        { val: "ป.6", text: "ชั้นประถมศึกษาปีที่ 6" }
+      ];
+
+      const filtered = allGrades.filter(g => allowedGrades.includes(g.val));
+
+      if (filtered.length > 0) {
+        const gradeSelect = document.getElementById('gradeLevel');
+        const scannerGradeSelect = document.getElementById('scannerGradeFilter');
+
+        if (gradeSelect) {
+          gradeSelect.innerHTML = filtered.map((g, idx) => 
+            `<option value="${g.val}" ${idx === 0 ? 'selected' : ''}>${g.text}</option>`
+          ).join('');
+        }
+
+        if (scannerGradeSelect) {
+          scannerGradeSelect.innerHTML = filtered.map((g, idx) => 
+            `<option value="${g.val}" ${idx === 0 ? 'selected' : ''}>ชั้น ${g.val}</option>`
+          ).join('');
+        }
       }
     }
 
@@ -810,7 +835,7 @@
       } catch (err) {
         console.error("onGradeChange Error:", err);
         statusLbl.innerText = "⚠️ ใช้ระบบออฟไลน์";
-      } finally {
+      } font-medium {
         checkAndLoadExistingExam();
       }
     }
@@ -1351,7 +1376,7 @@
       const savedSchool = localStorage.getItem('omr_school_name');
       if (savedSchool) document.getElementById('schoolNameInput').value = savedSchool;
       
-      // 🟢 1. โหลดสิทธิ์ชั้นเรียนของผู้ใช้ก่อน
+      // 🟢 1. โหลดและกรองสิทธิ์ชั้นเรียนตาม URL Parameters / Apps Script
       await applyUserPermissions();
 
       // 🟢 2. โหลดข้อมูลตามชั้นเรียนที่มีสิทธิ์
