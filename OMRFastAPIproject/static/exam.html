@@ -444,7 +444,7 @@
   <script>
    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwdNlLZw_5dT8pqAnxPSh7-TYuJe0s5sgaQ6BfYz_JLyWjoxyuOTggFI1WZhB1U9Gs/exec";
     const THAI_CHOICES = ['ก', 'ข', 'ค', 'ง'];
-const SCHOOL_LOGO_SVG = `<img src="https://raw.githubusercontent.com/artchanchai/Bannawanoi/main/IMG_4847.jpeg" class="w-6 h-6 inline-block object-contain" alt="School Logo">`;
+const SCHOOL_LOGO_SVG = `<img src="https://raw.githubusercontent.com/artchanchai/Bannawanoi/main/IMG_4847.jpeg" class="w-12 h-12 inline-block object-contain" alt="School Logo">`;
 
     function getSubjectTheme(subjectName) {
       if (!subjectName) return { color: '#059669', bgBadge: '#059669' };
@@ -652,7 +652,7 @@ const SCHOOL_LOGO_SVG = `<img src="https://raw.githubusercontent.com/artchanchai
                 <span class="text-white px-2 py-0.5 rounded text-[8px] font-black" style="background-color: ${theme.bgBadge}">ชุด ${setVal}</span>
               </div>
               <div class="flex flex-col items-center">
-                <div class="scale-75 origin-center">${SCHOOL_LOGO_SVG}</div>
+                <div class="flex justify-center mb-0.5">${SCHOOL_LOGO_SVG}</div>
                 <h3 class="font-bold text-slate-900 text-[9.5px] leading-tight mt-0.5">${schoolName}</h3>
               </div>
               <div class="text-right">
