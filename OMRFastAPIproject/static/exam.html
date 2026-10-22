@@ -76,10 +76,10 @@
         </div>
         <div>
           <div class="flex items-center space-x-2">
-            <h1 class="text-sm sm:text-base font-bold text-slate-900 leading-tight">ระบบพิมพ์กระดาษคำตอบ OMR 40 ข้อ</h1>
+            <h1 class="text-sm sm:text-base font-bold text-slate-900 leading-tight">ระบบพิมพ์กระดาษคำตอบแบบตรวจอัตโนมัติ โรงเรียนบ้านนาหว้าน้อย</h1>
             <span class="bg-indigo-100 text-indigo-700 text-[10px] px-2 py-0.5 rounded-full font-bold">เชื่อมต่อ ปพ.5</span>
           </div>
-          <p class="text-[11px] sm:text-xs text-slate-400">ระบบ Image Processing ตรวจจริง + QR Code ล็อกตัวตนนักเรียน</p>
+          <p class="text-[11px] sm:text-xs text-slate-400">Image Processing ตรวจจริง + QR Code ล็อกตัวตนนักเรียน</p>
         </div>
       </div>
 
@@ -442,9 +442,12 @@
 
   <!-- JAVASCRIPT -->
   <script>
-   const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwdNlLZw_5dT8pqAnxPSh7-TYuJe0s5sgaQ6BfYz_JLyWjoxyuOTggFI1WZhB1U9Gs/exec";
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwdNlLZw_5dT8pqAnxPSh7-TYuJe0s5sgaQ6BfYz_JLyWjoxyuOTggFI1WZhB1U9Gs/exec";
     const THAI_CHOICES = ['ก', 'ข', 'ค', 'ง'];
-const SCHOOL_LOGO_SVG = `<img src="https://raw.githubusercontent.com/artchanchai/Bannawanoi/main/IMG_4847.jpeg" class="w-12 h-12 inline-block object-contain" alt="School Logo">`;
+    const SCHOOL_LOGO_SVG = `<img src="https://raw.githubusercontent.com/artchanchai/Bannawanoi/main/IMG_4847.jpeg" class="w-12 h-12 inline-block object-contain" alt="School Logo">`;
+
+    // 🟢 รหัสผู้ใช้งานปัจจุบัน (สามารถปรับให้ดึงจากระบบ Login หรือ LocalStorage)
+    const currentUserId = localStorage.getItem('omr_user_id') || "USER01";
 
     function getSubjectTheme(subjectName) {
       if (!subjectName) return { color: '#059669', bgBadge: '#059669' };
@@ -462,6 +465,50 @@ const SCHOOL_LOGO_SVG = `<img src="https://raw.githubusercontent.com/artchanchai
     let currentExamData = null;
     let currentScannedData = null;
     let editingExamId = null;
+
+    /**
+     * 🟢 ฟังก์ชันดึงสิทธิ์และสร้างตัวเลือกชั้นเรียนตามสิทธิ์ผู้เข้าใช้งาน (P1, P2...)
+     */
+    async function applyUserPermissions() {
+      try {
+        const res = await fetch(`${SCRIPT_URL}?action=getUserPermissions&userId=${encodeURIComponent(currentUserId)}`);
+        const data = await res.json();
+        
+        if (data && data.success && Array.isArray(data.permissions) && data.permissions.length > 0) {
+          const allowed = data.permissions; // เช่น ["ป.1", "ป.2"]
+
+          const allGrades = [
+            { val: "ป.1", text: "ชั้นประถมศึกษาปีที่ 1" },
+            { val: "ป.2", text: "ชั้นประถมศึกษาปีที่ 2" },
+            { val: "ป.3", text: "ชั้นประถมศึกษาปีที่ 3" },
+            { val: "ป.4", text: "ชั้นประถมศึกษาปีที่ 4" },
+            { val: "ป.5", text: "ชั้นประถมศึกษาปีที่ 5" },
+            { val: "ป.6", text: "ชั้นประถมศึกษาปีที่ 6" }
+          ];
+
+          const filtered = allGrades.filter(g => allowed.includes(g.val));
+
+          if (filtered.length > 0) {
+            const gradeSelect = document.getElementById('gradeLevel');
+            const scannerGradeSelect = document.getElementById('scannerGradeFilter');
+
+            if (gradeSelect) {
+              gradeSelect.innerHTML = filtered.map((g, idx) => 
+                `<option value="${g.val}" ${idx === 0 ? 'selected' : ''}>${g.text}</option>`
+              ).join('');
+            }
+
+            if (scannerGradeSelect) {
+              scannerGradeSelect.innerHTML = filtered.map((g, idx) => 
+                `<option value="${g.val}" ${idx === 0 ? 'selected' : ''}>ชั้น ${g.val}</option>`
+              ).join('');
+            }
+          }
+        }
+      } catch (err) {
+        console.warn("Permission loading fallback to defaults:", err);
+      }
+    }
 
     function toggleSubjectiveSection() {
       const hasSubjective = document.getElementById('hasSubjectiveExam').checked;
@@ -860,7 +907,6 @@ const SCHOOL_LOGO_SVG = `<img src="https://raw.githubusercontent.com/artchanchai
         courseId: course.id, answerKey: answerKey
       };
 
-      // บันทึกลง Local Storage เสมอกันข้อมูลสูญหาย
       const existIdx = allSavedExams.findIndex(x => x.examId === finalExamId);
       if (existIdx >= 0) allSavedExams[existIdx] = payload;
       else allSavedExams.push(payload);
@@ -880,7 +926,12 @@ const SCHOOL_LOGO_SVG = `<img src="https://raw.githubusercontent.com/artchanchai
       }
     }
 
-  function generateSheets(isPersonalized) {
+    function generateSheets(isPersonalized) {
+      if (isPersonalized && (!studentsList || studentsList.length === 0)) {
+        alert("⚠️ ยังไม่พบข้อมูลรายชื่อนักเรียนจาก ปพ.5 ในระบบ\nกรุณาเลือกระดับชั้นเรียนและรอให้รายชื่อโหลดเสร็จสิ้นก่อนครับ");
+        return;
+      }
+
       const courseIdx = document.getElementById('courseSelect').value;
       const course = coursesList[courseIdx] || { code: 'วิชา', name: 'รายวิชา' };
       const grade = document.getElementById('gradeLevel').value;
@@ -895,9 +946,10 @@ const SCHOOL_LOGO_SVG = `<img src="https://raw.githubusercontent.com/artchanchai
       const printContainer = document.getElementById('printContainer');
       printContainer.innerHTML = '';
 
-      let items = !isPersonalized ? [{ rollNo: '......', studentId: '', studentName: '................................................................' }] : studentsList;
+      let items = (!isPersonalized || !studentsList || studentsList.length === 0) 
+        ? [{ rollNo: '......', studentId: '', studentName: '................................................................' }] 
+        : studentsList;
 
-      // 1. สร้างโครงสร้างกระดาษคำตอบ
       for (let p = 0; p < items.length; p++) {
         const stu = items[p];
         const singleDiv = document.createElement('div');
@@ -915,7 +967,6 @@ const SCHOOL_LOGO_SVG = `<img src="https://raw.githubusercontent.com/artchanchai
         printContainer.appendChild(singleDiv);
       }
 
-      // 2. วาดภาพ QR Code ลงในกระดาษคำตอบ
       for (let i = 0; i < items.length; i++) {
         const item = items[i];
         const qrText = item.studentId ? `STU:${item.studentId}-ROLL:${item.rollNo}` : `BLANK-STUDENT`;
@@ -926,13 +977,11 @@ const SCHOOL_LOGO_SVG = `<img src="https://raw.githubusercontent.com/artchanchai
         }
       }
 
-      // 3. หน่วงเวลา 500ms ให้ระบบวาดภาพเสร็จสมบูรณ์แล้วเปิดหน้าต่างสั่งพิมพ์
       setTimeout(() => {
         window.print();
       }, 500);
     }
 
-    /* 🟢 โหลดคลังข้อสอบแบบมี Timeout ไม่ให้ค้าง */
     async function loadExamsList() {
       const tbody = document.getElementById('examsTableBody');
       if (!tbody) return;
@@ -1298,9 +1347,14 @@ const SCHOOL_LOGO_SVG = `<img src="https://raw.githubusercontent.com/artchanchai
       link.click();
     }
 
-    window.onload = () => {
+    window.onload = async () => {
       const savedSchool = localStorage.getItem('omr_school_name');
       if (savedSchool) document.getElementById('schoolNameInput').value = savedSchool;
+      
+      // 🟢 1. โหลดสิทธิ์ชั้นเรียนของผู้ใช้ก่อน
+      await applyUserPermissions();
+
+      // 🟢 2. โหลดข้อมูลตามชั้นเรียนที่มีสิทธิ์
       calculateWeightPerQuestion();
       renderKeyInputs();
       onGradeChange(false);
