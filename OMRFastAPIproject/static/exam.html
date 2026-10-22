@@ -880,7 +880,7 @@ const SCHOOL_LOGO_SVG = `<img src="https://raw.githubusercontent.com/artchanchai
       }
     }
 
-    function generateSheets(isPersonalized) {
+  function generateSheets(isPersonalized) {
       const courseIdx = document.getElementById('courseSelect').value;
       const course = coursesList[courseIdx] || { code: 'วิชา', name: 'รายวิชา' };
       const grade = document.getElementById('gradeLevel').value;
@@ -894,10 +894,10 @@ const SCHOOL_LOGO_SVG = `<img src="https://raw.githubusercontent.com/artchanchai
 
       const printContainer = document.getElementById('printContainer');
       printContainer.innerHTML = '';
-      printContainer.style.display = 'block';
 
       let items = !isPersonalized ? [{ rollNo: '......', studentId: '', studentName: '................................................................' }] : studentsList;
 
+      // 1. สร้างโครงสร้างกระดาษคำตอบ
       for (let p = 0; p < items.length; p++) {
         const stu = items[p];
         const singleDiv = document.createElement('div');
@@ -915,19 +915,21 @@ const SCHOOL_LOGO_SVG = `<img src="https://raw.githubusercontent.com/artchanchai
         printContainer.appendChild(singleDiv);
       }
 
-      setTimeout(() => {
-        for (let i = 0; i < items.length; i++) {
-          const item = items[i];
-          const qrText = item.studentId ? `STU:${item.studentId}-ROLL:${item.rollNo}` : `BLANK-STUDENT`;
-          const elem = document.getElementById(`print_qr_${i}`);
-          if (elem) {
-            elem.innerHTML = '';
-            new QRCode(elem, { text: qrText, width: 85, height: 85 });
-          }
+      // 2. วาดภาพ QR Code ลงในกระดาษคำตอบ
+      for (let i = 0; i < items.length; i++) {
+        const item = items[i];
+        const qrText = item.studentId ? `STU:${item.studentId}-ROLL:${item.rollNo}` : `BLANK-STUDENT`;
+        const elem = document.getElementById(`print_qr_${i}`);
+        if (elem) {
+          elem.innerHTML = '';
+          new QRCode(elem, { text: qrText, width: 85, height: 85 });
         }
+      }
+
+      // 3. หน่วงเวลา 500ms ให้ระบบวาดภาพเสร็จสมบูรณ์แล้วเปิดหน้าต่างสั่งพิมพ์
+      setTimeout(() => {
         window.print();
-        setTimeout(() => { printContainer.innerHTML = ''; printContainer.style.display = 'none'; }, 500);
-      }, 300);
+      }, 500);
     }
 
     /* 🟢 โหลดคลังข้อสอบแบบมี Timeout ไม่ให้ค้าง */
