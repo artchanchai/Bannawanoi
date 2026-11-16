@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="th"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>เข้าสู่ระบบครู | โรงเรียนบ้านนาหว้าน้อย</title>
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+<style>*{box-sizing:border-box}body{margin:0;min-height:100vh;background:linear-gradient(145deg,#ecfdf5,#f8fafc 55%,#e0f2fe);font-family:system-ui,Tahoma,sans-serif;display:grid;place-items:center;padding:20px;color:#0f172a}.panel{width:min(100%,470px);background:white;border:1px solid #dceee7;border-radius:24px;padding:32px;text-align:center;box-shadow:0 20px 65px #0f766e15}h1{font-size:24px}p{font-size:14px;color:#64748b;line-height:1.7}#googleButton{display:flex;justify-content:center;margin:24px 0}#message{min-height:24px}.error{color:#be123c}a{color:#047857}</style>
+</head><body><main class="panel"><p>ระบบสารสนเทศโรงเรียนบ้านนาหว้าน้อย</p><h1>เข้าสู่ระบบคุณครู</h1><p>ใช้ Gmail ที่โรงเรียนอนุญาต ไม่ต้องกรอกรหัสผ่านกับเว็บไซต์โรงเรียน</p><div id="googleButton"></div><p id="message" role="status" aria-live="polite"></p><p><a href="./">กลับหน้าเว็บไซต์โรงเรียน</a></p></main>
+<form id="loginPost" method="POST" action="REPLACE_WITH_APPS_SCRIPT_EXEC_URL" style="display:none">
+  <input name="credential" id="credential" type="hidden">
+  <input name="nonce" id="nonce" type="hidden">
+</form>
+<script>
+// REPLACE THESE TWO VALUES BEFORE UPLOADING TO GITHUB:
+const CLIENT_ID = 'REPLACE_WITH_WEB_OAUTH_CLIENT_ID';
+const SCRIPT_URL = 'REPLACE_WITH_APPS_SCRIPT_EXEC_URL';
+const $=id=>document.getElementById(id);
+let busy=false;
+function msg(s,error=false){$('message').textContent=s;$('message').className=error?'error':'';}
+function makeNonce(){const bytes=new Uint8Array(32);crypto.getRandomValues(bytes);return [...bytes].map(x=>x.toString(16).padStart(2,'0')).join('');}
+const nonce=makeNonce();
+function onCredential(result){
+ if(busy)return;
+ if(!result?.credential){msg('ไม่ได้รับข้อมูลยืนยันตัวตนจาก Google',true);return;}
+ busy=true;msg('กำลังตรวจสอบบัญชี Google...');
+ $('credential').value=result.credential;
+ $('nonce').value=nonce;
+ $('loginPost').action=SCRIPT_URL;
+ $('loginPost').submit();
+}
+function start(attempt=0){
+ if(!CLIENT_ID.endsWith('.apps.googleusercontent.com')||!/^https:\/\/script\.google\.com\/macros\/s\/[^/]+\/exec$/.test(SCRIPT_URL)){
+  msg('ยังไม่ได้ตั้งค่า CLIENT_ID หรือ SCRIPT_URL ในไฟล์ teacher-login.html',true);return;
+ }
+ if(!window.google?.accounts?.id){if(attempt<40)setTimeout(()=>start(attempt+1),250);else msg('โหลด Google Sign-In ไม่สำเร็จ',true);return;}
+ google.accounts.id.initialize({client_id:CLIENT_ID,callback:onCredential,ux_mode:'popup',nonce});
+ google.accounts.id.renderButton($('googleButton'),{theme:'outline',size:'large',shape:'pill',width:280});
+}
+window.addEventListener('load',()=>start());
+</script></body></html>
