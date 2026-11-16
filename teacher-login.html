@@ -4,14 +4,14 @@
 <script src="https://accounts.google.com/gsi/client" async defer></script>
 <style>*{box-sizing:border-box}body{margin:0;min-height:100vh;background:linear-gradient(145deg,#ecfdf5,#f8fafc 55%,#e0f2fe);font-family:system-ui,Tahoma,sans-serif;display:grid;place-items:center;padding:20px;color:#0f172a}.panel{width:min(100%,470px);background:white;border:1px solid #dceee7;border-radius:24px;padding:32px;text-align:center;box-shadow:0 20px 65px #0f766e15}h1{font-size:24px}p{font-size:14px;color:#64748b;line-height:1.7}#googleButton{display:flex;justify-content:center;margin:24px 0}#message{min-height:24px}.error{color:#be123c}a{color:#047857}</style>
 </head><body><main class="panel"><p>ระบบสารสนเทศโรงเรียนบ้านนาหว้าน้อย</p><h1>เข้าสู่ระบบคุณครู</h1><p>ใช้ Gmail ที่โรงเรียนอนุญาต ไม่ต้องกรอกรหัสผ่านกับเว็บไซต์โรงเรียน</p><div id="googleButton"></div><p id="message" role="status" aria-live="polite"></p><p><a href="./">กลับหน้าเว็บไซต์โรงเรียน</a></p></main>
-<form id="loginPost" method="POST" action="https://script.google.com/macros/s/AKfycbxxMaJ3D0NwKAZvuxIkMwOehC_ZgUDyoVjAsFRUbLkRAwkpNHBGWPqukVZLvvGbQUpllA/exec" style="display:none">
+<form id="loginPost" method="POST" action="https://script.google.com/macros/s/AKfycbwKqaiR9B52id2WrIkN_E5m949vOIZbjiZIlH2pbfksPNqy8ctnd06nIHAnjsDn5W343w/exec" style="display:none">
   <input name="credential" id="credential" type="hidden">
   <input name="nonce" id="nonce" type="hidden">
 </form>
 <script>
 // REPLACE THESE TWO VALUES BEFORE UPLOADING TO GITHUB:
 const CLIENT_ID = '422732693443-9l6ac8u8tljg66skkkgg0grnr7rr4ab3.apps.googleusercontent.com';
-const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxxMaJ3D0NwKAZvuxIkMwOehC_ZgUDyoVjAsFRUbLkRAwkpNHBGWPqukVZLvvGbQUpllA/exec';
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwKqaiR9B52id2WrIkN_E5m949vOIZbjiZIlH2pbfksPNqy8ctnd06nIHAnjsDn5W343w/exec';
 const $=id=>document.getElementById(id);
 let busy=false;
 function msg(s,error=false){$('message').textContent=s;$('message').className=error?'error':'';}
